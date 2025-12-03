@@ -1,18 +1,17 @@
 package com.example.backend.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
-public class User {
+public class Contact {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String username;
     private String email;
-    @JsonIgnore
-    private String password;
+    private String name;
 
-    public User() {
+    private Long ownerId;
+
+    public Contact() {
     }
 }
