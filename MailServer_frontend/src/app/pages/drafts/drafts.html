@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Drafts Component</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: '#137fec',
+              'background-light': '#f6f7f8',
+              'background-dark': '#101922',
+            },
+            fontFamily: {
+              display: ['Inter', 'sans-serif'],
+            },
+            borderRadius: { DEFAULT: '0.25rem', lg: '0.5rem', xl: '0.75rem', full: '9999px' },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+    </style>
+  </head>
+  <body class="bg-background-light dark:bg-background-dark">
+    <div
+      class="relative flex min-h-screen w-full flex-col font-display group/design-root overflow-x-hidden"
+    >
+      <div class="flex flex-grow">
+        <!-- SideNavBar -->
+        <aside
+          class="flex h-screen min-h-full w-64 flex-col border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-background-dark p-4"
+        >
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-3 px-2">
+              <div
+                class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+                data-alt="User avatar of Eleanor Vance"
+                style="
+                  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCMSSUljiSO1pCoQxoJ0ElknhRadBUVyD8hDwyi3i5in6Gn5MPe2zf4DRJcRrAvupZq6bqmyr85SRrrH8aI9FsVwJPrEaIZWKOLx_IPf8Xzp0LLAmNnHKRAeFJgmhje4bUa2nKB1HZgDdHeADvBD7KFaoaG5h8CEGoHycBgX41J0mTVfHUy9MImELDputc0Jwk-zIkwO9wSEjI9cFVOtfKZJPMN8dLvbOgrjU396BwGwchfptHrr_jQZcrexrZZj9zTQ1Rklal4upc');
+                "
+              ></div>
+              <div class="flex flex-col">
+                <h1 class="text-gray-900 dark:text-white text-base font-medium leading-normal">
+                  Eleanor Vance
+                </h1>
+                <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">
+                  eleanor.v@example.com
+                </p>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1 mt-4">
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-gray-800 dark:text-gray-200"
+                  >inbox</span
+                >
+                <p class="text-sm font-medium leading-normal">Inbox</p>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-gray-800 dark:text-gray-200">send</span>
+                <p class="text-sm font-medium leading-normal">Sent</p>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 dark:bg-primary/30"
+                href="#"
+              >
+                <span
+                  class="material-symbols-outlined text-primary dark:text-primary-300"
+                  style="font-variation-settings: 'FILL' 1"
+                  >drafts</span
+                >
+                <p class="text-primary dark:text-primary-300 text-sm font-medium leading-normal">
+                  Drafts
+                </p>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-gray-800 dark:text-gray-200"
+                  >report</span
+                >
+                <p class="text-sm font-medium leading-normal">Spam</p>
+              </a>
+              <a
+                class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                href="#"
+              >
+                <span class="material-symbols-outlined text-gray-800 dark:text-gray-200"
+                  >delete</span
+                >
+                <p class="text-sm font-medium leading-normal">Trash</p>
+              </a>
+            </div>
+          </div>
+          <button
+            class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 mt-auto bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90"
+          >
+            <span class="truncate">New Email</span>
+          </button>
+        </aside>
+        <!-- Main Content -->
+        <main class="flex-1 p-8">
+          <div class="w-full max-w-7xl mx-auto">
+            <!-- PageHeading -->
+            <div class="flex flex-wrap justify-between gap-3 p-4">
+              <p
+                class="text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em] min-w-72"
+              >
+                Drafts
+              </p>
+            </div>
+            <div
+              class="bg-white dark:bg-background-dark/50 rounded-lg border border-gray-200 dark:border-gray-700 mt-4"
+            >
+              <!-- ToolBar -->
+              <div
+                class="flex justify-between items-center gap-2 px-4 py-3 border-b border-gray-200 dark:border-gray-700"
+              >
+                <div class="flex items-center gap-2">
+                  <input
+                    class="h-5 w-5 rounded border-gray-300 dark:border-gray-600 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-1 focus:ring-primary dark:focus:ring-offset-background-dark"
+                    type="checkbox"
+                  />
+                  <button
+                    class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg disabled:opacity-50"
+                    disabled=""
+                  >
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                  <button
+                    class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                  >
+                    <span class="material-symbols-outlined">refresh</span>
+                  </button>
+                </div>
+              </div>
+              <!-- Table -->
+              <div class="px-4 py-3 @container">
+                <div class="flex overflow-hidden">
+                  <table class="w-full">
+                    <thead>
+                      <tr class="border-b border-gray-200 dark:border-gray-700">
+                        <th class="px-4 py-3 text-left w-12"></th>
+                        <th
+                          class="px-4 py-3 text-left text-gray-800 dark:text-gray-300 text-sm font-medium leading-normal w-1/4"
+                        >
+                          Recipient
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-gray-800 dark:text-gray-300 text-sm font-medium leading-normal w-1/2"
+                        >
+                          Subject
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-gray-800 dark:text-gray-300 text-sm font-medium leading-normal"
+                        >
+                          Last Modified
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-gray-500 dark:text-gray-400 text-sm font-medium leading-normal"
+                        >
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 group"
+                      >
+                        <td class="h-[72px] px-4 py-2">
+                          <input
+                            class="h-5 w-5 rounded border-gray-300 dark:border-gray-600 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-1 focus:ring-primary dark:focus:ring-offset-background-dark"
+                            type="checkbox"
+                          />
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-normal leading-normal"
+                        >
+                          Aria Monroe
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal"
+                        >
+                          Project Phoenix Kick-off
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em]"
+                        >
+                          2 hours ago
+                        </td>
+                        <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+                          <div
+                            class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <button
+                              class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            >
+                              <span class="material-symbols-outlined text-xl">edit</span>
+                            </button>
+                            <button
+                              class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            >
+                              <span class="material-symbols-outlined text-xl">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr
+                        class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 group"
+                      >
+                        <td class="h-[72px] px-4 py-2">
+                          <input
+                            class="h-5 w-5 rounded border-gray-300 dark:border-gray-600 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-1 focus:ring-primary dark:focus:ring-offset-background-dark"
+                            type="checkbox"
+                          />
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-normal leading-normal"
+                        >
+                          Liam Gallagher
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal"
+                        >
+                          Re: Q2 Financial Report
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em]"
+                        >
+                          Yesterday
+                        </td>
+                        <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+                          <div
+                            class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <button
+                              class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            >
+                              <span class="material-symbols-outlined text-xl">edit</span>
+                            </button>
+                            <button
+                              class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            >
+                              <span class="material-symbols-outlined text-xl">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr
+                        class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 group"
+                      >
+                        <td class="h-[72px] px-4 py-2">
+                          <input
+                            class="h-5 w-5 rounded border-gray-300 dark:border-gray-600 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-1 focus:ring-primary dark:focus:ring-offset-background-dark"
+                            type="checkbox"
+                          />
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-normal leading-normal"
+                        >
+                          s.chen@corp.net
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal italic"
+                        >
+                          (no subject)
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em]"
+                        >
+                          Mar 15
+                        </td>
+                        <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+                          <div
+                            class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <button
+                              class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            >
+                              <span class="material-symbols-outlined text-xl">edit</span>
+                            </button>
+                            <button
+                              class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            >
+                              <span class="material-symbols-outlined text-xl">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr
+                        class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 group"
+                      >
+                        <td class="h-[72px] px-4 py-2">
+                          <input
+                            class="h-5 w-5 rounded border-gray-300 dark:border-gray-600 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-1 focus:ring-primary dark:focus:ring-offset-background-dark"
+                            type="checkbox"
+                          />
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-normal leading-normal"
+                        >
+                          Marketing Team
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal"
+                        >
+                          Weekly Newsletter Draft
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em]"
+                        >
+                          Mar 14
+                        </td>
+                        <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+                          <div
+                            class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <button
+                              class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            >
+                              <span class="material-symbols-outlined text-xl">edit</span>
+                            </button>
+                            <button
+                              class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            >
+                              <span class="material-symbols-outlined text-xl">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 group">
+                        <td class="h-[72px] px-4 py-2">
+                          <input
+                            class="h-5 w-5 rounded border-gray-300 dark:border-gray-600 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-1 focus:ring-primary dark:focus:ring-offset-background-dark"
+                            type="checkbox"
+                          />
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-normal leading-normal"
+                        >
+                          Dr. Evans
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal"
+                        >
+                          Follow-up on our meeting
+                        </td>
+                        <td
+                          class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em]"
+                        >
+                          Mar 12
+                        </td>
+                        <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+                          <div
+                            class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <button
+                              class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            >
+                              <span class="material-symbols-outlined text-xl">edit</span>
+                            </button>
+                            <button
+                              class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            >
+                              <span class="material-symbols-outlined text-xl">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <!-- Pagination -->
+              <div
+                class="flex items-center justify-end p-4 border-t border-gray-200 dark:border-gray-700"
+              >
+                <a
+                  class="flex size-10 items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  href="#"
+                >
+                  <span class="material-symbols-outlined">chevron_left</span>
+                </a>
+                <a
+                  class="text-sm font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-full bg-primary"
+                  href="#"
+                  >1</a
+                >
+                <a
+                  class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                  href="#"
+                  >2</a
+                >
+                <a
+                  class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                  href="#"
+                  >3</a
+                >
+                <span
+                  class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-gray-700 dark:text-gray-300 rounded-full"
+                  >...</span
+                >
+                <a
+                  class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                  href="#"
+                  >10</a
+                >
+                <a
+                  class="flex size-10 items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  href="#"
+                >
+                  <span class="material-symbols-outlined">chevron_right</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
