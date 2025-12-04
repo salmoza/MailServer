@@ -1,5 +1,4 @@
 package com.example.backend.dtos;
 
-public class MailSummaryDto {
-
+public class AttatchmentDto {
 }

@@ -9,7 +9,10 @@ public class Attachment {
     private Long id;
     private String filetype;
     private String filePath;
-    private Long mailId;
+    @ManyToOne
+    @JoinColumn(name = "mail_id")
+    private Mail mail;
+
 
     public Attachment() {
     }
