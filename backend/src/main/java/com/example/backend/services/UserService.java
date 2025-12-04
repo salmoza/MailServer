@@ -1,7 +1,66 @@
 package com.example.backend.services;
 
+
+import com.example.backend.dtos.UserSigninDTO;
+import com.example.backend.dtos.UserSignupDTO;
+import com.example.backend.entities.User;
+import com.example.backend.repo.UserRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
+
+    @Autowired
+    private UserRepo userRepo;
+
+
+    public String signin(UserSigninDTO user) {
+
+
+        Optional<User> userOptional = userRepo.findByEmail(user.getEmail());
+
+
+        if (userOptional.isEmpty()) {
+            return "Email not found";
+        }
+
+
+        User actualUser = userOptional.get();
+
+
+        if (!actualUser.getPassword().equals(user.getPassword())) {
+            return "Wrong password";
+        }
+
+        return "Signed in successfully";
+    }
+
+
+    public String signup(UserSignupDTO user) {
+
+        if (userRepo.existsByEmail(user.getEmail())) {
+            return "Email already exists";
+        }
+
+        User newUser = new User();
+        newUser.setEmail(user.getEmail());
+        newUser.setPassword(user.getPassword());
+        newUser.setUsername(user.getUsername());
+
+        userRepo.save(newUser);
+
+        return "User created successfully";
+    }
+
+   /* For getting all the users
+    public List<User> getAllUsers() {
+        return userRepo.findAll() ;
+    }
+
+    */
 }
