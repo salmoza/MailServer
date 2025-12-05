@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ public class Mail {
 
     @ManyToMany(mappedBy = "mails")
     @JsonIgnore
-    private Set<Folder> folders;
+    private Set<Folder> folders = new HashSet<>() ;
 
     public String state;
     public Boolean isStarred;
