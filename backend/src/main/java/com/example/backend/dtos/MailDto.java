@@ -9,9 +9,8 @@ import java.util.List;
 @Getter
 @Setter
 public class MailDto {
-    public String mailId;
+
     public String userId;
-    public String folderId;
     private String receiver;
     private String sender;
     private String subject;

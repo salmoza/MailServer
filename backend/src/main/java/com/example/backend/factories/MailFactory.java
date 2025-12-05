@@ -5,7 +5,7 @@ import com.example.backend.dtos.MailDto;
 import com.example.backend.entities.Attachment;
 import com.example.backend.entities.Mail;
 
-import java.security.Timestamp;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,11 +24,11 @@ public class MailFactory {
         mail.setPriority(dto.getPriority());
 
 
-        /*if (dto.getDate() != null) {
-            mail.setDate(dto.getDate());  date ??
+        if (dto.getDate() != null) {
+            mail.setDate(dto.getDate());
         } else {
             mail.setDate(new Timestamp(System.currentTimeMillis()));
-        } */
+        }
 
 
         if (dto.getState() != null) {
