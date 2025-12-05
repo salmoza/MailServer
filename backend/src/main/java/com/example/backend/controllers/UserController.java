@@ -3,9 +3,13 @@ package com.example.backend.controllers;
 import com.example.backend.dtos.UserDto;
 //import com.example.backend.dtos.UserSigninDTO;
 //import com.example.backend.dtos.UserSignupDTO;
+import com.example.backend.dtos.UserSigninDTO;
+import com.example.backend.dtos.UserSignupDTO;
 import com.example.backend.entities.User;
 import com.example.backend.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,13 +23,14 @@ public class UserController {
 
 
     @PostMapping("/signin")
-    public String signin (@RequestBody UserDto user) {
+    public String signin (@RequestBody UserSigninDTO user) {
         return userService.signin(user) ;
     }
 
     @PostMapping("/signup")
-    public String signup (@RequestBody  UserDto user) {
-        return userService.signup(user) ;
+    public ResponseEntity<?>  signup (@Valid @RequestBody UserSignupDTO user) {
+        String result = userService.signup(user) ;
+        return ResponseEntity.ok(result) ;
     }
 
     /* For getting all the users
