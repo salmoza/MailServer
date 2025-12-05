@@ -1,5 +1,6 @@
 package com.example.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class Mail {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String mailId;
+    private String userId;
     private String receiverEmail;
     private String senderEmail;
     private int priority;
@@ -24,6 +26,7 @@ public class Mail {
     private String body;
     @OneToMany(mappedBy = "mail", cascade = CascadeType.ALL)
     private List<Attachment> attachments;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     public Timestamp date;
 
     @ManyToMany(mappedBy = "mails")

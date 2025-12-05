@@ -31,11 +31,20 @@ public class User {
         if (folders == null) return null;
 
         for (Folder folder : folders) {
-            if (folder.getFolderName().equalsIgnoreCase("Inbox")) {
+            if (folder.getFolderName().equals("Inbox")) {
                 return folder.getFolderId();
             }
         }
 
         return null;
     }
-}
+
+    public String getSentFolderId() {
+        if (folders == null) return null;
+
+        for (Folder folder : folders) {
+            if (folder.getFolderName().equals("Sent")) {
+                return folder.getFolderId();
+            }
+        } return null ;
+    } }

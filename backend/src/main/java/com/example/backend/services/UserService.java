@@ -64,10 +64,10 @@ public class UserService {
 //        return "User created successfully";
     }
 
-   /* For getting all the users
+
     public List<User> getAllUsers() {
         return userRepo.findAll() ;
     }
 
-    */
+
 }
