@@ -7,10 +7,9 @@ import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.List;
 
 @Service
 public class FolderService {
@@ -35,17 +34,21 @@ public class FolderService {
     }
 
     public void deleteFolder(String userId, String folderId){
-        folderRepo.delete(folderRepo.findByFolderId(folderId));
+        folderRepo.delete(folderRepo.findByFolderIdAndUserUserId(folderId, userId));
     }
 
     public void addMail(String userId, String folderId, Mail mail){
-        Folder folder = folderRepo.findByFolderId(folderId);
+        Folder folder = folderRepo.findByFolderIdAndUserUserId(folderId, userId);
         folder.addMail(mail);
     }
 
     public void deleteMail(String userId, String folderId, Mail mail){
-        Folder folder = folderRepo.findByFolderId(folderId);
+        Folder folder = folderRepo.findByFolderIdAndUserUserId(folderId, userId);
         folder.deleteMail(mail);
+    }
+
+    public List<Folder> getFolders(String userId) {
+        return folderRepo.findByUserUserId(userId);
     }
 
     public void initialize(String userId) {

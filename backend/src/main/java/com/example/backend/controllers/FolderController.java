@@ -21,13 +21,13 @@ public class FolderController {
 
     @GetMapping("/{userId}")
     public List<Folder> getFolders(@PathVariable String userId) {
-        return folderRepo.findAll();
+        return folderService.getFolders(userId);
     }
 
-    @DeleteMapping("/{UserId}")
-    public void deleteFolders(){
-        folderRepo.deleteAll();
-    }
+//    @DeleteMapping("/{userId}")
+//    public void deleteFolders(){
+//        folderRepo.deleteAll();
+//    }
 
     @DeleteMapping("/{folderId}/{userId}")
     public void deleteFolder(@PathVariable String folderId, @PathVariable String userId){
