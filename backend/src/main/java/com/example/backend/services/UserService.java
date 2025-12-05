@@ -1,8 +1,10 @@
 package com.example.backend.services;
 
 
-import com.example.backend.dtos.UserDto;
-//import com.example.backend.dtos.UserSignupDTO;
+
+import com.example.backend.dtos.UserSignupDTO;
+import com.example.backend.dtos.UserSigninDTO;
+
 import com.example.backend.entities.User;
 import com.example.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,7 @@ public class UserService {
     private UserRepo userRepo;
 
 
-    public String signin(UserDto user) {
+    public String signin(UserSigninDTO user) {
 
 
         Optional<User> userOptional = userRepo.findByEmail(user.getEmail());
@@ -41,7 +43,7 @@ public class UserService {
     }
 
 
-    public String signup(UserDto user) {
+    public String signup(UserSignupDTO user) {
 
         if (userRepo.existsByEmail(user.getEmail())) {
             return "Email already exists";
