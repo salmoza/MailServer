@@ -1,6 +1,7 @@
 package com.example.backend.controllers;
 
 
+import com.example.backend.dtos.FolderDto;
 import com.example.backend.entities.Folder;
 import com.example.backend.repo.FolderRepo;
 import com.example.backend.services.FolderService;
@@ -18,24 +19,25 @@ public class FolderController {
     @Autowired
     private FolderService folderService;
 
-    @GetMapping
-    public List<Folder> getFolders(){
+    @GetMapping("/{userId}")
+    public List<Folder> getFolders(@PathVariable String userId) {
         return folderRepo.findAll();
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{UserId}")
     public void deleteFolders(){
         folderRepo.deleteAll();
     }
 
-    @DeleteMapping("/{folder_id}/{user_id}")
-    public void deleteFolder(@PathVariable Long folder_id, @PathVariable Long user_id){
-        folderService.deleteFolder(user_id, folder_id);
+    @DeleteMapping("/{folderId}/{userId}")
+    public void deleteFolder(@PathVariable String folderId, @PathVariable String userId){
+        folderService.deleteFolder(userId, folderId);
     }
 
     @PostMapping
-    public Folder createFolder(@RequestBody Folder folder){
-        return folderService.createFolder();
+    public Folder createFolder(@RequestBody FolderDto folderDto){
+        System.out.println("createFolder");
+        return folderService.createFolder(folderDto.userId, folderDto.folderName);
     }
 
 

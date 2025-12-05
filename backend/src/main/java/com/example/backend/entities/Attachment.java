@@ -5,8 +5,8 @@ import jakarta.persistence.*;
 @Entity
 public class Attachment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String attachmentId;
     private String filetype;
     private String filePath;
     @ManyToOne

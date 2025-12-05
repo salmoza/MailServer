@@ -1,6 +1,5 @@
 package com.example.backend.dtos;
 
-import com.example.backend.entities.Attachment;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 public class MailDto {
-    public Long id;
+    public String mailId;
     public String userId;
     public String folderId;
     private String receiver;

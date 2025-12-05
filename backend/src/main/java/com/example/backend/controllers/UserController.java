@@ -1,7 +1,8 @@
 package com.example.backend.controllers;
 
-import com.example.backend.dtos.UserSigninDTO;
-import com.example.backend.dtos.UserSignupDTO;
+import com.example.backend.dtos.UserDto;
+//import com.example.backend.dtos.UserSigninDTO;
+//import com.example.backend.dtos.UserSignupDTO;
 import com.example.backend.entities.User;
 import com.example.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +19,12 @@ public class UserController {
 
 
     @PostMapping("/signin")
-    public String signin (@RequestBody  UserSigninDTO user) {
+    public String signin (@RequestBody UserDto user) {
         return userService.signin(user) ;
     }
 
     @PostMapping("/signup")
-    public String signup (@RequestBody  UserSignupDTO user) {
+    public String signup (@RequestBody  UserDto user) {
         return userService.signup(user) ;
     }
 

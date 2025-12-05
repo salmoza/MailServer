@@ -5,12 +5,12 @@ import jakarta.persistence.*;
 @Entity
 public class Contact {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String contactId;
     private String email;
     private String name;
 
-    private Long ownerId;
+    private String ownerId;
 
     public Contact() {
     }

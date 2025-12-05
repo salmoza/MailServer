@@ -14,13 +14,13 @@ import java.util.Set;
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
+//@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "folders")
 public class Folder {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String folderId;
     private String folderName;
 
     @ManyToOne
@@ -36,6 +36,11 @@ public class Folder {
     )
     @JsonIgnore
     private Set<Mail> mails;
+
+    public Folder(String folderName, User user) {
+        this.folderName = folderName;
+        this.user = user;
+    }
 
     public void addMail(Mail mail) {
         mails.add(mail);

@@ -6,7 +6,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface MailRepo extends JpaRepository<Mail,Long> {
-    public void deleteMailById(@Param("id") Long id);
+public interface MailRepo extends JpaRepository<Mail,String> {
+    public void deleteMailByMailId(@Param("mailId") String mailId);
 
 }

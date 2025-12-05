@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
+
 @Service
 public class FolderService {
     @Autowired
@@ -23,41 +25,36 @@ public class FolderService {
 
     //use lists of ids instead of just one for bulk deleting?
 
-    public Folder createFolder(Long userId, String folderName){
+    public Folder createFolder(String userId, String folderName){
         User user = userRepo.findByUserId(userId);
-        Folder folder = new Folder(null,folderName, null, null);
+//        System.out.println(user.getUserId());
+        Folder folder = new Folder(folderName, user);
+        System.out.println("folder created");
         userRepo.save(user);
         return folderRepo.save(folder);
     }
 
-    public void deleteFolder(Long userId, Long folderId){
+    public void deleteFolder(String userId, String folderId){
         folderRepo.delete(folderRepo.findByFolderId(folderId));
     }
 
-    public void addMail(Long userId, Long folderId, Mail mail){
+    public void addMail(String userId, String folderId, Mail mail){
         Folder folder = folderRepo.findByFolderId(folderId);
         folder.addMail(mail);
     }
 
-    public void deleteMail(Long userId, Long folderId, Mail mail){
+    public void deleteMail(String userId, String folderId, Mail mail){
         Folder folder = folderRepo.findByFolderId(folderId);
         folder.deleteMail(mail);
     }
 
-    public void initialize(Long userId) {
+    public void initialize(String userId) {
         createFolder(userId, "Inbox");
         createFolder(userId, "Drafts");
         createFolder(userId, "Sent");
-        Folder trash = createFolder(userId, "Trash");
-        this.autoDelete(trash.getId());
+        createFolder(userId, "Trash");
     }
 
-    @Scheduled(fixedDelay = 2592000000L)
-    public void autoDelete(Long folderId) {
-        Folder folder = folderRepo.findByFolderId(folderId);
-        for( Mail mail : folder.getMails() ){
-            mailRepo.delete(mail);
-        }
-    }
+
 
 }

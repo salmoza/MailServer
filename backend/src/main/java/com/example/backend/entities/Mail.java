@@ -15,8 +15,8 @@ import java.util.Set;
 @Setter
 public class Mail {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String mailId;
     private String receiverEmail;
     private String senderEmail;
     private int priority;
