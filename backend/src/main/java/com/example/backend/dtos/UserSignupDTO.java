@@ -10,15 +10,12 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserSignupDTO {
-
     @NotBlank(message = "username is required")
     @Size(min = 3, max = 30 , message = "Username must be between 3,30 letters to be accepted")
     private String username ;
-
     @NotBlank(message = "email is required")
     @Email(message = "email is not valid")
     private String email ;
-
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters long")
     @Pattern(
@@ -26,6 +23,4 @@ public class UserSignupDTO {
             message = "Password must contain an uppercase letter, a lowercase letter, and a number"
     )
     private String password ;
-
-
 }

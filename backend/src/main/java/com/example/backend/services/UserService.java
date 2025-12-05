@@ -8,6 +8,7 @@ import com.example.backend.dtos.UserSigninDTO;
 import com.example.backend.entities.User;
 import com.example.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 
@@ -31,7 +32,7 @@ public class UserService {
 
 
         if (userOptional == null ) {
-            return "Email not found";
+           return "Email not found";
         }
 
 
@@ -39,17 +40,17 @@ public class UserService {
 
 
         if (!actualUser.getPassword().equals(user.getPassword())) {
-            return "Wrong password";
+            throw new IllegalArgumentException("Wrong password");
         }
 
         return actualUser.getUserId();
     }
 
 
-    public String signup(UserSignupDTO user) {
+    public ResponseEntity<String> signup(UserSignupDTO user) {
 
         if (userRepo.existsByEmail(user.getEmail())) {
-            return "Email already exists";
+            return ResponseEntity.ofNullable("Email already exists");
         }
 
         User newUser = new User();
@@ -60,7 +61,7 @@ public class UserService {
         userRepo.save(newUser);
         folderService.initialize(newUser.getUserId());
 
-        return newUser.getUserId();
+        return ResponseEntity.ok(newUser.getUserId());
 //        return "User created successfully";
     }
 

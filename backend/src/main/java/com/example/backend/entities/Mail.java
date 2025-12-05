@@ -24,7 +24,7 @@ public class Mail {
     private int priority;
     private String subject;
     private String body;
-    @OneToMany(mappedBy = "mail", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "mail", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     private List<Attachment> attachments;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     public Timestamp date;
