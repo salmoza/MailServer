@@ -1,7 +1,7 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dtos.MailDto;
-import com.example.backend.services.MailService;
+import com.example.backend.services.mailService.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
