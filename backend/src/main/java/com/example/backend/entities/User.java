@@ -27,4 +27,15 @@ public class User {
     }
 
 
+    public String getInboxFolderId() {
+        if (folders == null) return null;
+
+        for (Folder folder : folders) {
+            if (folder.getFolderName().equalsIgnoreCase("Inbox")) {
+                return folder.getFolderId();
+            }
+        }
+
+        return null;
+    }
 }

@@ -20,19 +20,22 @@ public class UserService {
     @Autowired
     private UserRepo userRepo;
 
+    @Autowired
+    private FolderService folderService ; //for initialization
+
 
     public String signin(UserSigninDTO user) {
 
 
-        Optional<User> userOptional = userRepo.findByEmail(user.getEmail());
+        User userOptional = userRepo.findByEmail(user.getEmail());
 
 
-        if (userOptional.isEmpty()) {
+        if (userOptional == null ) {
             return "Email not found";
         }
 
 
-        User actualUser = userOptional.get();
+        User actualUser = userOptional ;
 
 
         if (!actualUser.getPassword().equals(user.getPassword())) {
@@ -55,6 +58,7 @@ public class UserService {
         newUser.setUsername(user.getUsername());
 
         userRepo.save(newUser);
+        folderService.initialize(newUser.getUserId());
 
         return newUser.getUserId();
 //        return "User created successfully";
