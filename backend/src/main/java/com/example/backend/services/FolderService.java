@@ -39,12 +39,15 @@ public class FolderService {
 
     public void addMail(String userId, String folderId, Mail mail){
         Folder folder = folderRepo.findByFolderIdAndUserUserId(folderId, userId);
+
         folder.addMail(mail);
+        folderRepo.save(folder);
     }
 
     public void deleteMail(String userId, String folderId, Mail mail){
         Folder folder = folderRepo.findByFolderIdAndUserUserId(folderId, userId);
         folder.deleteMail(mail);
+        folderRepo.save(folder) ;
     }
 
     public List<Folder> getFolders(String userId) {

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.PriorityQueue;
 import java.util.Set;
 
@@ -35,7 +36,7 @@ public class Folder {
             inverseJoinColumns = @JoinColumn(name = "mail_id")
     )
     @JsonIgnore
-    private Set<Mail> mails;
+    private Set<Mail> mails = new HashSet<>(); // to prepare the set
 
     public Folder(String folderName, User user) {
         this.folderName = folderName;
@@ -44,9 +45,11 @@ public class Folder {
 
     public void addMail(Mail mail) {
         mails.add(mail);
+        mail.getFolders().add(this);
     }
     public void deleteMail(Mail mail) {
         mails.remove(mail);
+        mail.getFolders().remove(this);
     }
 
 
