@@ -22,7 +22,7 @@ public class MailController {
     MailRepo mailRepo ;
 
     @PostMapping("/compose")
-    public String compose (@RequestBody MailDto mailDto ) {
+    public String compose (@RequestBody MailDto mailDto) {
         return mailService.createNewMail(mailDto) ;
     }
 

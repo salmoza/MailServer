@@ -1,4 +1,4 @@
-package com.example.backend.services.mailService;
+package com.example.backend.services.mailService;//package com.example.backend.services;
 
 import com.example.backend.dtos.MailDto;
 import com.example.backend.entities.Folder;
@@ -11,6 +11,8 @@ import com.example.backend.repo.UserRepo;
 import com.example.backend.services.FolderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class MailService {
@@ -31,14 +33,11 @@ public class MailService {
 
         Mail mail = MailFactory.create(dto);
 
-        mail.setUserId(userRepo.findByEmail(dto.getSender()).getUserId());
-
 
         mail = mailRepo.save(mail);
 
-        User sender = userRepo.findByEmail(dto.getSender()) ;
 
-        folderService.addMail(sender.getUserId() , sender.getSentFolderId(), mail);
+        folderService.addMail(dto.getSender(), dto.getFolderId(), mail);
 
 
         User receiver = userRepo.findByEmail(dto.getReceiver());

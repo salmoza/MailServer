@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -27,9 +26,9 @@ public class UserController {
     UserService userService ;
 
 
-    @PostMapping("/signin")
-    public ResponseEntity<Map<String, String>> signin (@RequestBody UserSigninDTO user) {
-        String userid = userService.signin(user);
+    @PostMapping("/signIn")
+    public ResponseEntity<Map<String, String>> signIn (@RequestBody UserSigninDTO user) {
+        String userid = userService.signIn(user);
         return ResponseEntity.ok(Map.of("userId",userid,"message","Login successful."));
     }
 
@@ -39,9 +38,9 @@ public class UserController {
     public Map<String, String> handelAuthException(IllegalArgumentException ex){
         return Map.of("error",ex.getMessage());
     }
-    @PostMapping("/signup")
-    public ResponseEntity<?>  signup (@Valid @RequestBody UserSignupDTO user) {
-        return ResponseEntity.ok(userService.signup(user)) ;
+    @PostMapping("/signUp")
+    public ResponseEntity<?> signUp(@Valid @RequestBody UserSignupDTO user) {
+        return ResponseEntity.ok(userService.signUp(user)) ;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

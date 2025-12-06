@@ -1,13 +1,12 @@
 package com.example.backend.factories;
 
-import com.example.backend.dtos.AttatchmentDto;
+import com.example.backend.dtos.AttachmentDto;
 import com.example.backend.entities.Attachment;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AttachmentFactory {
-    public  Attachment toEntity(AttatchmentDto dto){
+    public  Attachment toEntity(AttachmentDto dto){
         if(dto == null){
             return null;
         }
@@ -16,11 +15,11 @@ public class AttachmentFactory {
         att.setFilePath(dto.getFilePath());
         return att;
     }
-    public AttatchmentDto toDTO(Attachment entity) {
+    public AttachmentDto toDTO(Attachment entity) {
         if (entity == null) {
             return null;
         }
-        AttatchmentDto dto = new AttatchmentDto();
+        AttachmentDto dto = new AttachmentDto();
         dto.setId(entity.getAttachmentId());
         dto.setFiletype(entity.getFiletype());
 
