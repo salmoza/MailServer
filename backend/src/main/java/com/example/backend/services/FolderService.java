@@ -44,8 +44,8 @@ public class FolderService {
         folderRepo.save(folder);
     }
 
-    public void deleteMail(String userId, String folderId, Mail mail){
-        Folder folder = folderRepo.findByFolderIdAndUserUserId(folderId, userId);
+    public void deleteMail( String folderId, Mail mail){
+        Folder folder = folderRepo.findByFolderId(folderId);
         folder.deleteMail(mail);
         folderRepo.save(folder) ;
     }

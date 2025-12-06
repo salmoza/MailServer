@@ -1,9 +1,11 @@
 package com.example.backend.services.mailService;
 
 import com.example.backend.dtos.MailDto;
+import com.example.backend.entities.Folder;
 import com.example.backend.entities.Mail;
 import com.example.backend.entities.User;
 import com.example.backend.factories.MailFactory;
+import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.UserRepo;
 import com.example.backend.services.FolderService;
@@ -20,6 +22,9 @@ public class MailService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private FolderRepo folderRepo ;
 
     public String createNewMail(MailDto dto) {
 
@@ -40,5 +45,22 @@ public class MailService {
         folderService.addMail(receiver.getUserId(), receiver.getInboxFolderId(), mail);
 
         return mail.getMailId();
+    }
+
+    public void deleteMailById(String mailId , String folderId) {
+
+        Folder folder = folderRepo.findByFolderId(folderId) ;
+        Mail mail = mailRepo.findById(mailId)
+                .orElseThrow(() -> new RuntimeException("Mail not found"));
+
+        folderService.deleteMail( folderId , mail);
+
+        if (mail.getFolders()== null )
+        {mailRepo.delete(mail);
+
+        }
+
+
+
     }
 }

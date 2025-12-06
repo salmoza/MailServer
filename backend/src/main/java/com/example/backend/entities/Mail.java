@@ -19,7 +19,7 @@ public class Mail {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String mailId;
-    private String userId;
+    private String userId; // list of user id's ? when remove it from a folder ??
     private String receiverEmail;
     private String senderEmail;
     private int priority;
