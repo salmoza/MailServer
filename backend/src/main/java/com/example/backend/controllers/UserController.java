@@ -40,6 +40,7 @@ public class UserController {
     }
     @PostMapping("/signUp")
     public ResponseEntity<?> signUp(@Valid @RequestBody UserSignupDTO user) {
+        System.out.println("signing up");
         return ResponseEntity.ok(userService.signUp(user)) ;
     }
 

@@ -15,4 +15,5 @@ public interface MailRepo extends JpaRepository<Mail,String> {
     @Query("SELECT m FROM Mail m JOIN m.folders f WHERE f.folderId = :folderId")
     List<Mail> getMailsByFolderId(@Param("folderId") String folderId);
 
+    List<Mail> findAllByUserId(String userId);
 }

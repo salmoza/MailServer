@@ -22,8 +22,8 @@ public class ContactService {
     @Autowired
     private UserRepo userRepo;
 
-    @Autowired
-    private ContactFactory contactFactory;
+//    @Autowired
+    private ContactFactory contactFactory =  new ContactFactory();
 
     public ContactDto createContact (String userId, ContactDto dto) {
         User owner = userRepo.findByUserId(userId)

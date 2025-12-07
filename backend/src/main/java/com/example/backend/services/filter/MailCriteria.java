@@ -1,4 +1,4 @@
-package com.example.backend.specifications;
+package com.example.backend.services.filter;
 
 import com.example.backend.entities.Mail;
 

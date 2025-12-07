@@ -9,9 +9,14 @@ import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.UserRepo;
 import com.example.backend.services.FolderService;
+import com.example.backend.services.filter.AndCriteria;
+import com.example.backend.services.filter.MailCriteria;
+import com.example.backend.services.filter.SenderCriteria;
+import com.example.backend.services.filter.SubjectCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -58,8 +63,30 @@ public class MailService {
         {mailRepo.delete(mail);
 
         }
-
-
-
     }
+
+    public List<Mail> filterEmails(String userId, String subject, String sender) {
+
+        List<Mail> emails = mailRepo.findAllByUserId(userId);
+
+        MailCriteria criteria = null;
+
+        if (subject != null) {
+            criteria = (criteria == null)
+                    ? new SubjectCriteria(subject)
+                    : new AndCriteria(criteria, new SubjectCriteria(subject));
+        }
+
+        if (sender != null) {
+            criteria = (criteria == null)
+                    ? new SenderCriteria(sender)
+                    : new AndCriteria(criteria, new SenderCriteria(sender));
+        }
+
+        if (criteria == null)
+            return emails;
+
+        return criteria.meetCriteria(emails);
+    }
+
 }

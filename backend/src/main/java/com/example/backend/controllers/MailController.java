@@ -44,4 +44,14 @@ public class MailController {
         return ResponseEntity.ok("Deleted " + ids.size() + " mails");
     }
 
+    @GetMapping("/filter")
+    public List<Mail> filter(
+            @RequestParam String userId,
+            @RequestParam(required = false) String subject,
+            @RequestParam(required = false) String sender) {
+
+        return mailService.filterEmails(userId, subject, sender);
+    }
+
+
 }
