@@ -38,11 +38,14 @@ public class MailService {
 
         Mail mail = MailFactory.create(dto);
 
+        mail.setUserId(userRepo.findByEmail(dto.getSender()).getUserId());
+
 
         mail = mailRepo.save(mail);
 
+        User sender = userRepo.findByEmail(dto.getSender()) ;
 
-        folderService.addMail(dto.getSender(), dto.getFolderId(), mail);
+        folderService.addMail(sender.getUserId() , sender.getSentFolderId(), mail);
 
 
         User receiver = userRepo.findByEmail(dto.getReceiver());

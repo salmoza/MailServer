@@ -26,8 +26,8 @@ public class ContactService {
     private ContactFactory contactFactory =  new ContactFactory();
 
     public ContactDto createContact (String userId, ContactDto dto) {
-        User owner = userRepo.findByUserId(userId)
-                .orElseThrow (() -> new RuntimeException("User not found"));
+        User owner = userRepo.findByUserId(userId) ;
+
 
         Contact contact = contactFactory.toEntity(dto, owner);
         contact = contactsRepo.save(contact);
@@ -56,8 +56,8 @@ public class ContactService {
     }
 
     public Page<ContactDto> searchContacts (String userId, String query, Pageable pageable) {
-        User owner = userRepo.findByUserId(userId)
-                .orElseThrow (() -> new RuntimeException("User not found"));
+        User owner = userRepo.findByUserId(userId) ;
+
         Page<Contact> result;
         if (query.contains("@")) {
             result = contactsRepo.findByOwnerAndEmailAddressContaining(owner, query, pageable);
@@ -70,8 +70,8 @@ public class ContactService {
 
     public Page<ContactDto> sortContacts(String userId, String sortBy, String order, Pageable pageable) {
 
-        User owner = userRepo.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User owner = userRepo.findByUserId(userId) ;
+
 
         Sort sort = order.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()

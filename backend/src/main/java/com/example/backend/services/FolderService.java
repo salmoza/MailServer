@@ -21,12 +21,9 @@ public class FolderService {
 
     @Autowired
     private MailRepo mailRepo;
-
-    //use lists of ids instead of just one for bulk deleting?
-
     public Folder createFolder(String userId, String folderName){
-        User user = userRepo.findByUserId(userId)
-                .orElseThrow (() -> new RuntimeException("User not found"));;
+        User user = userRepo.findByUserId(userId);
+//        System.out.println(user.getUserId());
         Folder folder = new Folder(folderName, user);
         System.out.println("folder created");
         userRepo.save(user);
