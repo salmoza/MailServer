@@ -4,6 +4,7 @@ import {Router, RouterLink} from '@angular/router';
 import {routes} from '../../app.routes';
 import {HttpClient,HttpClientModule} from '@angular/common/http';
 import {FormsModule} from '@angular/forms'; // Use RouterLink for Angular navigation
+import {AuthService} from '../../Auth/AuthService';
 
 @Component({
   selector: 'app-login',
@@ -227,7 +228,7 @@ import {FormsModule} from '@angular/forms'; // Use RouterLink for Angular naviga
   `],
 })
 export class Login {
-  constructor(private route:Router, private http:HttpClient) {}
+  constructor(private route:Router, private http:HttpClient,private authService:AuthService) {}
   issign_up: boolean = false;
   url: string = 'http://localhost:8080/user/';
   username: string = '';
@@ -238,12 +239,14 @@ login(){
     password:this.password,
     email:this.email,
   }
-  this.http.post(this.url+'signin',payload).subscribe({
+  this.http.post(this.url+'signIn',payload).subscribe({
     next:(response:any)=>{
+      this.authService.setAuthenticatedUser(response.userId);
     this.route.navigate(['/inbox']);
     },
     error:(response:any)=>{
-      alert(response.error.text);
+      console.log(response);
+      alert(response.error.error);
     }
   })
 }
@@ -253,8 +256,7 @@ sign_up(){
     email:this.email,
     username:this.username,
   }
-  console.log(payload)
-  this.http.post(this.url+'signup',payload).subscribe({
+  this.http.post(this.url+'signUp',payload).subscribe({
     next:(response:any)=>{
     this.issign_up=false;
     },
