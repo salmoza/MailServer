@@ -56,7 +56,7 @@ public class UserService {
         User newUser = new User();
         newUser.setEmail(user.getEmail());
         newUser.setPassword(user.getPassword());
-        newUser.setUsername(user.getUsername());
+        newUser.setDisplayName(user.getUsername());
 
         userRepo.save(newUser);
         folderService.initialize(newUser.getUserId());

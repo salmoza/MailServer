@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -11,14 +13,18 @@ import java.util.List;
 public class MailDto {
 
     public String userId;
+    private String folderId;
     private String receiver;
     private String sender;
+    private String senderDisplayName;   ////
+    private List<String> toEmails;   // multiple receivers
     private String subject;
     private String body;
     private int priority;
-    private List<AttatchmentDto> attachments;
-    public Timestamp date;
-    public String state;
+    private List<AttachmentDto> attachments;
+    //    public Timestamp date;
+    public LocalDateTime date;
+    public String state;        // SENT, DRAFT, TRASH, etc.
     public Boolean isStarred;
     public Boolean isRead;
 }

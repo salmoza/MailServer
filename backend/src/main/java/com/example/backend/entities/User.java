@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.util.List;
 
 @Getter
@@ -15,7 +14,8 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String userId;
-    private String username;
+    private String displayName;
+    @Column(unique = true, nullable = false)
     private String email;
     @JsonIgnore
     private String password;
@@ -23,9 +23,12 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Folder> folders;
 
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Contact> contacts;
+
+
     public User() {
     }
-
 
     public String getInboxFolderId() {
         if (folders == null) return null;
@@ -47,4 +50,6 @@ public class User {
                 return folder.getFolderId();
             }
         } return null ;
-    } }
+    }
+
+}

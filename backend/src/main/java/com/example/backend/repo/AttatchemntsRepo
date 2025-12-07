@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface AttatchemntsRepo extends JpaRepository<Attachment,String> {
+public interface AttachmentsRepo extends JpaRepository<Attachment,String> {
     List<Attachment> findByAttachmentId(String mailId);
 }

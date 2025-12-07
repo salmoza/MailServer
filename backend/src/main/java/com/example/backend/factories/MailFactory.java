@@ -1,11 +1,11 @@
 package com.example.backend.factories;
 
-import com.example.backend.dtos.AttatchmentDto;
+import com.example.backend.dtos.AttachmentDto;
 import com.example.backend.dtos.MailDto;
 import com.example.backend.entities.Attachment;
 import com.example.backend.entities.Mail;
 
-import java.sql.Timestamp;
+import java.security.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +16,6 @@ public class MailFactory {
 
         Mail mail = new Mail();
 
-
         mail.setSenderEmail(dto.getSender());
         mail.setReceiverEmail(dto.getReceiver());
         mail.setSubject(dto.getSubject());
@@ -24,11 +23,11 @@ public class MailFactory {
         mail.setPriority(dto.getPriority());
 
 
-        if (dto.getDate() != null) {
-            mail.setDate(dto.getDate());
+        /*if (dto.getDate() != null) {
+            mail.setDate(dto.getDate());  date ??
         } else {
             mail.setDate(new Timestamp(System.currentTimeMillis()));
-        }
+        } */
 
 
         if (dto.getState() != null) {
