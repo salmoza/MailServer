@@ -1,12 +1,14 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {Router, RouterLink} from '@angular/router';
-import {routes} from '../../app.routes'; // Use RouterLink for Angular navigation
+import {routes} from '../../app.routes';
+import {HttpClient,HttpClientModule} from '@angular/common/http';
+import {FormsModule} from '@angular/forms'; // Use RouterLink for Angular navigation
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule,HttpClientModule,RouterLink],
   template: `
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -43,6 +45,7 @@ import {routes} from '../../app.routes'; // Use RouterLink for Angular navigatio
                   required=""
                   type="email"
                   value=""
+                  [(ngModel)]="email"
                 />
               </label>
             </div>
@@ -64,6 +67,7 @@ import {routes} from '../../app.routes'; // Use RouterLink for Angular navigatio
                   required=""
                   type="password"
                   value=""
+                  [(ngModel)]="password"
                 />
                 <div
                   class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#4c739a]"
@@ -121,6 +125,7 @@ import {routes} from '../../app.routes'; // Use RouterLink for Angular navigatio
                   required=""
                   type="email"
                   value=""
+                  [(ngModel)]="email"
                 />
               </label>
             </div>
@@ -137,6 +142,7 @@ import {routes} from '../../app.routes'; // Use RouterLink for Angular navigatio
                   required=""
                   type="text"
                   value=""
+                  [(ngModel)]="username"
                 />
               </label>
             </div>
@@ -158,6 +164,7 @@ import {routes} from '../../app.routes'; // Use RouterLink for Angular navigatio
                   required=""
                   type="password"
                   value=""
+                  [(ngModel)]="password"
                 />
                 <div
                   class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#4c739a]"
@@ -168,7 +175,7 @@ import {routes} from '../../app.routes'; // Use RouterLink for Angular navigatio
                 </div>
               </div>
             </div>
-            <button
+            <button (click)="sign_up()"
               class="flex h-12 min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-[#137fec] px-5 text-base font-bold leading-normal tracking-[0.015em] text-slate-50 transition-colors hover:bg-[#137fec]/90 focus:outline-none focus:ring-2 focus:ring-[#137fec] focus:ring-offset-2 focus:ring-offset-white"
             >
               <span class="truncate">Sign up</span>
@@ -220,10 +227,41 @@ import {routes} from '../../app.routes'; // Use RouterLink for Angular navigatio
   `],
 })
 export class Login {
-  constructor(private route:Router) {}
+  constructor(private route:Router, private http:HttpClient) {}
   issign_up: boolean = false;
+  url: string = 'http://localhost:8080/user/';
+  username: string = '';
+  password: string = '';
+  email: string = '';
 login(){
-//after the backend return correct we can route the user to the mail
-this.route.navigate(['/inbox']);
+  const payload={
+    password:this.password,
+    email:this.email,
+  }
+  this.http.post(this.url+'signin',payload).subscribe({
+    next:(response:any)=>{
+    this.route.navigate(['/inbox']);
+    },
+    error:(response:any)=>{
+      alert(response.error.text);
+    }
+  })
+}
+sign_up(){
+  const payload={
+    password:this.password,
+    email:this.email,
+    username:this.username,
+  }
+  console.log(payload)
+  this.http.post(this.url+'signup',payload).subscribe({
+    next:(response:any)=>{
+    this.issign_up=false;
+    },
+    error:(response:any)=>{
+
+      alert(response.error.error);
+    }
+  })
 }
 }
