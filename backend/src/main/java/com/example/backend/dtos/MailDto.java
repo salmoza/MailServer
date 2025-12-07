@@ -25,6 +25,6 @@ public class MailDto {
 //    public Timestamp date;
     public LocalDateTime date;
     public String state;        // SENT, DRAFT, TRASH, etc.
-    public Boolean isStarred;
+
     public Boolean isRead;
 }

@@ -38,7 +38,7 @@ public class MailFactory {
 
 
         mail.setIsRead(dto.getIsRead() != null ? dto.getIsRead() : false);
-        mail.setIsStarred(dto.getIsStarred() != null ? dto.getIsStarred() : false);
+
 
         // attachment here (the linking will be in  attachment service )
 
