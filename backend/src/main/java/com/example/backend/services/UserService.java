@@ -8,7 +8,6 @@ import com.example.backend.dtos.UserSigninDTO;
 import com.example.backend.entities.User;
 import com.example.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 
@@ -25,41 +24,41 @@ public class UserService {
     private FolderService folderService ; //for initialization
 
 
-    public String signin(UserSigninDTO user) {
+
+    public String signIn(UserSigninDTO user) {
 
 
-        User userOptional = userRepo.findByEmail(user.getEmail());
+        User actualUser = userRepo.findByEmail(user.getEmail());
 
-
-        if (userOptional == null ) {
-            return "Email not found";
+        if (actualUser == null) {
+            throw new IllegalArgumentException("Email not found") ;
         }
 
 
-        User actualUser = userOptional ;
-
-        if (!actualUser.getPassword().equals(user.getPassword())) {
+        if (!(user.getPassword().equals(actualUser.getPassword()))) {
             throw new IllegalArgumentException("Wrong password");
         }
-
         return actualUser.getUserId();
     }
-    public ResponseEntity<String> signup(UserSignupDTO user) {
+
+
+    public UserSignupDTO signUp(UserSignupDTO user) {
 
         if (userRepo.existsByEmail(user.getEmail())) {
-
-            return ResponseEntity.ofNullable("Email already exists");
+            throw new IllegalArgumentException("Email already exists");
         }
 
         User newUser = new User();
         newUser.setEmail(user.getEmail());
         newUser.setPassword(user.getPassword());
-        newUser.setUsername(user.getUsername());
+        newUser.setDisplayName(user.getUsername());
 
         userRepo.save(newUser);
         folderService.initialize(newUser.getUserId());
-        return ResponseEntity.ok(newUser.getUserId());
-        //        return "User created successfully";
+        UserSignupDTO saveduser = new UserSignupDTO();
+        saveduser.setEmail(newUser.getEmail());
+        saveduser.setUsername(newUser.getDisplayName());
+        return saveduser;
     }
 
 

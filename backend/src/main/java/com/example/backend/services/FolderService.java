@@ -25,7 +25,6 @@ public class FolderService {
         User user = userRepo.findByUserId(userId);
 //        System.out.println(user.getUserId());
         Folder folder = new Folder(folderName, user);
-        System.out.println("folder created");
         userRepo.save(user);
         return folderRepo.save(folder);
     }

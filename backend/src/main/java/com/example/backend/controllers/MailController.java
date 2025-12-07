@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
-
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/mail")
 public class MailController {
@@ -27,9 +28,9 @@ public class MailController {
     FolderRepo folderRepo ;
 
     @PostMapping("/compose")
-    public String compose (@RequestBody MailDto mailDto) {
-        Folder folder = folderRepo.findByFolderId(mailDto.getFolderId());
-        return mailService.createNewMail(mailDto) ;
+    public ResponseEntity<String> compose (@RequestBody MailDto mailDto) {
+        String id = mailService.createNewMail(mailDto);
+        return ResponseEntity.ok(id);
     }
 
     @GetMapping("/{folderId}/mails")
