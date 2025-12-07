@@ -12,19 +12,19 @@ import java.util.List;
 @Setter
 public class MailDto {
 
-
+    private String userId ;
     private String folderId;
-    private String receiver;
+    private List<String> receivers;
     private String sender;
     private String senderDisplayName;   ////
-    private List<String> toEmails;   // multiple receivers
+    // private List<String> toEmails;   // multiple receivers
     private String subject;
     private String body;
     private int priority;
     private List<AttachmentDto> attachments;
 //    public Timestamp date;
     public LocalDateTime date;
-    public String state;        // SENT, DRAFT, TRASH, etc.
+   // public String state;        // SENT, DRAFT, TRASH, etc.
 
     public Boolean isRead;
 }
