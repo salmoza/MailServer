@@ -1,7 +1,9 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dtos.MailDto;
+import com.example.backend.entities.Folder;
 import com.example.backend.entities.Mail;
+import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.services.mailService.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +23,12 @@ public class MailController {
     @Autowired
     MailRepo mailRepo ;
 
+    @Autowired
+    FolderRepo folderRepo ;
+
     @PostMapping("/compose")
     public String compose (@RequestBody MailDto mailDto) {
+        Folder folder = folderRepo.findByFolderId(mailDto.getFolderId());
         return mailService.createNewMail(mailDto) ;
     }
 

@@ -27,7 +27,7 @@ public class UserController {
     UserService userService ;
 
 
-    @PostMapping("/signin")
+    @PostMapping("/signIn")
     public ResponseEntity<Map<String, String>> signin (@RequestBody UserSigninDTO user) {
         String userid = userService.signin(user);
         return ResponseEntity.ok(Map.of("userId",userid,"message","Login successful."));
@@ -39,7 +39,7 @@ public class UserController {
     public Map<String, String> handelAuthException(IllegalArgumentException ex){
         return Map.of("error",ex.getMessage());
     }
-    @PostMapping("/signup")
+    @PostMapping("/signUp")
     public ResponseEntity<?>  signup (@Valid @RequestBody UserSignupDTO user) {
         return ResponseEntity.ok(userService.signup(user)) ;
     }
