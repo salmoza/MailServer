@@ -44,4 +44,5 @@ public class MailController {
         return ResponseEntity.ok("Deleted " + ids.size() + " mails");
     }
 
+    
 }
