@@ -65,4 +65,12 @@ public class MailController {
         return mailRepo.findAll() ;
     }
 
+    @GetMapping("/search")
+    public List<Mail> search(
+            @RequestParam String userId,
+            @RequestParam String keyword) {
+        return mailService.searchEmails(userId, keyword);
+    }
+
+
 }

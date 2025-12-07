@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 @Service
 public class MailService {
@@ -121,5 +122,16 @@ public class MailService {
 
         return criteria.meetCriteria(emails);
     }
+
+    public List<Mail> searchEmails(String userId, String keyword) {
+        return mailRepo.findAllByUserId(userId).stream()
+                .filter(mail -> mail.getSubject().contains(keyword)
+                        || mail.getBody().contains(keyword)
+                        || mail.getSenderEmail().contains(keyword)
+                        || mail.getReceiverEmail().contains(keyword))
+                .collect(Collectors.toList());
+    }
+
+
 
 }
