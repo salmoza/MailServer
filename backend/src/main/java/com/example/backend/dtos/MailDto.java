@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 public class MailDto {
 
-    public String userId;
+
     private String folderId;
     private String receiver;
     private String sender;
@@ -25,6 +25,6 @@ public class MailDto {
 //    public Timestamp date;
     public LocalDateTime date;
     public String state;        // SENT, DRAFT, TRASH, etc.
-    public Boolean isStarred;
+
     public Boolean isRead;
 }

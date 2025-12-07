@@ -19,7 +19,6 @@ public class Mail {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String mailId;
-    private String userId;
     private String receiverEmail;
     private String senderEmail;
     private int priority;
@@ -35,7 +34,7 @@ public class Mail {
     private Set<Folder> folders = new HashSet<>() ;
 
     public String state;
-    public Boolean isStarred;
+
     public Boolean isRead;
 
     public Mail() {
