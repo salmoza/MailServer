@@ -4,44 +4,43 @@ import com.example.backend.dtos.AttachmentDto;
 import com.example.backend.dtos.MailDto;
 import com.example.backend.entities.Attachment;
 import com.example.backend.entities.Mail;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.security.Timestamp;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MailFactory {
 
 
-    public static Mail create(MailDto dto) {
 
-        Mail mail = new Mail();
+    public static List<Mail> createPair(MailDto dto, String currentReceiverEmail) {
 
-        mail.setSenderEmail(dto.getSender());
-        mail.setReceiverEmail(dto.getReceiver());
-        mail.setSubject(dto.getSubject());
-        mail.setBody(dto.getBody());
-        mail.setPriority(dto.getPriority());
+        Mail senderCopy = new Mail();
+        Mail receiverCopy = new Mail();
 
-
-        /*if (dto.getDate() != null) {
-            mail.setDate(dto.getDate());  date ??
-        } else {
-            mail.setDate(new Timestamp(System.currentTimeMillis()));
-        } */
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        senderCopy.setDate(now);
+        receiverCopy.setDate(now);
 
 
-        if (dto.getState() != null) {
-            mail.setState(dto.getState());
-        } else {
-            mail.setState("SENT");
-        }
+        senderCopy.setSenderEmail(dto.getSender());
+        senderCopy.setReceiverEmail(currentReceiverEmail);
+        senderCopy.setSubject(dto.getSubject());
+        senderCopy.setBody(dto.getBody());
+        senderCopy.setPriority(dto.getPriority());
+        senderCopy.setIsRead(true);
 
 
-        mail.setIsRead(dto.getIsRead() != null ? dto.getIsRead() : false);
+        receiverCopy.setSenderEmail(dto.getSender());
+        receiverCopy.setReceiverEmail(currentReceiverEmail);
+        receiverCopy.setSubject(dto.getSubject());
+        receiverCopy.setBody(dto.getBody());
+        receiverCopy.setPriority(2);
+        receiverCopy.setIsRead(false);
 
-
-        // attachment here (the linking will be in  attachment service )
-
-        return mail;
+        return List.of(senderCopy, receiverCopy);
     }
 }

@@ -54,4 +54,9 @@ public class MailController {
     }
 
 
+    @GetMapping("/getAllMails")
+    public List<Mail> getAllMails() {
+        return mailRepo.findAll() ;
+    }
+
 }

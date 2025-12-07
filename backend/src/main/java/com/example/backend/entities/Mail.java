@@ -34,7 +34,7 @@ public class Mail {
     @JsonIgnore
     private Set<Folder> folders = new HashSet<>() ;
 
-    public String state;
+     // public String state;
 
     public Boolean isRead;
 

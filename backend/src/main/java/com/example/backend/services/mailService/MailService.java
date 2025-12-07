@@ -16,8 +16,10 @@ import com.example.backend.services.filter.SubjectCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Queue;
 
 @Service
 public class MailService {
@@ -36,22 +38,50 @@ public class MailService {
     public String createNewMail(MailDto dto) {
 
 
-        Mail mail = MailFactory.create(dto);
 
-        mail.setUserId(userRepo.findByEmail(dto.getSender()).getUserId());
-
-
-        mail = mailRepo.save(mail);
-
-        User sender = userRepo.findByEmail(dto.getSender()) ;
-
-        folderService.addMail(sender.getUserId() , sender.getSentFolderId(), mail);
+        User senderUser = userRepo.findByEmail(dto.getSender());
+        if (senderUser == null) throw new RuntimeException("Sender not found");
 
 
-        User receiver = userRepo.findByEmail(dto.getReceiver());
-        folderService.addMail(receiver.getUserId(), receiver.getInboxFolderId(), mail);
+        Queue<String> receiversQueue = new LinkedList<>();
+        if (dto.getReceivers() != null) {
+            receiversQueue.addAll(dto.getReceivers());
+        }
 
-        return mail.getMailId();
+        String lastMailId = null;
+
+
+        while (!receiversQueue.isEmpty()) {
+
+            String currentReceiverEmail = receiversQueue.poll();
+
+
+            User receiverUser = userRepo.findByEmail(currentReceiverEmail);
+            if (receiverUser == null) {
+                continue;
+            }
+
+
+            List<Mail> mailPair = MailFactory.createPair(dto, currentReceiverEmail);
+            Mail senderCopy = mailPair.get(0);
+            Mail receiverCopy = mailPair.get(1);
+
+
+            senderCopy.setUserId(senderUser.getUserId());
+            receiverCopy.setUserId(receiverUser.getUserId());
+
+
+            senderCopy = mailRepo.save(senderCopy);
+            receiverCopy = mailRepo.save(receiverCopy);
+
+
+            folderService.addMail(senderUser.getUserId(), senderUser.getSentFolderId(), senderCopy);
+            folderService.addMail(receiverUser.getUserId(), receiverUser.getInboxFolderId(), receiverCopy);
+
+            lastMailId = senderCopy.getMailId();
+        }
+
+        return lastMailId;
     }
 
     public void deleteMailById(String mailId , String folderId) {

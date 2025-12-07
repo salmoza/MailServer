@@ -39,6 +39,7 @@ public class FolderService {
 
         folder.addMail(mail);
         folderRepo.save(folder);
+
     }
 
     public void deleteMail( String folderId, Mail mail){
