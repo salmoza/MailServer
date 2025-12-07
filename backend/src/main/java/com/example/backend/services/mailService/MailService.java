@@ -13,7 +13,9 @@ import com.example.backend.services.filter.AndCriteria;
 import com.example.backend.services.filter.MailCriteria;
 import com.example.backend.services.filter.SenderCriteria;
 import com.example.backend.services.filter.SubjectCriteria;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
@@ -76,8 +78,8 @@ public class MailService {
             receiverCopy = mailRepo.save(receiverCopy);
 
 
-            folderService.addMail(senderUser.getUserId(), senderUser.getSentFolderId(), senderCopy);
-            folderService.addMail(receiverUser.getUserId(), receiverUser.getInboxFolderId(), receiverCopy);
+            folderService.addMail( senderUser.getSentFolderId(), senderCopy);
+            folderService.addMail( receiverUser.getInboxFolderId(), receiverCopy);
 
             lastMailId = senderCopy.getMailId();
         }
@@ -85,6 +87,7 @@ public class MailService {
         return lastMailId;
     }
 
+    @Transactional
     public void deleteMailById(String mailId , String folderId) {
 
         Folder folder = folderRepo.findByFolderId(folderId) ;
@@ -132,6 +135,19 @@ public class MailService {
                 .collect(Collectors.toList());
     }
 
+
+    @Transactional
+    public void moveMails(String fromFolderId, String toFolderId, List<String> ids) {
+        Queue<String> queue = new LinkedList<>(ids);
+        while (!queue.isEmpty()) {
+            String mailId = queue.poll();
+            Mail mail = mailRepo.findById(mailId)
+                    .orElseThrow(() -> new RuntimeException("Mail not found"));
+            folderService.addMail(toFolderId, mail);
+            folderService.deleteMail(fromFolderId,mail);
+
+        }
+    }
 
 
 }

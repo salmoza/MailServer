@@ -40,10 +40,12 @@ public class MailController {
     @DeleteMapping("/deleteMails/{folderId}")
     public ResponseEntity<?> deleteMails(@RequestParam List<String> ids , @PathVariable String folderId) {
 
+
         Queue<String> queue = new LinkedList<>(ids); //check here what email to be removed first ?
 
         while (!queue.isEmpty()) {
             String mailId = queue.poll();
+
             mailService.deleteMailById(mailId , folderId);
         }
 
@@ -70,6 +72,14 @@ public class MailController {
             @RequestParam String userId,
             @RequestParam String keyword) {
         return mailService.searchEmails(userId, keyword);
+    }
+
+    @PostMapping("/move/{toFolderId}/{fromFolderId}")
+    public ResponseEntity<?> move (@PathVariable String fromFolderId
+            , @PathVariable String toFolderId
+            ,@RequestParam List<String> ids ) {
+        mailService.moveMails(fromFolderId , toFolderId , ids) ;
+        return ResponseEntity.ok("Moved" + ids.size()) ;
     }
 
 

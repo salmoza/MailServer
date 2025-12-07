@@ -7,10 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Getter
@@ -39,5 +36,18 @@ public class Mail {
     public Boolean isRead;
 
     public Mail() {
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Mail mail = (Mail) o;
+        return Objects.equals(mailId, mail.mailId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mailId);
     }
 }
