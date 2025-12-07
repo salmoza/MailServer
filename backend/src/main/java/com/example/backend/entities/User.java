@@ -15,6 +15,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String userId;
     private String displayName;
+    private String username;
     @Column(unique = true, nullable = false)
     private String email;
     @JsonIgnore

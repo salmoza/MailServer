@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -26,9 +27,9 @@ public class UserController {
     UserService userService ;
 
 
-    @PostMapping("/signIn")
-    public ResponseEntity<Map<String, String>> signIn (@RequestBody UserSigninDTO user) {
-        String userid = userService.signIn(user);
+    @PostMapping("/signin")
+    public ResponseEntity<Map<String, String>> signin (@RequestBody UserSigninDTO user) {
+        String userid = userService.signin(user);
         return ResponseEntity.ok(Map.of("userId",userid,"message","Login successful."));
     }
 
@@ -38,20 +39,19 @@ public class UserController {
     public Map<String, String> handelAuthException(IllegalArgumentException ex){
         return Map.of("error",ex.getMessage());
     }
-    @PostMapping("/signUp")
-    public ResponseEntity<?> signUp(@Valid @RequestBody UserSignupDTO user) {
-        System.out.println("signing up");
-        return ResponseEntity.ok(userService.signUp(user)) ;
+    @PostMapping("/signup")
+    public ResponseEntity<?>  signup (@Valid @RequestBody UserSignupDTO user) {
+        return ResponseEntity.ok(userService.signup(user)) ;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex){
-       String fistError = ex.getBindingResult().getFieldErrors().stream()
-               .map(FieldError::getDefaultMessage)
-               .findFirst()
-               .orElse("Validation failed");
-       return Map.of("error",fistError);
+        String fistError = ex.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .findFirst()
+                .orElse("Validation failed");
+        return Map.of("error",fistError);
     }
 
     @GetMapping("/get")

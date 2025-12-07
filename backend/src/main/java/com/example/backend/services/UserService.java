@@ -8,11 +8,12 @@ import com.example.backend.dtos.UserSigninDTO;
 import com.example.backend.entities.User;
 import com.example.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -23,46 +24,42 @@ public class UserService {
     @Autowired
     private FolderService folderService ; //for initialization
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+
+    public String signin(UserSigninDTO user) {
 
 
-    public String signIn(UserSigninDTO user) {
+        User userOptional = userRepo.findByEmail(user.getEmail());
 
 
-        User actualUser = userRepo.findByEmail(user.getEmail());
-
-        if (actualUser == null) {
+        if (userOptional == null ) {
             return "Email not found";
         }
 
-//        if (!actualUser.getPassword().equals(user.getPassword())) {
-//            return "Wrong password";
-//        }
 
-        if (!passwordEncoder.matches(user.getPassword(), actualUser.getPassword()))
-            return "Wrong password";
+        User actualUser = userOptional ;
+
+        if (!actualUser.getPassword().equals(user.getPassword())) {
+            throw new IllegalArgumentException("Wrong password");
+        }
 
         return actualUser.getUserId();
     }
-
-
-    public String signUp(UserSignupDTO user) {
+    public ResponseEntity<String> signup(UserSignupDTO user) {
 
         if (userRepo.existsByEmail(user.getEmail())) {
-            return "Email already exists";
+
+            return ResponseEntity.ofNullable("Email already exists");
         }
 
         User newUser = new User();
         newUser.setEmail(user.getEmail());
-//        newUser.setPassword(user.getPassword());
-        newUser.setPassword(passwordEncoder.encode(user.getPassword()));
-        newUser.setDisplayName(user.getUsername());
+        newUser.setPassword(user.getPassword());
+        newUser.setUsername(user.getUsername());
 
         userRepo.save(newUser);
         folderService.initialize(newUser.getUserId());
-
-        return newUser.getUserId();
+        return ResponseEntity.ok(newUser.getUserId());
+        //        return "User created successfully";
     }
 
 
