@@ -1,11 +1,24 @@
-import { Component } from '@angular/core';
+import {Component, ElementRef, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {Route, Router, RouterLink} from '@angular/router';
+import {FormsModule} from '@angular/forms';
+import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {lastValueFrom} from 'rxjs';
+
+interface att{
+  id:string;
+  filetype:string;
+  mailId:string;
+  name:string;
+  sizeMB:string;
+  fileData:File;
+  uploadedid?:string;
+}
 
 @Component({
   selector: 'app-compose',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule,RouterLink,HttpClientModule],
   template: `
     <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -37,12 +50,23 @@ import {Route, Router, RouterLink} from '@angular/router';
             <label class="w-16 text-sm font-medium text-gray-600 dark:text-gray-400" for="to"
             >To</label
             >
-            <div class="flex-1 flex items-center">
+            <div class="flex-1 flex items-center space-x-2">
+              @for(email of recipients;track email){
+              <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+                {{email}}
+                <button (click)="removeRecipient(email)" class="ml-2 text-red-600 hover:text-red-900 cursor-pointer">&times;
+                </button>
+              </span>
+              }
               <input
                 class="form-input w-full flex-1 resize-none border-none bg-transparent p-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-0 focus:ring-0"
                 id="to"
                 placeholder="Recipients"
                 type="email"
+                name="current_receiver"
+                [(ngModel)]="currentEmailInput"
+                (keydown.enter)="addRecipient($event)"
+                (keydown.tab)="addRecipient($event)"
               />
               <div class="flex items-center space-x-2">
                 <!-- FIX: Use hex code for primary color -->
@@ -61,6 +85,8 @@ import {Route, Router, RouterLink} from '@angular/router';
               id="subject"
               placeholder="Subject"
               type="text"
+              name="subject"
+              [(ngModel)]="subject"
             />
           </div>
           <!-- Rich Text Editor -->
@@ -105,36 +131,39 @@ import {Route, Router, RouterLink} from '@angular/router';
               <textarea
                 class="form-textarea w-full h-48 p-3 border-none resize-y focus:ring-0 text-black bg-white  placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 placeholder="Compose your message..."
-              ></textarea>
+               [(ngModel)]="body"></textarea>
             </div>
           </div>
           <!-- Attachment Area -->
-          <div
-            class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center"
+          <div (click)="openFileUpload()"
+            class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer"
           >
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              Drag &amp; drop files here or click to upload.
+              click to upload.
             </p>
           </div>
+          <input #fileInput type="file" (change)="handleFileupload($event)" hidden name="upload_file_input" />
           <!-- Attached Files List -->
+          @for(item of attachments;track item){
           <div class="space-y-2">
             <div
               class="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
             >
               <div class="flex items-center space-x-2">
-                <span class="material-symbols-outlined text-gray-500">description</span>
+                <span class="material-symbols-outlined text-gray-500">{{item.name}}</span>
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
-                >quarterly-report.pdf</span
+                >{{item.name}}.{{item.filetype}}</span
                 >
-                <span class="text-xs text-gray-500 dark:text-gray-400">(2.4 MB)</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{item.sizeMB}}</span>
               </div>
-              <button
-                class="p-1 rounded-full text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+              <button (click)="removeAttachment(item.id)"
+                class="p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-red-700"
               >
                 <span class="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
           </div>
+          }
         </div>
         <!-- Footer / Action Bar -->
         <footer
@@ -143,7 +172,7 @@ import {Route, Router, RouterLink} from '@angular/router';
           <div class="flex items-center space-x-2 mb-4 sm:mb-0">
             <!-- Send Button -->
             <!-- FIX: Use hex code for primary color -->
-            <button
+            <button (click)="sendCompose()"
               class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0D6EFD] rounded-lg shadow-sm hover:bg-[#0D6EFD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD]"
             >
               <span>Send</span>
@@ -164,20 +193,20 @@ import {Route, Router, RouterLink} from '@angular/router';
               <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Priority:</span>
               <!-- Priority Buttons -->
               <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
-                <button
+                <button (click)="priority=4"
                   class="px-2 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-l-md border-r border-gray-300 dark:border-gray-600"
                 >
                   4
                 </button>
-                <button class="px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                <button (click)="priority=3" class="px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
                   3
                 </button>
-                <button
+                <button (click)="priority=2"
                   class="px-2 py-1 text-sm text-yellow-600 hover:bg-yellow-100 dark:hover:bg-yellow-900/50"
                 >
                   2
                 </button>
-                <button
+                <button (click)="priority=1"
                   class="px-2 py-1 text-sm text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-r-md border-l border-gray-300 dark:border-gray-600"
                 >
                   1
@@ -250,9 +279,118 @@ import {Route, Router, RouterLink} from '@angular/router';
   `],
 })
 export class Compose {
-  constructor(private route : Router) {
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  constructor(private route : Router,private http : HttpClient) {}
+  recipients:string[]=[];
+  currentEmailInput:string='';
+  sender:string="z@gmail.com";
+  subject:string="";
+  body:string="";
+  priority:number=4;
+  attachments:att[] = [];
+  isVaildEmail(email:string):boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
   close(){
     this.route.navigate(['/inbox']);
+  }
+
+  private formatFileSize(bytes:number){
+    const KB = bytes/1024;
+    if(KB < 1024){
+      return `${KB.toFixed(1)} KB`
+    }
+    const MB = KB/1024;
+    return `${MB.toFixed(2)} MB`;
+  }
+
+  openFileUpload(){
+    this.fileInput.nativeElement.click();
+  }
+
+  handleFileupload(event:Event){
+    const target = event.target as HTMLInputElement;
+    const files = target.files;
+    if(files && files.length > 0){
+      const file : File = files[0];
+      const newAtt:att={
+        id: crypto.randomUUID(),
+        name:file.name,
+        filetype:file.type,
+        fileData:file,
+        sizeMB:this.formatFileSize(file.size),
+        mailId:''
+      };
+      this.attachments.push(newAtt);
+      target.value='';
+    }
+  }
+
+  removeAttachment(attId:string){
+    this.attachments = this.attachments.filter(att => att.id !== attId);
+  }
+
+  sendCompose(){
+    if(this.attachments.length > 0){
+      this.uploadAndSend();
+      alert("finally")
+      this.route.navigate(['/inbox']);
+    }
+    else{
+      console.log(this.createMailBase());
+      this.route.navigate(['/inbox']);
+    }
+
+  }
+  private async uploadAndSend(){
+    const mailId = await this.createMailBase();
+    console.log(mailId);
+    await this.uploadAttachments(mailId);
+    this.sendFinalMail(this.attachments,mailId);
+  }
+  private createMailBase():Promise<any>{
+    const payload={
+      subject:this.subject,
+      body:this.body,
+      priority:this.priority,
+      receivers:this.recipients,
+      sender:this.sender,
+    };
+    console.log(payload);
+    return lastValueFrom(
+      this.http.post("http://localhost:8080/mail/compose",payload,{responseType:"text"})
+    );
+  }
+  private uploadAttachments(mailId:string):Promise<any> {
+
+    const uploadPromises = this.attachments.map(att => {
+      const formData = new FormData();
+      formData.append('file',att.fileData,att.name);
+      formData.append('mailId', mailId);
+      console.log(formData);
+      return this.http.post("http://localhost:8080/api/attachment/upload", formData,{responseType:'text'}).toPromise();
+    });
+    return Promise.all(uploadPromises);
+  }
+  private sendFinalMail(attachments:att[],mailId:string=''){
+    this.route.navigate(['/inbox']);
+    alert('mail Sent');
+  }
+
+  addRecipient(event:Event | null):void {
+    if(event){
+      event.preventDefault();
+    }
+    const email = this.currentEmailInput;
+    if(email && this.isVaildEmail(email)){
+      if(!this.recipients.includes(email)){
+        this.recipients.push(email);
+      }
+      this.currentEmailInput = '';
+    }
+  }
+  removeRecipient(toremoveemail:string):void {
+    this.recipients = this.recipients.filter(email => email !== toremoveemail);
   }
 }
