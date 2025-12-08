@@ -13,6 +13,10 @@ import com.example.backend.services.filter.AndCriteria;
 import com.example.backend.services.filter.MailCriteria;
 import com.example.backend.services.filter.SenderCriteria;
 import com.example.backend.services.filter.SubjectCriteria;
+import com.example.backend.services.mailService.strategy.MailSorter;
+import com.example.backend.services.mailService.strategy.MailSortingStrategy;
+import com.example.backend.services.mailService.strategy.SortByDate;
+import com.example.backend.services.mailService.strategy.SortByPriority;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -119,9 +123,9 @@ public class MailService {
         }
     }
 
-    public List<Mail> filterEmails(String userId, String subject, String sender) {
+    public List<Mail> filterEmails(String folderId, String subject, String sender) {
 
-        List<Mail> emails = mailRepo.findAllByUserId(userId);
+        List<Mail> emails = mailRepo.getMailsByFolderId(folderId);
 
         MailCriteria criteria = null;
 
@@ -143,8 +147,8 @@ public class MailService {
         return criteria.meetCriteria(emails);
     }
 
-    public List<Mail> searchEmails(String userId, String keyword) {
-        return mailRepo.findAllByUserId(userId).stream()
+    public List<Mail> searchEmails(String folderId, String keyword) {
+        return mailRepo.getMailsByFolderId(folderId).stream()
                 .filter(mail -> mail.getSubject().contains(keyword)
                         || mail.getBody().contains(keyword)
                         || mail.getSenderEmail().contains(keyword)
@@ -165,6 +169,26 @@ public class MailService {
 
         }
     }
+
+    public List<Mail> sortMails(String folderId, String sortType) {
+
+        List<Mail> mails = mailRepo.getMailsByFolderId(folderId);
+        System.out.println(mails);
+
+        MailSortingStrategy strategy;
+
+        switch (sortType.toLowerCase()) {
+            case "priority" -> strategy = new SortByPriority();
+            //might implement later
+//            case "subject" -> strategy = new SortBySubject();
+//            case "sender" -> strategy = new SortBySender();
+            default -> strategy = new SortByDate();
+        }
+
+        MailSorter sorter = new MailSorter(strategy);
+        return sorter.sort(mails);
+    }
+
 
 
 }

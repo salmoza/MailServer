@@ -55,24 +55,26 @@ public class MailController {
 
     @GetMapping("/filter")
     public List<Mail> filter(
-            @RequestParam String userId,
+            @RequestParam String folderId,
             @RequestParam(required = false) String subject,
             @RequestParam(required = false) String sender) {
 
-        return mailService.filterEmails(userId, subject, sender);
+        return mailService.filterEmails(folderId, subject, sender);
     }
 
 
     @GetMapping("/getAllMails")
-    public List<Mail> getAllMails() {
-        return mailRepo.findAll() ;
+    public List<Mail> getAllMails(@RequestParam String folderId) {
+        return mailService.sortMails(folderId, "date");
+
+//        return mailRepo.findAll() ;
     }
 
     @GetMapping("/search")
     public List<Mail> search(
-            @RequestParam String userId,
+            @RequestParam String folderId,
             @RequestParam String keyword) {
-        return mailService.searchEmails(userId, keyword);
+        return mailService.searchEmails(folderId, keyword);
     }
 
     @PostMapping("/move/{toFolderId}/{fromFolderId}")
@@ -82,6 +84,14 @@ public class MailController {
         mailService.moveMails(fromFolderId , toFolderId , ids) ;
         return ResponseEntity.ok("Moved" + ids.size()) ;
     }
+
+    @GetMapping("/sort")
+    public List<Mail> sort(
+            @RequestParam String folderId,
+            @RequestParam String sortBy) {
+        return mailService.sortMails(folderId, sortBy);
+    }
+
 
 
 }

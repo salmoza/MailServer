@@ -8,9 +8,10 @@ import java.util.stream.Collectors;
 
 //default sort
 public class SortByDate implements MailSortingStrategy {
+    @Override
     public List<Mail> sort(List<Mail> mails) {
         return mails.stream()
                 .sorted(Comparator.comparing(Mail::getDate).reversed())
-                .collect(Collectors.toList());
+                .toList();
     }
 }
