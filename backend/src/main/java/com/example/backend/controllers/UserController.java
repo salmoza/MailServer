@@ -29,7 +29,7 @@ public class UserController {
 
     @PostMapping("/signIn")
     public ResponseEntity<Map<String, String>> signin (@RequestBody UserSigninDTO user) {
-        String userid = userService.signin(user);
+        String userid = userService.signIn(user);
         return ResponseEntity.ok(Map.of("userId",userid,"message","Login successful."));
     }
 
@@ -41,7 +41,7 @@ public class UserController {
     }
     @PostMapping("/signUp")
     public ResponseEntity<?>  signup (@Valid @RequestBody UserSignupDTO user) {
-        return ResponseEntity.ok(userService.signup(user)) ;
+        return ResponseEntity.ok(userService.signUp(user)) ;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
