@@ -8,7 +8,9 @@ import java.util.List;
 
 @Repository
 public interface FolderRepo extends JpaRepository<Folder, String> {
+    Folder findByFolderNameAndUserUserId(String folderName, String userId);
     Folder findByFolderIdAndUserUserId(String folderId, String userId);
     Folder findByFolderId (String folderId) ;
     List<Folder> findByUserUserId(String userId);
+    Folder findByFolderName (String folderNmae) ;
 }

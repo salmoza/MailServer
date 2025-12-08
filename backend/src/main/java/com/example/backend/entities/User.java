@@ -53,4 +53,14 @@ public class User {
         } return null ;
     }
 
+    public String getTrashFolderId(){
+        if (folders == null ) return  null ;
+
+        for (Folder folder : folders ) {
+            if (folder.getFolderName().equals("Trash")){
+                return folder.getFolderId();
+            }
+        } return null ;
+    }
+
 }

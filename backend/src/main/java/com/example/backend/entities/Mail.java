@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+
 import java.util.*;
 
 @Entity
@@ -22,6 +23,7 @@ public class Mail {
     private int priority;
     private String subject;
     private String body;
+    private Timestamp deletedAt;
     @OneToMany(mappedBy = "mail", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     private List<Attachment> attachments;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")

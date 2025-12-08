@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -96,9 +98,24 @@ public class MailService {
 
         folderService.deleteMail( folderId , mail);
 
-        if (mail.getFolders()== null )
-        {mailRepo.delete(mail);
 
+        Mail helpingMail = mailRepo.findByMailId(mailId);
+
+        User user = userRepo.findByUserId(helpingMail.getUserId()) ;
+
+        Folder trash = folderRepo.findByFolderId(user.getTrashFolderId()) ;
+
+        if (!mail.getFolders().contains(trash)) {
+            trash.addMail(mail);
+
+            /* long thirtyOneDaysAgo = System.currentTimeMillis() - (31L * 24 * 60 * 60 * 1000); // for testing
+            mail.setDeletedAt(new Timestamp(thirtyOneDaysAgo)); for testing */
+
+            mail.setDeletedAt(new Timestamp(System.currentTimeMillis()));
+
+
+            folderRepo.save(trash);
+            mailRepo.save(mail);
         }
     }
 

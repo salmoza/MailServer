@@ -16,4 +16,6 @@ public interface MailRepo extends JpaRepository<Mail,String> {
     List<Mail> getMailsByFolderId(@Param("folderId") String folderId);
 
     List<Mail> findAllByUserId(String userId);
+
+    Mail findByMailId (String mailId) ;
 }

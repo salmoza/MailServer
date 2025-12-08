@@ -5,6 +5,7 @@ package com.example.backend.controllers;
 import com.example.backend.dtos.UserSigninDTO;
 import com.example.backend.dtos.UserSignupDTO;
 import com.example.backend.entities.User;
+import com.example.backend.services.AutoDeletionService;
 import com.example.backend.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,5 +59,6 @@ public class UserController {
     public List<User> get (){
         return userService.getAllUsers() ;
     }
+
 
 }
