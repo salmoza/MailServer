@@ -2,6 +2,7 @@ package com.example.backend.services;
 
 
 
+import com.example.backend.dtos.UserIdWithFoldersIdDto;
 import com.example.backend.dtos.UserSignupDTO;
 import com.example.backend.dtos.UserSigninDTO;
 
@@ -23,9 +24,11 @@ public class UserService {
     @Autowired
     private FolderService folderService ; //for initialization
 
+    @Autowired
+    UserIdWithFoldersIdDto userIdWithFoldersIdDto ;
 
 
-    public String signIn(UserSigninDTO user) {
+    public UserIdWithFoldersIdDto signIn(UserSigninDTO user) {
 
 
         User actualUser = userRepo.findByEmail(user.getEmail());
@@ -38,7 +41,12 @@ public class UserService {
         if (!(user.getPassword().equals(actualUser.getPassword()))) {
             throw new IllegalArgumentException("Wrong password");
         }
-        return actualUser.getUserId();
+        userIdWithFoldersIdDto.setUserId(actualUser.getUserId());
+        userIdWithFoldersIdDto.setInboxId(actualUser.getInboxFolderId());
+        userIdWithFoldersIdDto.setSentId(actualUser.getSentFolderId());
+        userIdWithFoldersIdDto.setTrashId(actualUser.getTrashFolderId());
+        userIdWithFoldersIdDto.setDraftsId(actualUser.getDraftsFolderId());
+        return userIdWithFoldersIdDto ;
     }
 
 

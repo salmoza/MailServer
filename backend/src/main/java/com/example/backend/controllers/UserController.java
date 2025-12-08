@@ -2,6 +2,7 @@ package com.example.backend.controllers;
 
 //import com.example.backend.dtos.UserSigninDTO;
 //import com.example.backend.dtos.UserSignupDTO;
+import com.example.backend.dtos.UserIdWithFoldersIdDto;
 import com.example.backend.dtos.UserSigninDTO;
 import com.example.backend.dtos.UserSignupDTO;
 import com.example.backend.entities.User;
@@ -26,11 +27,14 @@ public class UserController {
     @Autowired
     UserService userService ;
 
+    @Autowired
+    UserIdWithFoldersIdDto userIdWithFoldersIdDto;
+
 
     @PostMapping("/signIn")
-    public ResponseEntity<Map<String, String>> signin (@RequestBody UserSigninDTO user) {
-        String userid = userService.signIn(user);
-        return ResponseEntity.ok(Map.of("userId",userid,"message","Login successful."));
+    public ResponseEntity<Map<String, Object>> signin (@RequestBody UserSigninDTO user) {
+        UserIdWithFoldersIdDto userIdWithFoldersIdDto1= userService.signIn(user);
+        return ResponseEntity.ok(Map.of("userId",userIdWithFoldersIdDto1,"message","Login successful."));
     }
 
 
