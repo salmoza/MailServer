@@ -63,4 +63,15 @@ public class User {
         } return null ;
     }
 
+    public String getDraftsFolderId(){
+        if (folders == null ) return  null ;
+
+        for (Folder folder : folders ) {
+            if (folder.getFolderName().equals("Drafts")){
+                return folder.getFolderId();
+            }
+        } return null ;
+    }
+
+
 }
