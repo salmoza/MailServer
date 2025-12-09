@@ -48,6 +48,7 @@ public class FolderService {
     }
 
     public List<Folder> getFolders(String userId) {
+        System.out.println(folderRepo.findByUserUserId(userId));
         return folderRepo.findByUserUserId(userId);
     }
 
@@ -56,6 +57,18 @@ public class FolderService {
         createFolder(userId, "Drafts");
         createFolder(userId, "Sent");
         createFolder(userId, "Trash");
+    }
+
+    public Folder renameFolder(String folderId, String newName) {
+        // Find the folder by ID
+        Folder folder = folderRepo.findById(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
+
+        // Update the folder name
+        folder.setFolderName(newName);
+
+        // Save the updated folder
+        return folderRepo.save(folder);
     }
 
 

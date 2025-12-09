@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/folder")
+@RequestMapping("/folders")
 public class FolderController {
     @Autowired
     private FolderRepo folderRepo;
@@ -39,6 +39,12 @@ public class FolderController {
         System.out.println("createFolder");
         return folderService.createFolder(folderDto.userId, folderDto.folderName);
     }
+
+    @PutMapping("/{folderId}/rename")
+    public Folder renameFolder(@PathVariable String folderId, @RequestParam String newName) {
+        return folderService.renameFolder(folderId, newName);
+    }
+
 
 
 
