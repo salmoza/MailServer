@@ -18,7 +18,7 @@ public class Mail {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String mailId;
     private String userId;
-    private String receiverEmail;
+    private List<String> receiverEmails  = new ArrayList<>();
     private String senderEmail;
     private int priority;
     private String subject;

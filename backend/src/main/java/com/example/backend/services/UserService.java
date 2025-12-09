@@ -7,6 +7,7 @@ import com.example.backend.dtos.UserSignupDTO;
 import com.example.backend.dtos.UserSigninDTO;
 
 import com.example.backend.entities.User;
+import com.example.backend.factories.UserIdWithFoldersIdFactory;
 import com.example.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,6 @@ public class UserService {
     @Autowired
     private FolderService folderService ; //for initialization
 
-    @Autowired
-    UserIdWithFoldersIdDto userIdWithFoldersIdDto ;
-
-
     public UserIdWithFoldersIdDto signIn(UserSigninDTO user) {
 
 
@@ -41,11 +38,11 @@ public class UserService {
         if (!(user.getPassword().equals(actualUser.getPassword()))) {
             throw new IllegalArgumentException("Wrong password");
         }
-        userIdWithFoldersIdDto.setUserId(actualUser.getUserId());
-        userIdWithFoldersIdDto.setInboxId(actualUser.getInboxFolderId());
-        userIdWithFoldersIdDto.setSentId(actualUser.getSentFolderId());
-        userIdWithFoldersIdDto.setTrashId(actualUser.getTrashFolderId());
-        userIdWithFoldersIdDto.setDraftsId(actualUser.getDraftsFolderId());
+        UserIdWithFoldersIdDto userIdWithFoldersIdDto = UserIdWithFoldersIdFactory.create(actualUser.getUserId(),
+                actualUser.getInboxFolderId(),
+                actualUser.getSentFolderId(),
+                actualUser.getTrashFolderId(),
+                actualUser.getDraftsFolderId()) ;
         return userIdWithFoldersIdDto ;
     }
 

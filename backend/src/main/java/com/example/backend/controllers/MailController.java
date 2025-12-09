@@ -29,8 +29,8 @@ public class MailController {
 
     @PostMapping("/compose")
     public ResponseEntity<String> compose (@RequestBody MailDto mailDto) {
-        String id = mailService.createNewMail(mailDto);
-        return ResponseEntity.ok(id);
+        String state = mailService.createNewMail(mailDto);
+        return ResponseEntity.ok(state);
     }
 
     @GetMapping("/{folderId}/mails")
@@ -92,6 +92,10 @@ public class MailController {
         return mailService.sortMails(folderId, sortBy);
     }
 
+    /* @GetMapping("/mails")
+    public List<Mail> getAll (){
+        return mailRepo.findAll() ;
+    } */   // for testing
 
 
 }

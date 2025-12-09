@@ -27,14 +27,11 @@ public class UserController {
     @Autowired
     UserService userService ;
 
-    @Autowired
-    UserIdWithFoldersIdDto userIdWithFoldersIdDto;
-
 
     @PostMapping("/signIn")
     public ResponseEntity<Map<String, Object>> signin (@RequestBody UserSigninDTO user) {
-        UserIdWithFoldersIdDto userIdWithFoldersIdDto1= userService.signIn(user);
-        return ResponseEntity.ok(Map.of("userId",userIdWithFoldersIdDto1,"message","Login successful."));
+        UserIdWithFoldersIdDto userIdWithFoldersIdDto= userService.signIn(user);
+        return ResponseEntity.ok(Map.of("attributes",userIdWithFoldersIdDto,"message","Login successful."));
     }
 
 

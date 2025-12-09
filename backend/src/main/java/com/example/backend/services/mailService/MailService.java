@@ -50,14 +50,19 @@ public class MailService {
 
         User senderUser = userRepo.findByEmail(dto.getSender());
         if (senderUser == null) throw new RuntimeException("Sender not found");
+        String senderId = senderUser.getUserId();
 
+        Mail senderCopy = MailFactory.create( senderId ,dto , dto.getSender() , "sender"); // has better design ?
+        senderCopy.setReceiverEmails(dto.getReceivers());
+        senderCopy = mailRepo.save(senderCopy);
+
+        folderService.addMail( senderUser.getSentFolderId(), senderCopy);
 
         Queue<String> receiversQueue = new LinkedList<>();
         if (dto.getReceivers() != null) {
             receiversQueue.addAll(dto.getReceivers());
         }
 
-        String lastMailId = null;
 
 
         while (!receiversQueue.isEmpty()) {
@@ -69,28 +74,16 @@ public class MailService {
             if (receiverUser == null) {
                 continue;
             }
+            String receiverId = receiverUser.getUserId();
 
-
-            List<Mail> mailPair = MailFactory.createPair(dto, currentReceiverEmail);
-            Mail senderCopy = mailPair.get(0);
-            Mail receiverCopy = mailPair.get(1);
-
-
-            senderCopy.setUserId(senderUser.getUserId());
-            receiverCopy.setUserId(receiverUser.getUserId());
-
-
-            senderCopy = mailRepo.save(senderCopy);
+            Mail receiverCopy = MailFactory.create( receiverId ,dto , currentReceiverEmail , "receiver");
             receiverCopy = mailRepo.save(receiverCopy);
 
-
-            folderService.addMail( senderUser.getSentFolderId(), senderCopy);
             folderService.addMail( receiverUser.getInboxFolderId(), receiverCopy);
 
-            lastMailId = senderCopy.getMailId();
         }
 
-        return lastMailId;
+        return 1 + receiversQueue.size() + " mails added ";
     }
 
     @Transactional
@@ -152,7 +145,7 @@ public class MailService {
                 .filter(mail -> mail.getSubject().contains(keyword)
                         || mail.getBody().contains(keyword)
                         || mail.getSenderEmail().contains(keyword)
-                        || mail.getReceiverEmail().contains(keyword))
+                        || mail.getReceiverEmails().contains(keyword))
                 .collect(Collectors.toList());
     }
 

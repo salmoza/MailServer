@@ -4,6 +4,7 @@ import com.example.backend.dtos.AttachmentDto;
 import com.example.backend.dtos.MailDto;
 import com.example.backend.entities.Attachment;
 import com.example.backend.entities.Mail;
+import com.example.backend.repo.MailRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Timestamp;
@@ -14,33 +15,32 @@ import java.util.List;
 
 public class MailFactory {
 
+    @Autowired
+    MailRepo mailRepo;
 
 
-    public static List<Mail> createPair(MailDto dto, String currentReceiverEmail) {
+    public static Mail create( String id ,MailDto dto, String currentReceiverEmail , String type) {
 
-        Mail senderCopy = new Mail();
-        Mail receiverCopy = new Mail();
+
+        Mail Copy = new Mail();
 
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        senderCopy.setDate(now);
-        receiverCopy.setDate(now);
 
+        Copy.setDate(now);
 
-        senderCopy.setSenderEmail(dto.getSender());
-        senderCopy.setReceiverEmail(currentReceiverEmail);
-        senderCopy.setSubject(dto.getSubject());
-        senderCopy.setBody(dto.getBody());
-        senderCopy.setPriority(dto.getPriority());
-        senderCopy.setIsRead(true);
+        Copy.setSenderEmail(dto.getSender());
+        Copy.getReceiverEmails().add(currentReceiverEmail);
+        Copy.setSubject(dto.getSubject());
+        Copy.setBody(dto.getBody());
+        if (type.equals("receiver")) {
+        Copy.setPriority(2);
+        Copy.setIsRead(false); }
+        else if (type.equals("sender")) {
+            Copy.setPriority(dto.getPriority());
+            Copy.setIsRead(true);
+        }
+        Copy.setUserId(id);
 
-
-        receiverCopy.setSenderEmail(dto.getSender());
-        receiverCopy.setReceiverEmail(currentReceiverEmail);
-        receiverCopy.setSubject(dto.getSubject());
-        receiverCopy.setBody(dto.getBody());
-        receiverCopy.setPriority(2);
-        receiverCopy.setIsRead(false);
-
-        return List.of(senderCopy, receiverCopy);
+        return  Copy ;
     }
 }
