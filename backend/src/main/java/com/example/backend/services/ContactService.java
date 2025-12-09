@@ -12,7 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ContactService {
@@ -26,9 +28,8 @@ public class ContactService {
     private ContactFactory contactFactory =  new ContactFactory();
 
     public ContactDto createContact (String userId, ContactDto dto) {
-        User owner = userRepo.findByUserId(userId) ;
-
-
+        User owner = userRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
         Contact contact = contactFactory.toEntity(dto, owner);
         contact = contactsRepo.save(contact);
 
@@ -37,7 +38,7 @@ public class ContactService {
 
     public ContactDto editContact (String contactId, ContactDto dto) {
         Contact contact = contactsRepo.findById(contactId)
-                        .orElseThrow (() -> new RuntimeException("Contact not found"));
+                .orElseThrow(() -> new RuntimeException("Contact not found"));
 
         contact.setName(dto.getName());
         contact.setEmailAddresses(dto.getEmailAddresses());
@@ -56,21 +57,81 @@ public class ContactService {
     }
 
     public Page<ContactDto> searchContacts (String userId, String query, Pageable pageable) {
-        User owner = userRepo.findByUserId(userId) ;
+        User owner = userRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Page<Contact> result;
-        if (query.contains("@")) {
-            result = contactsRepo.findByOwnerAndEmailAddressContaining(owner, query, pageable);
-        }else {
-            result = contactsRepo.findByOwnerAndNameContainingIgnoreCase(owner, query, pageable);
-        }
+        Page<Contact> result = contactsRepo.searchContacts(owner, query, pageable);
+
         return result.map(contactFactory::toDto);
 
     }
 
+    public List<ContactDto> getContacts(String userId, String query, String sortBy, String order) {
+        User owner = userRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Contact> contacts = contactsRepo.findByOwner(owner);
+
+        //SEARCH (optional)
+        if (query != null && !query.isEmpty()) {
+            String q = query.toLowerCase();
+
+            contacts = contacts.stream()
+                    .filter(contact ->
+                            (contact.getName() != null &&
+                                    contact.getName().toLowerCase().contains(q)) ||
+                                    (contact.getNotes() != null &&
+                                            contact.getNotes().toLowerCase().contains(q)) ||
+                                    (contact.getPhoneNumber() != null &&
+                                            contact.getPhoneNumber().toLowerCase().contains(q)) ||
+                                    (contact.getEmailAddresses() != null &&
+                                            contact.getEmailAddresses().stream()
+                                                    .anyMatch(email -> email.toLowerCase().contains(q)))
+                    )
+                    .toList();
+        }
+
+        // SORTING (optional)
+        if (sortBy != null && !sortBy.isEmpty()) {
+
+            Comparator<Contact> comparator = switch (sortBy) {
+                case "name" -> Comparator.comparing(
+                        Contact::getName,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+                );
+                case "phoneNumber" -> Comparator.comparing(
+                        Contact::getPhoneNumber,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+                );
+                case "notes" -> Comparator.comparing(
+                        Contact::getNotes,
+                        Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)
+                );
+
+                case "createdAt" -> Comparator.comparing(Contact::getCreatedAt);
+                case "updatedAt" -> Comparator.comparing(Contact::getUpdatedAt);
+                case "starred" -> Comparator.comparing(Contact::isStarred);
+                default -> throw new RuntimeException("Unknown sort field: " + sortBy);
+            };
+
+            if ("desc".equalsIgnoreCase(order)) {
+                comparator = comparator.reversed();
+            }
+
+            contacts = contacts.stream().sorted(comparator).toList();
+        }
+
+        // Convert to DTO
+        return contacts.stream()
+                .map(contactFactory::toDto)
+                .toList();
+    }
+
+
     public Page<ContactDto> sortContacts(String userId, String sortBy, String order, Pageable pageable) {
 
-        User owner = userRepo.findByUserId(userId) ;
+        User owner = userRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
 
         Sort sort = order.equalsIgnoreCase("asc")

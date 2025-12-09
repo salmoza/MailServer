@@ -14,7 +14,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String userId;
-    private String displayName;
+//    private String displayName;
     private String username;
     @Column(unique = true, nullable = false)
     private String email;
@@ -22,9 +22,11 @@ public class User {
     private String password;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Folder> folders;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Contact> contacts;
 
 

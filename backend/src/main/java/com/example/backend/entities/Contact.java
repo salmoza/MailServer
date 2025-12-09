@@ -16,8 +16,9 @@ public class Contact {
     private String contactId;
 
     @ManyToOne
-    @JoinColumn(name = "owner_id", nullable = false)
+    @JoinColumn(name = "owner_id")
     private User owner;
+
 
     @ElementCollection
     @CollectionTable(name = "contact_emails", joinColumns = @JoinColumn(name = "contact_id"))
@@ -30,7 +31,7 @@ public class Contact {
     @Column(updatable = false)
     private Timestamp createdAt;
     private Timestamp updatedAt;
-    private boolean isStarred =false;
+    private boolean starred;
 
     @PrePersist         // triggered once
     protected void onCreate() {

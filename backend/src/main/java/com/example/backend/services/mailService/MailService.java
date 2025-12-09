@@ -98,7 +98,8 @@ public class MailService {
 
         Mail helpingMail = mailRepo.findByMailId(mailId);
 
-        User user = userRepo.findByUserId(helpingMail.getUserId()) ;
+        User user = userRepo.findByUserId(helpingMail.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Folder trash = folderRepo.findByFolderId(user.getTrashFolderId()) ;
 

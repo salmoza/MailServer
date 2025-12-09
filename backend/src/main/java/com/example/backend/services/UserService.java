@@ -2,12 +2,12 @@ package com.example.backend.services;
 
 
 
-import com.example.backend.dtos.UserIdWithFoldersIdDto;
+import com.example.backend.dtos.UserDto;
 import com.example.backend.dtos.UserSignupDTO;
 import com.example.backend.dtos.UserSigninDTO;
 
 import com.example.backend.entities.User;
-import com.example.backend.factories.UserIdWithFoldersIdFactory;
+import com.example.backend.factories.UserFactory;
 import com.example.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,9 +23,14 @@ public class UserService {
     private UserRepo userRepo;
 
     @Autowired
+    UserFactory userFactory;
+
+    @Autowired
     private FolderService folderService ; //for initialization
 
-    public UserIdWithFoldersIdDto signIn(UserSigninDTO user) {
+
+
+    public String signIn(UserSigninDTO user) {
 
 
         User actualUser = userRepo.findByEmail(user.getEmail());
@@ -38,12 +43,7 @@ public class UserService {
         if (!(user.getPassword().equals(actualUser.getPassword()))) {
             throw new IllegalArgumentException("Wrong password");
         }
-        UserIdWithFoldersIdDto userIdWithFoldersIdDto = UserIdWithFoldersIdFactory.create(actualUser.getUserId(),
-                actualUser.getInboxFolderId(),
-                actualUser.getSentFolderId(),
-                actualUser.getTrashFolderId(),
-                actualUser.getDraftsFolderId()) ;
-        return userIdWithFoldersIdDto ;
+        return actualUser.getUserId();
     }
 
 
@@ -56,19 +56,21 @@ public class UserService {
         User newUser = new User();
         newUser.setEmail(user.getEmail());
         newUser.setPassword(user.getPassword());
-        newUser.setDisplayName(user.getUsername());
+        newUser.setUsername(user.getUsername());
 
         userRepo.save(newUser);
         folderService.initialize(newUser.getUserId());
         UserSignupDTO saveduser = new UserSignupDTO();
         saveduser.setEmail(newUser.getEmail());
-        saveduser.setUsername(newUser.getDisplayName());
+        saveduser.setUsername(newUser.getUsername());
         return saveduser;
     }
 
 
-    public List<User> getAllUsers() {
-        return userRepo.findAll() ;
+    public List<UserDto> getAllUsers() {
+        return userRepo.findAll().stream()
+                .map(user -> userFactory.toDto(user))
+                .toList();
     }
 
 

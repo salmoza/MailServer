@@ -14,7 +14,7 @@ public class ContactDto {
     private String name;
 
     private List<String> emailAddresses;
-    private boolean isStarred;
+    private boolean starred;
     private String phoneNumber;         // optional
     private String notes;               // optional
 

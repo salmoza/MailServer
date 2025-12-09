@@ -2,7 +2,7 @@ package com.example.backend.controllers;
 
 //import com.example.backend.dtos.UserSigninDTO;
 //import com.example.backend.dtos.UserSignupDTO;
-import com.example.backend.dtos.UserIdWithFoldersIdDto;
+import com.example.backend.dtos.UserDto;
 import com.example.backend.dtos.UserSigninDTO;
 import com.example.backend.dtos.UserSignupDTO;
 import com.example.backend.entities.User;
@@ -29,9 +29,9 @@ public class UserController {
 
 
     @PostMapping("/signIn")
-    public ResponseEntity<Map<String, Object>> signin (@RequestBody UserSigninDTO user) {
-        UserIdWithFoldersIdDto userIdWithFoldersIdDto= userService.signIn(user);
-        return ResponseEntity.ok(Map.of("attributes",userIdWithFoldersIdDto,"message","Login successful."));
+    public ResponseEntity<Map<String, String>> signin (@RequestBody UserSigninDTO user) {
+        String userid = userService.signIn(user);
+        return ResponseEntity.ok(Map.of("userId",userid,"message","Login successful."));
     }
 
 
@@ -56,7 +56,7 @@ public class UserController {
     }
 
     @GetMapping("/get")
-    public List<User> get (){
+    public List<UserDto> get (){
         return userService.getAllUsers() ;
     }
 

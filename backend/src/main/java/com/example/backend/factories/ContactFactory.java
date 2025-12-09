@@ -3,9 +3,11 @@ package com.example.backend.factories;
 import com.example.backend.dtos.ContactDto;
 import com.example.backend.entities.Contact;
 import com.example.backend.entities.User;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ContactFactory {
-    public ContactDto toDto (Contact contact) {
+    public ContactDto toDto(Contact contact) {
         ContactDto contactDto = new ContactDto();
         contactDto.setContactId(contact.getContactId());
         contactDto.setName(contact.getName());
