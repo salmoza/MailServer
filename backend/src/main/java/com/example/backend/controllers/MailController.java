@@ -28,9 +28,9 @@ public class MailController {
     FolderRepo folderRepo ;
 
     @PostMapping("/compose")
-    public ResponseEntity<String> compose (@RequestBody MailDto mailDto) {
-        String state = mailService.createNewMail(mailDto);
-        return ResponseEntity.ok(state);
+    public ResponseEntity<List<String>> compose (@RequestBody MailDto mailDto) {
+        List<String> createdmailIds = mailService.createNewMail(mailDto);
+        return ResponseEntity.ok(createdmailIds);
     }
 
     @GetMapping("/{folderId}/mails")

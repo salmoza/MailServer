@@ -8,6 +8,7 @@ import com.example.backend.factories.MailFactory;
 import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.UserRepo;
+import com.example.backend.services.AttachmentService;
 import com.example.backend.services.FolderService;
 import com.example.backend.services.filter.AndCriteria;
 import com.example.backend.services.filter.MailCriteria;
@@ -24,10 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,7 +42,9 @@ public class MailService {
     @Autowired
     private FolderRepo folderRepo ;
 
-    public String createNewMail(MailDto dto) {
+    @Autowired
+    private AttachmentService attachmentService;
+    public List<String> createNewMail(MailDto dto) {
 
 
 
@@ -55,7 +55,7 @@ public class MailService {
         Mail senderCopy = MailFactory.create( senderId ,dto , dto.getSender() , "sender"); // has better design ?
         senderCopy.setReceiverEmails(dto.getReceivers());
         senderCopy = mailRepo.save(senderCopy);
-
+        mailRepo.flush();
         folderService.addMail( senderUser.getSentFolderId(), senderCopy);
 
         Queue<String> receiversQueue = new LinkedList<>();
@@ -63,7 +63,8 @@ public class MailService {
             receiversQueue.addAll(dto.getReceivers());
         }
 
-
+        List<String> ids= new ArrayList<>();
+        ids.add(senderCopy.getMailId());
 
         while (!receiversQueue.isEmpty()) {
 
@@ -78,12 +79,15 @@ public class MailService {
 
             Mail receiverCopy = MailFactory.create( receiverId ,dto , currentReceiverEmail , "receiver");
             receiverCopy = mailRepo.save(receiverCopy);
-
+            attachmentService.duplicateAttachmentsForNewMail(
+                    senderCopy.getMailId(),         // Source: Attachments are linked to the original draft
+                    receiverCopy           // Target: Link the new attachment records to the recipient's mail copy
+            );
             folderService.addMail( receiverUser.getInboxFolderId(), receiverCopy);
-
+            ids.add(receiverCopy.getMailId());
         }
 
-        return 1 + receiversQueue.size() + " mails added ";
+        return ids;
     }
 
     @Transactional

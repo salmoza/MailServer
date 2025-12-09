@@ -26,7 +26,7 @@ public class AttachmentController {
 
     @PostMapping("/upload")
     public String addattachments(@RequestParam("file") MultipartFile file,
-                                                        @RequestParam("mailId") String mailId){
+                                                        @RequestParam("mailIds") List<String> mailId){
         if(file.isEmpty()){
             throw new IllegalArgumentException("nope");
         }

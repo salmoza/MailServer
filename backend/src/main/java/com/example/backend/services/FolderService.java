@@ -9,7 +9,9 @@ import com.example.backend.repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class FolderService {
@@ -29,7 +31,6 @@ public class FolderService {
         userRepo.save(user);
         return folderRepo.save(folder);
     }
-
     public void deleteFolder(String userId, String folderId){
         folderRepo.delete(folderRepo.findByFolderIdAndUserUserId(folderId, userId));
     }
@@ -53,11 +54,17 @@ public class FolderService {
         return folderRepo.findByUserUserId(userId);
     }
 
-    public void initialize(String userId) {
-        createFolder(userId, "Inbox");
-        createFolder(userId, "Drafts");
-        createFolder(userId, "Sent");
-        createFolder(userId, "Trash");
+    public Map<String,String> initialize(String userId) {
+        Map<String,String> folderIds = new HashMap<>();
+        Folder inbox = createFolder(userId, "Inbox");
+        Folder Draft = createFolder(userId, "Drafts");
+        Folder Sent = createFolder(userId, "Sent");
+        Folder Trash = createFolder(userId, "Trash");
+        folderIds.put("inboxId",inbox.getFolderId());
+        folderIds.put("DraftId",Draft.getFolderId());
+        folderIds.put("SentId",Sent.getFolderId());
+        folderIds.put("TrashId",Trash.getFolderId());
+        return folderIds;
     }
 
     public Folder renameFolder(String folderId, String newName) {

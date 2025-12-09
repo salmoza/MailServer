@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,7 +24,7 @@ public class AttachmentService {
     private final AttachmentFactory attachmentFactory;
     private final MailRepo mailRepo;
     private final AttachmentsRepo attachmentsRepo;
-    private static final String Attachment_dir = "server/attachments";
+    private static final String Attachment_dir = "C:\\Users\\Zuhair\\Desktop\\Server\\attachments";
     @Autowired
     public AttachmentService(AttachmentFactory attachmentFactory, MailRepo mailRepo, AttachmentsRepo attachmentsRepo) {
         this.attachmentFactory = attachmentFactory;
@@ -31,29 +32,38 @@ public class AttachmentService {
         this.attachmentsRepo = attachmentsRepo;
     }
 
-    public AttachmentDto createNewAttachment(MultipartFile file, String mailId) throws IOException {
-        Optional<Mail> mailOptional = mailRepo.findById(mailId);
-        if (mailOptional.isEmpty()) {
+    public AttachmentDto createNewAttachment(MultipartFile file, List<String> mailId) throws IOException {
+        if (mailId == null || mailId.isEmpty()) {
             throw new IllegalArgumentException("mail is not found");
         }
-        Mail parentmail = mailOptional.get();
-        Path mailSepcificPath = Paths.get(Attachment_dir,mailId);
+        String PrimaryMailId = mailId.get(0);
+        Path mailSepcificPath = Paths.get(Attachment_dir,PrimaryMailId);
         Files.createDirectories(mailSepcificPath);
 
-        String uniquename = UUID.randomUUID().toString()+"_"+file.getOriginalFilename();
+        String uniquename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
         Path filePath = mailSepcificPath.resolve(uniquename);
+        Files.copy(file.getInputStream(), filePath);
 
-        Files.copy(file.getInputStream(),filePath);
-
-        Attachment att = new Attachment();
-        att.setMail(parentmail);
-        att.setFiletype(file.getContentType());
-        att.setFilePath(filePath.toString());
-        att.setFilesize(file.getSize());
-        att.setFilename(file.getOriginalFilename());
-        Attachment saveatt = attachmentsRepo.save(att);
-
-        return attachmentFactory.toDTO(saveatt);
+        String pathString = filePath.toString();
+        Long fileSize = file.getSize();
+        String filetype = file.getContentType();
+        String originalName = file.getOriginalFilename();
+        AttachmentDto primaryAttachmentdto = null;
+        for(String mailid: mailId){
+            Optional<Mail> mailOptional = mailRepo.findById(mailid);
+            Mail parentMail = mailOptional.orElseThrow(()-> new IllegalArgumentException("mail id not found"));
+            Attachment att = new Attachment();
+            att.setMail(parentMail);
+            att.setFilePath(pathString);
+            att.setFilesize(fileSize);
+            att.setFiletype(filetype);
+            att.setFilename(originalName);
+            Attachment saveAtt = attachmentsRepo.save(att);
+            if(primaryAttachmentdto == null){
+                primaryAttachmentdto = attachmentFactory.toDTO(saveAtt);
+            }
+        }
+        return primaryAttachmentdto;
     }
 
     public String DeleteAttachment(String id) {
@@ -77,5 +87,32 @@ public class AttachmentService {
         Optional<Attachment> attop = attachmentsRepo.findById(attid);
         Attachment att = attop.get();
         return Paths.get(att.getFilePath());
+    }
+    public List<Attachment> duplicateAttachmentsForNewMail(String sourceDraftId, Mail targetMailEntity) {
+
+        // 1. Find all attachments currently linked to the source Draft ID
+        List<Attachment> sourceAttachments = attachmentsRepo.findByAttachmentId(sourceDraftId); // Assuming you defined this method in AttachmentsRepo
+
+        List<Attachment> duplicatedAttachments = new ArrayList<>();
+
+        for (Attachment sourceAtt : sourceAttachments) {
+            // 2. Create a brand new Attachment Entity (A clone of the metadata)
+            Attachment newAtt = new Attachment();
+
+            // Copy all necessary data (FilePath is shared, as the file is already on disk)
+            newAtt.setFilename(sourceAtt.getFilename());
+            newAtt.setFiletype(sourceAtt.getFiletype());
+            newAtt.setFilesize(sourceAtt.getFilesize());
+            newAtt.setFilePath(sourceAtt.getFilePath()); // Path is SHARED
+
+            // 3. Set the NEW Foreign Key link (CRITICAL)
+            newAtt.setMail(targetMailEntity); // Links to the recipient's new mail ID
+
+            // 4. Save the new attachment record (JPA generates a new UUID)
+            Attachment savedAtt = attachmentsRepo.save(newAtt);
+            duplicatedAttachments.add(savedAtt);
+        }
+
+        return duplicatedAttachments;
     }
 }

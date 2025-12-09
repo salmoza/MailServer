@@ -29,9 +29,8 @@ public class UserController {
 
 
     @PostMapping("/signIn")
-    public ResponseEntity<Map<String, String>> signin (@RequestBody UserSigninDTO user) {
-        String userid = userService.signIn(user);
-        return ResponseEntity.ok(Map.of("userId",userid,"message","Login successful."));
+    public ResponseEntity<?> signin (@RequestBody UserSigninDTO user) {
+        return ResponseEntity.ok(userService.signIn(user));
     }
 
 

@@ -30,7 +30,7 @@ public class UserService {
 
 
 
-    public String signIn(UserSigninDTO user) {
+    public User signIn(UserSigninDTO user) {
 
 
         User actualUser = userRepo.findByEmail(user.getEmail());
@@ -43,11 +43,11 @@ public class UserService {
         if (!(user.getPassword().equals(actualUser.getPassword()))) {
             throw new IllegalArgumentException("Wrong password");
         }
-        return actualUser.getUserId();
+        return actualUser;
     }
 
 
-    public UserSignupDTO signUp(UserSignupDTO user) {
+    public User signUp(UserSignupDTO user) {
 
         if (userRepo.existsByEmail(user.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
@@ -58,12 +58,11 @@ public class UserService {
         newUser.setPassword(user.getPassword());
         newUser.setUsername(user.getUsername());
 
-        userRepo.save(newUser);
-        folderService.initialize(newUser.getUserId());
-        UserSignupDTO saveduser = new UserSignupDTO();
-        saveduser.setEmail(newUser.getEmail());
-        saveduser.setUsername(newUser.getUsername());
-        return saveduser;
+        User savedUser=userRepo.save(newUser);
+        folderService.initialize(savedUser.getUserId());
+        User fullyinitialized = userRepo.findByUserId(savedUser.getUserId()).
+                orElseThrow(()-> new RuntimeException("idk"));
+        return fullyinitialized;
     }
 
 
