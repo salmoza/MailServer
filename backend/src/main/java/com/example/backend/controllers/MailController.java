@@ -33,10 +33,10 @@ public class MailController {
         return ResponseEntity.ok(createdmailIds);
     }
 
-    @GetMapping("/{folderId}/mails")
-    public List<Mail> getMails(@PathVariable String folderId) {  // get mails from a specific folder
-        return mailRepo.getMailsByFolderId(folderId);
-    }
+//    @GetMapping("/{folderId}/mails")
+//    public List<Mail> getMails(@PathVariable String folderId) {  // get mails from a specific folder
+//        return mailRepo.getMailsByFolderId(folderId);
+//    }
 
     @DeleteMapping("/deleteMails/{folderId}")
     public ResponseEntity<?> deleteMails(@RequestParam List<String> ids , @PathVariable String folderId) {
@@ -64,17 +64,18 @@ public class MailController {
 
 
     @GetMapping("/getAllMails")
-    public List<Mail> getAllMails(/*@RequestParam String folderId*/) {
-       // return mailService.sortMails(folderId, "date");
+    public List<Mail> getAllMails(@RequestParam String folderId, @RequestParam int page) {
+        return mailService.sortMails(folderId, "date", page);
 
-        return mailRepo.findAll() ;
+//        return mailRepo.findAll() ;
     }
 
     @GetMapping("/search")
     public List<Mail> search(
             @RequestParam String folderId,
-            @RequestParam String keyword) {
-        return mailService.searchEmails(folderId, keyword);
+            @RequestParam String keyword,
+            @RequestParam int page) {
+        return mailService.searchEmails(folderId, keyword, page);
     }
 
     @PostMapping("/move/{toFolderId}/{fromFolderId}")
@@ -88,8 +89,9 @@ public class MailController {
     @GetMapping("/sort")
     public List<Mail> sort(
             @RequestParam String folderId,
-            @RequestParam String sortBy) {
-        return mailService.sortMails(folderId, sortBy);
+            @RequestParam String sortBy,
+            @RequestParam int page) {
+        return mailService.sortMails(folderId, sortBy, page);
     }
 
      @GetMapping("/mails")
