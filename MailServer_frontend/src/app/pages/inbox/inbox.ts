@@ -1,11 +1,15 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
+import {FolderStateService} from '../../Dtos/FolderStateService';
+import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {Datafile} from '../../Dtos/datafile';
+import {MailShuttleService} from '../../Dtos/MailDetails';
 
 @Component({
   selector: 'app-inbox',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink,HttpClientModule],
   template: `
     <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -198,8 +202,10 @@ import { RouterLink } from '@angular/router';
                 </tr>
               </thead>
               <tbody>
+                @for(item of InboxData; track $index){
                 <tr
                   class="border-t border-t-slate-200 hover:bg-slate-50 cursor-pointer"
+                  (click)="goToMailDetails(item)"
                 >
                   <td class="px-4 py-2">
                     <input
@@ -208,191 +214,24 @@ import { RouterLink } from '@angular/router';
                     />
                   </td>
                   <td class="px-4 py-2 text-slate-800 text-sm font-semibold">
-                    Figma
+                    {{item.senderEmail}}
                   </td>
                   <td class="px-4 py-2">
                     <span class="text-slate-800 text-sm font-semibold"
-                      >You have 3 new comments</span
+                      >{{item.subject}}</span
                     >
                     <span class="text-slate-500 text-sm ml-2 truncate"
-                      >Hey, I've left some feedback on the latest designs for the homepage...</span
+                      >{{item.body}}</span
                     >
                   </td>
                   <td class="px-4 py-2 text-right">
                     <span class="material-symbols-outlined text-slate-400 text-lg">attachment</span>
                   </td>
                   <td class="px-4 py-2 text-slate-500 text-sm text-right">
-                    3:45 PM
+                    {{item.date}}
                   </td>
                 </tr>
-                <tr
-                  class="border-t border-t-slate-200 hover:bg-slate-50 cursor-pointer"
-                >
-                  <td class="px-4 py-2">
-                    <input
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                    />
-                  </td>
-                  <td class="px-4 py-2 text-slate-600 text-sm">
-                    John Appleseed
-                  </td>
-                  <td class="px-4 py-2">
-                    <span class="text-slate-600 text-sm"
-                      >Re: Project Alpha Kickoff</span
-                    >
-                    <span class="text-slate-500 text-sm ml-2 truncate"
-                      >Thanks for setting this up. Looking forward to it!</span
-                    >
-                  </td>
-                  <td class="px-4 py-2 text-right"></td>
-                  <td class="px-4 py-2 text-slate-500 text-sm text-right">
-                    11:20 AM
-                  </td>
-                </tr>
-                <tr
-                  class="border-t border-t-slate-200 hover:bg-slate-50 cursor-pointer bg-primary/10"
-                >
-                  <td class="px-4 py-2">
-                    <input
-                      checked=""
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                    />
-                  </td>
-                  <td class="px-4 py-2 text-slate-800 text-sm font-semibold">
-                    Slack
-                  </td>
-                  <td class="px-4 py-2">
-                    <span class="text-slate-800 text-sm font-semibold"
-                      >Your password has been changed</span
-                    >
-                    <span class="text-slate-500 text-sm ml-2 truncate"
-                      >Your password for the Acme Inc workspace was changed on...</span
-                    >
-                  </td>
-                  <td class="px-4 py-2 text-right"></td>
-                  <td class="px-4 py-2 text-slate-500 text-sm text-right">
-                    Yesterday
-                  </td>
-                </tr>
-                <tr
-                  class="border-t border-t-slate-200 hover:bg-slate-50 cursor-pointer"
-                >
-                  <td class="px-4 py-2">
-                    <input
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                    />
-                  </td>
-                  <td class="px-4 py-2 text-slate-600 text-sm">GitHub</td>
-                  <td class="px-4 py-2">
-                    <span class="text-slate-600 text-sm"
-                      >[ui-kit] A new version has been released</span
-                    >
-                    <span class="text-slate-500 text-sm ml-2 truncate"
-                      >Version 3.2.1 of our UI kit is now available with new components...</span
-                    >
-                  </td>
-                  <td class="px-4 py-2 text-right"></td>
-                  <td class="px-4 py-2 text-slate-500 text-sm text-right">
-                    Yesterday
-                  </td>
-                </tr>
-                <tr
-                  class="border-t border-t-slate-200 hover:bg-slate-50 cursor-pointer"
-                >
-                  <td class="px-4 py-2">
-                    <input
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                    />
-                  </td>
-                  <td class="px-4 py-2 text-slate-600 text-sm">Jane Doe</td>
-                  <td class="px-4 py-2">
-                    <span class="text-slate-600 text-sm"
-                      >Meeting Follow-up</span
-                    >
-                    <span class="text-slate-500 text-sm ml-2 truncate"
-                      >Hi team, here are the notes from our meeting this morning.</span
-                    >
-                  </td>
-                  <td class="px-4 py-2 text-right">
-                    <span class="material-symbols-outlined text-slate-400 text-lg">attachment</span>
-                  </td>
-                  <td class="px-4 py-2 text-slate-500 text-sm text-right">
-                    Oct 28
-                  </td>
-                </tr>
-                <tr
-                  class="border-t border-t-slate-200 hover:bg-slate-50 cursor-pointer"
-                >
-                  <td class="px-4 py-2">
-                    <input
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                    />
-                  </td>
-                  <td class="px-4 py-2 text-slate-600 text-sm">Linear</td>
-                  <td class="px-4 py-2">
-                    <span class="text-slate-600 text-sm"
-                      >New issues assigned to you</span
-                    >
-                    <span class="text-slate-500 text-sm ml-2 truncate"
-                      >2 new issues in the "Website Redesign" project have been assigned...</span
-                    >
-                  </td>
-                  <td class="px-4 py-2 text-right"></td>
-                  <td class="px-4 py-2 text-slate-500 text-sm text-right">
-                    Oct 27
-                  </td>
-                </tr>
-                <tr
-                  class="border-t border-t-slate-200 hover:bg-slate-50 cursor-pointer"
-                >
-                  <td class="px-4 py-2">
-                    <input
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                    />
-                  </td>
-                  <td class="px-4 py-2 text-slate-600 text-sm">
-                    Marketing Team
-                  </td>
-                  <td class="px-4 py-2">
-                    <span class="text-slate-600 text-sm"
-                      >Weekly Newsletter</span
-                    >
-                    <span class="text-slate-500 text-sm ml-2 truncate"
-                      >Check out our latest product updates and company news!</span
-                    >
-                  </td>
-                  <td class="px-4 py-2 text-right"></td>
-                  <td class="px-4 py-2 text-slate-500 text-sm text-right">
-                    Oct 26
-                  </td>
-                </tr>
-                <tr
-                  class="border-t border-t-slate-200 hover:bg-slate-50 cursor-pointer"
-                >
-                  <td class="px-4 py-2">
-                    <input
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                    />
-                  </td>
-                  <td class="px-4 py-2 text-slate-600 text-sm">Alex Smith</td>
-                  <td class="px-4 py-2">
-                    <span class="text-slate-600 text-sm">Lunch plans?</span>
-                    <span class="text-slate-500 text-sm ml-2 truncate"
-                      >Hey, are you free for lunch tomorrow?</span
-                    >
-                  </td>
-                  <td class="px-4 py-2 text-right"></td>
-                  <td class="px-4 py-2 text-slate-500 text-sm text-right">
-                    Oct 25
-                  </td>
-                </tr>
+                }
               </tbody>
             </table>
           </div>
@@ -473,4 +312,32 @@ import { RouterLink } from '@angular/router';
     }
   `],
 })
-export class Inbox {}
+export class Inbox implements OnInit{
+  constructor(private MailDetails:MailShuttleService,private folderStateService: FolderStateService,private http : HttpClient,private router : Router) {
+  }
+  switchId:string='';
+  InboxData:Datafile[]=[];
+  ngOnInit() {
+    this.getInbox();
+  }
+  getInbox(){
+    const userData: UserData = this.folderStateService.userData();
+    const inboxId = userData.inboxFolderId;
+    if(!inboxId){
+      console.error('inboxId is missing');
+      return;
+    }
+    this.http.get<Datafile[]>(`http://localhost:8080/mail/${inboxId}/mails`).subscribe({
+      next:(respones) => {
+        this.InboxData=respones;
+      },
+      error:(respones) => {
+        console.log(respones);
+      }
+    })
+  }
+  goToMailDetails(details:Datafile){
+    this.MailDetails.setMailData(details);
+    this.router.navigate([`/mail`]);
+  }
+}

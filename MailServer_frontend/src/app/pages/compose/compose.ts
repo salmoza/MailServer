@@ -1,11 +1,12 @@
-import {Component, ElementRef, ViewChild} from '@angular/core';
+import {Component, ElementRef, inject, OnInit, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {Route, Router, RouterLink} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {lastValueFrom} from 'rxjs';
+import {FolderStateService} from '../../Dtos/FolderStateService';
 
-interface att{
+export interface att{
   id:string;
   filetype:string;
   mailId:string;
@@ -280,14 +281,19 @@ interface att{
 })
 export class Compose {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-  constructor(private route : Router,private http : HttpClient) {}
+  constructor(private route : Router,private http : HttpClient) {
+    this.folderStateService = inject(FolderStateService);
+    this.sender = this.folderStateService.userData().email;
+  }
   recipients:string[]=[];
+  folderStateService;
   currentEmailInput:string='';
-  sender:string="z@gmail.com";
+  sender:string;
   subject:string="";
   body:string="";
   priority:number=4;
   attachments:att[] = [];
+  mailId:string='';
   isVaildEmail(email:string):boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -320,7 +326,7 @@ export class Compose {
         filetype:file.type,
         fileData:file,
         sizeMB:this.formatFileSize(file.size),
-        mailId:''
+        mailId:this.mailId
       };
       this.attachments.push(newAtt);
       target.value='';
@@ -338,18 +344,27 @@ export class Compose {
       this.route.navigate(['/inbox']);
     }
     else{
-      console.log(this.createMailBase());
+      this.createMailBase();
       this.route.navigate(['/inbox']);
     }
 
   }
   private async uploadAndSend(){
-    const mailId = await this.createMailBase();
-    console.log(mailId);
-    await this.uploadAttachments(mailId);
-    this.sendFinalMail(this.attachments,mailId);
+    try{
+    const mailIds:string[] = await this.createMailBase();
+    console.log(mailIds);
+    await this.delay(500);
+    await this.uploadAttachments(mailIds);
+    this.sendFinalMail();
   }
-  private createMailBase():Promise<any>{
+  catch(error){
+      console.log(error);
+  }
+  }
+  private delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  private createMailBase():Promise<string[]>{
     const payload={
       subject:this.subject,
       body:this.body,
@@ -359,22 +374,21 @@ export class Compose {
     };
     console.log(payload);
     return lastValueFrom(
-      this.http.post("http://localhost:8080/mail/compose",payload,{responseType:"text"})
+      this.http.post<string[]>("http://localhost:8080/mail/compose",payload)
     );
   }
-  private uploadAttachments(mailId:string):Promise<any> {
+  private uploadAttachments(mailId:string[]) {
 
     const uploadPromises = this.attachments.map(att => {
       const formData = new FormData();
       formData.append('file',att.fileData,att.name);
-      formData.append('mailId', mailId);
+      mailId.forEach(id => formData.append('mailIds', id));
       console.log(formData);
-      return this.http.post("http://localhost:8080/api/attachment/upload", formData,{responseType:'text'}).toPromise();
+      return this.http.post("http://localhost:8080/api/attachment/upload", formData).toPromise();
     });
     return Promise.all(uploadPromises);
   }
-  private sendFinalMail(attachments:att[],mailId:string=''){
-    this.route.navigate(['/inbox']);
+  private sendFinalMail(){
     alert('mail Sent');
   }
 
@@ -393,4 +407,5 @@ export class Compose {
   removeRecipient(toremoveemail:string):void {
     this.recipients = this.recipients.filter(email => email !== toremoveemail);
   }
+
 }

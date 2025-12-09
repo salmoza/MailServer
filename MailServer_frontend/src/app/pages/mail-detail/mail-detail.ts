@@ -1,15 +1,24 @@
-import { Component } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
+import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {Datafile} from '../../Dtos/datafile';
+import {FolderStateService} from '../../Dtos/FolderStateService';
+import {take} from 'rxjs';
+import {MailShuttleService} from '../../Dtos/MailDetails';
 
+// @ts-ignore
+// @ts-ignore
+// @ts-ignore
 @Component({
   selector: 'app-mail-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink,HttpClientModule],
   template: `
     <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"/>
 
     <div class="flex h-screen w-full flex-col bg-[#f6f7f8] font-display">
       <!-- TopNavBar -->
@@ -72,38 +81,32 @@ import { RouterLink } from '@angular/router';
         >
           <div class="flex flex-col gap-6">
             <button [routerLink]="['/compose']"
-              class="flex w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-[#137fec] text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2 shadow-sm hover:opacity-90"
+                    class="flex w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-[#137fec] text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2 shadow-sm hover:opacity-90"
             >
               <span class="material-symbols-outlined">edit</span>
               <span class="truncate">Compose</span>
             </button>
             <div class="flex flex-col gap-1">
               <a [routerLink]="['/inbox']"
-                class="flex items-center gap-4 px-3 py-2 rounded-lg bg-[#137fec]/10 text-[#137fec]"
+                 class="flex items-center gap-4 px-3 py-2 rounded-lg bg-[#137fec]/10 text-[#137fec]"
               >
                 <span class="material-symbols-outlined">inbox</span>
                 <p class="text-sm font-medium leading-normal">Inbox</p>
               </a>
               <a [routerLink]="['/mail']"
-                class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+                 class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
               >
                 <span class="material-symbols-outlined">send</span>
                 <p class="text-sm font-medium leading-normal">Sent</p>
               </a>
               <a [routerLink]="['/drafts']"
-                class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+                 class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
               >
                 <span class="material-symbols-outlined">draft</span>
                 <p class="text-sm font-medium leading-normal">Drafts</p>
               </a>
-              <a [routerLink]="['/spam']"
-                class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-              >
-                <span class="material-symbols-outlined">report</span>
-                <p class="text-sm font-medium leading-normal">Spam</p>
-              </a>
               <a [routerLink]="['/trash']"
-                class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+                 class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
               >
                 <span class="material-symbols-outlined">delete</span>
                 <p class="text-sm font-medium leading-normal">Trash</p>
@@ -130,7 +133,7 @@ import { RouterLink } from '@angular/router';
                 <p
                   class="text-gray-900 text-2xl lg:text-3xl font-bold leading-tight tracking-[-0.03em]"
                 >
-                  Project Phoenix: Final Design Mockups Attached
+                  {{mail?.subject}}
                 </p>
                 <p class="text-gray-500 text-sm font-normal leading-normal">
                   Inbox
@@ -183,18 +186,15 @@ import { RouterLink } from '@angular/router';
                   Alejandro Vargas
                 </p>
                 <p class="text-gray-500 text-sm font-normal leading-normal">
-                  <span class="font-medium">From:</span> alejandro.v@example.com
+                  <span class="font-medium">From:</span> {{ mail?.senderEmail }}
                 </p>
                 <p class="text-gray-500 text-sm font-normal leading-normal">
-                  <span class="font-medium">To:</span> me, anika.patel@example.com
+                  <span class="font-medium">To:</span> {{mail?.receiverEmails}}
                 </p>
               </div>
               <div class="shrink-0 text-right">
                 <p class="text-gray-500 text-sm font-normal leading-normal">
-                  Nov 10, 2023, 3:45 PM
-                </p>
-                <p class="text-gray-500 text-xs font-normal leading-normal">
-                  (2 hours ago)
+                  {{mail?.date}}
                 </p>
               </div>
             </div>
@@ -202,98 +202,40 @@ import { RouterLink } from '@angular/router';
             <div
               class="prose prose-sm sm:prose-base max-w-none text-gray-800 leading-relaxed flex-1"
             >
-              <p>Hi team,</p>
               <p>
-                Please find the final design mockups for Project Phoenix attached to this email.
-                I've incorporated the feedback from our last review session and believe these are
-                ready for development handoff.
+                {{ mail?.body }}
               </p>
-              <p>Key changes include:</p>
-              <ul>
-                <li>Updated color palette to improve contrast and accessibility.</li>
-                <li>Refined the dashboard layout for a more intuitive user flow.</li>
-                <li>Added the new reporting module as discussed.</li>
-              </ul>
-              <p>
-                Let me know if you have any final thoughts or questions before we move forward.
-                Looking forward to seeing this come to life!
-              </p>
-              <br />
-              <p>Best regards,</p>
-              <p><strong>Alejandro Vargas</strong><br />Lead UI/UX Designer</p>
+              <br/>
             </div>
             <!-- Attachments -->
             <div class="mt-8 pt-6 border-t border-gray-200">
               <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                Attachments (3)
+                {{ mail?.attachmentMetadata?.length }}
               </h3>
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Attachment Card 1 -->
-                <div
-                  class="flex items-center gap-4 p-3 border border-gray-200 rounded-xl bg-white"
-                >
+                @for (item of mail?.attachmentMetadata; track $index) {
                   <div
-                    class="flex items-center justify-center size-10 bg-[#137fec]/10 rounded-lg text-[#137fec]"
+                    class="flex items-center gap-4 p-3 border border-gray-200 rounded-xl bg-white"
                   >
-                    <span class="material-symbols-outlined">image</span>
+                    <div
+                      class="flex items-center justify-center size-10 bg-[#137fec]/10 rounded-lg text-[#137fec]"
+                    >
+                    </div>
+                    <div class="flex-1">
+                      <p class="text-sm font-medium text-gray-900 truncate">
+                        {{ item.fileName }}{{ item.fileType }}
+                      </p>
+                      <p class="text-xs text-gray-500">{{ item.fileSize }}</p>
+                    </div>
+                    <button (click)="getDownloadUrl(item.attachmentId)"
+                      class="p-2 text-gray-500 hover:text-[#137fec]"
+                      title="Download"
+                    >
+                      <span class="material-symbols-outlined">download</span>
+                    </button>
                   </div>
-                  <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-900 truncate">
-                      dashboard_v3_final.png
-                    </p>
-                    <p class="text-xs text-gray-500">2.1 MB</p>
-                  </div>
-                  <button
-                    class="p-2 text-gray-500 hover:text-[#137fec]"
-                    title="Download"
-                  >
-                    <span class="material-symbols-outlined">download</span>
-                  </button>
-                </div>
-                <!-- Attachment Card 2 -->
-                <div
-                  class="flex items-center gap-4 p-3 border border-gray-200 rounded-xl bg-white"
-                >
-                  <div
-                    class="flex items-center justify-center size-10 bg-[#137fec]/10 rounded-lg text-[#137fec]"
-                  >
-                    <span class="material-symbols-outlined">description</span>
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-900 truncate">
-                      project_phoenix_spec.pdf
-                    </p>
-                    <p class="text-xs text-gray-500">850 KB</p>
-                  </div>
-                  <button
-                    class="p-2 text-gray-500 hover:text-[#137fec]"
-                    title="Download"
-                  >
-                    <span class="material-symbols-outlined">download</span>
-                  </button>
-                </div>
-                <!-- Attachment Card 3 -->
-                <div
-                  class="flex items-center gap-4 p-3 border border-gray-200 rounded-xl bg-white"
-                >
-                  <div
-                    class="flex items-center justify-center size-10 bg-[#137fec]/10 rounded-lg text-[#137fec]"
-                  >
-                    <span class="material-symbols-outlined">folder_zip</span>
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-900 truncate">
-                      assets_icons.zip
-                    </p>
-                    <p class="text-xs text-gray-500">5.5 MB</p>
-                  </div>
-                  <button
-                    class="p-2 text-gray-500 hover:text-[#137fec]"
-                    title="Download"
-                  >
-                    <span class="material-symbols-outlined">download</span>
-                  </button>
-                </div>
+                }
               </div>
             </div>
           </div>
@@ -360,4 +302,39 @@ import { RouterLink } from '@angular/router';
 
   `],
 })
-export class MailDetail {}
+export class MailDetail {
+
+  // Data structures
+  constructor(
+    private folderStateService: FolderStateService,
+    private http: HttpClient,
+    private router: Router,
+    private route: ActivatedRoute,
+    private MailDetails:MailShuttleService,// Used to read URL parameters
+  ) {}
+  MailDetails2 = inject(MailShuttleService);
+  mail: Datafile | null = this.MailDetails2.getMailData();
+  mailId: string | undefined;
+  isLoading: boolean = true;
+
+  error: string | null = null;
+  // --- Inject Dependencies via Constructor Parameters ---
+  // Note: The 'private' keyword automatically declares these as instance fields.
+  // --- Utility Methods (Using the correct 'router' reference) ---
+
+  deleteMail(): void {
+    if (!this.mailId) return;
+    console.log(`Deleting mail ID: ${this.mailId}`);
+    // NOTE: After deletion, redirect: this.router.navigate(['/inbox']);
+  }
+
+  reply(): void {
+    this.router.navigate(['/compose'], { queryParams: { replyTo: this.mailId } });
+  }
+
+  // Generates the correct download link (as previously implemented)
+  getDownloadUrl(attachmentId: string): string {
+    const attachmentApiUrl = 'http://localhost:8080/api/attachments';
+    return `${attachmentApiUrl}/${attachmentId}/download`;
+  }
+}
