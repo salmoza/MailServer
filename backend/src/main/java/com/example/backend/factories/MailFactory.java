@@ -15,32 +15,30 @@ import java.util.List;
 
 public class MailFactory {
 
-    @Autowired
-    MailRepo mailRepo;
+    public static Mail createSenderCopy(String userId, MailDto dto) {
+        return Mail.builder()
+                .userId(userId)
+                .senderEmail(dto.getSender())
+                .receiverEmails(new ArrayList<>(dto.getReceivers()))
+                .priority(dto.getPriority())
+                .subject(dto.getSubject())
+                .body(dto.getBody())
+                .isRead(true)
+                .date(Timestamp.valueOf(LocalDateTime.now()))
+                .build();
+    }
 
-
-    public static Mail create( String id ,MailDto dto, String currentReceiverEmail , String type) {
-
-
-        Mail Copy = new Mail();
-
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-
-        Copy.setDate(now);
-
-        Copy.setSenderEmail(dto.getSender());
-        Copy.getReceiverEmails().add(currentReceiverEmail);
-        Copy.setSubject(dto.getSubject());
-        Copy.setBody(dto.getBody());
-        if (type.equals("receiver")) {
-        Copy.setPriority(2);
-        Copy.setIsRead(false); }
-        else if (type.equals("sender")) {
-            Copy.setPriority(dto.getPriority());
-            Copy.setIsRead(true);
-        }
-        Copy.setUserId(id);
-
-        return  Copy ;
+    public static Mail createReceiverCopy(String receiverId, MailDto dto, String receiverEmail) {
+        return Mail.builder()
+                .userId(receiverId)
+                .senderEmail(dto.getSender())
+                .receiverEmails(List.of(receiverEmail))
+                .priority(dto.getPriority())
+                .subject(dto.getSubject())
+                .body(dto.getBody())
+                .isRead(false)
+                .date(Timestamp.valueOf(LocalDateTime.now()))
+                .build();
     }
 }
+

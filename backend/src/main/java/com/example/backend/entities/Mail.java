@@ -4,8 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.sql.Timestamp;
 
@@ -15,11 +14,15 @@ import java.util.stream.Collectors;
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Mail {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String mailId;
     private String userId;
+    @Builder.Default
     private List<String> receiverEmails  = new ArrayList<>();
     private String senderEmail;
     private int priority;
@@ -34,6 +37,7 @@ public class Mail {
 
     @ManyToMany(mappedBy = "mails")
     @JsonIgnore
+    @Builder.Default
     private Set<Folder> folders = new HashSet<>() ;
 
      // public String state;
@@ -55,8 +59,7 @@ public class Mail {
                 ))
                 .collect(Collectors.toList());
     }
-    public Mail() {
-    }
+
 
     @Override
     public boolean equals(Object o) {

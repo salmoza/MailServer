@@ -46,44 +46,41 @@ public class MailService {
     private AttachmentService attachmentService;
     public List<String> createNewMail(MailDto dto) {
 
-
-
         User senderUser = userRepo.findByEmail(dto.getSender());
         if (senderUser == null) throw new RuntimeException("Sender not found");
+
         String senderId = senderUser.getUserId();
 
-        Mail senderCopy = MailFactory.create( senderId ,dto , dto.getSender() , "sender"); // has better design ?
-        senderCopy.setReceiverEmails(dto.getReceivers());
+        // sender copy
+        Mail senderCopy = MailFactory.createSenderCopy(senderId, dto);
         senderCopy = mailRepo.save(senderCopy);
-        mailRepo.flush();
-        folderService.addMail( senderUser.getSentFolderId(), senderCopy);
+        folderService.addMail(senderUser.getSentFolderId(), senderCopy);
 
-        Queue<String> receiversQueue = new LinkedList<>();
-        if (dto.getReceivers() != null) {
-            receiversQueue.addAll(dto.getReceivers());
-        }
+        Queue<String> receiversQueue = new LinkedList<>(dto.getReceivers());
 
-        List<String> ids= new ArrayList<>();
+        List<String> ids = new ArrayList<>();
         ids.add(senderCopy.getMailId());
 
         while (!receiversQueue.isEmpty()) {
 
             String currentReceiverEmail = receiversQueue.poll();
 
-
             User receiverUser = userRepo.findByEmail(currentReceiverEmail);
-            if (receiverUser == null) {
-                continue;
-            }
+            if (receiverUser == null) continue;
+
             String receiverId = receiverUser.getUserId();
 
-            Mail receiverCopy = MailFactory.create( receiverId ,dto , currentReceiverEmail , "receiver");
+            // receiver copy
+            Mail receiverCopy = MailFactory.createReceiverCopy(receiverId, dto, currentReceiverEmail);
             receiverCopy = mailRepo.save(receiverCopy);
+
             attachmentService.duplicateAttachmentsForNewMail(
-                    senderCopy.getMailId(),         // Source: Attachments are linked to the original draft
-                    receiverCopy           // Target: Link the new attachment records to the recipient's mail copy
+                    senderCopy.getMailId(),
+                    receiverCopy
             );
-            folderService.addMail( receiverUser.getInboxFolderId(), receiverCopy);
+
+            folderService.addMail(receiverUser.getInboxFolderId(), receiverCopy);
+
             ids.add(receiverCopy.getMailId());
         }
 

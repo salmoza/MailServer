@@ -92,10 +92,10 @@ public class MailController {
         return mailService.sortMails(folderId, sortBy);
     }
 
-    /* @GetMapping("/mails")
+     @GetMapping("/mails")
     public List<Mail> getAll (){
         return mailRepo.findAll() ;
-    } */   // for testing
+    }    // for testing
 
 
 }
