@@ -28,6 +28,8 @@ public class Mail {
     private int priority;
     private String subject;
     private String body;
+    @Enumerated(EnumType.STRING)
+    private MailStatus status;
     private Timestamp deletedAt;
     @OneToMany(mappedBy = "mail", cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JsonIgnore

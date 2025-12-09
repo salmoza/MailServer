@@ -64,10 +64,10 @@ public class MailController {
 
 
     @GetMapping("/getAllMails")
-    public List<Mail> getAllMails(@RequestParam String folderId) {
-        return mailService.sortMails(folderId, "date");
+    public List<Mail> getAllMails(/*@RequestParam String folderId*/) {
+       // return mailService.sortMails(folderId, "date");
 
-//        return mailRepo.findAll() ;
+        return mailRepo.findAll() ;
     }
 
     @GetMapping("/search")

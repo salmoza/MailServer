@@ -1,5 +1,6 @@
 package com.example.backend.dtos;
 
+import com.example.backend.entities.MailStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +19,8 @@ public class MailDto {
     private String folderId;
     private List<String> receivers;
     private String sender;
-    private String senderDisplayName;   ////
+    private String senderDisplayName;
+    private MailStatus status;////
     // private List<String> toEmails;   // multiple receivers
     private String subject;
     private String body;
