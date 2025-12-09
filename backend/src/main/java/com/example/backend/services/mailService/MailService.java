@@ -142,13 +142,13 @@ public class MailService {
         return criteria.meetCriteria(emails);
     }
 
-    public List<Mail> searchEmails(String folderId, String keyword) {
-        return mailRepo.getMailsByFolderId(folderId).stream()
+    public List<Mail> searchEmails(String folderId, String keyword, int page) {
+        return paginateMails(mailRepo.getMailsByFolderId(folderId).stream()
                 .filter(mail -> mail.getSubject().contains(keyword)
                         || mail.getBody().contains(keyword)
                         || mail.getSenderEmail().contains(keyword)
                         || mail.getReceiverEmails().contains(keyword))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()), page);
     }
 
 
@@ -165,7 +165,7 @@ public class MailService {
         }
     }
 
-    public List<Mail> sortMails(String folderId, String sortType) {
+    public List<Mail> sortMails(String folderId, String sortType, int page) {
 
         List<Mail> mails = mailRepo.getMailsByFolderId(folderId);
         System.out.println(mails);
@@ -181,8 +181,21 @@ public class MailService {
         }
 
         MailSorter sorter = new MailSorter(strategy);
-        return sorter.sort(mails);
+        return paginateMails(sorter.sort(mails), page);
     }
+
+    public List<Mail> paginateMails(List<Mail> sortedMails, int page) {
+        int size = 2;
+        int start = page * size;
+        int end = Math.min(start + size, sortedMails.size());
+
+        if (start >= sortedMails.size()) {
+            return new ArrayList<>(); // empty page if page number is too high
+        }
+
+        return sortedMails.subList(start, end);
+    }
+
 
 
 
