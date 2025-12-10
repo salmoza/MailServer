@@ -5,11 +5,12 @@ import {FolderStateService} from '../../Dtos/FolderStateService';
 import {HttpClient, HttpClientModule, HttpParams} from '@angular/common/http';
 import {CustomFolderData, Datafile} from '../../Dtos/datafile';
 import {MailShuttleService} from '../../Dtos/MailDetails';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 
 @Component({
   selector: 'app-sent',
   standalone: true,
-  imports: [CommonModule, RouterLink,HttpClientModule],
+  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule],
   template: `
     <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -91,12 +92,12 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
                 >
                   Custom Folders
                 </h2>
-                <button class="text-slate-500 hover:text-primary">
+                <button class="text-slate-500 hover:text-primary" (click)="CustomFolderPopUp=true">
                   <span class="material-symbols-outlined text-base">add</span>
                 </button>
               </div>
               @for(custom of CustomFolders; track $index) {
-                <a [routerLink]="['/folder/alpha']"
+                <a (click)="goToCustomFolder(custom.folderId)"
                    class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
                 >
                 <span class="material-symbols-outlined text-slate-600"
@@ -258,13 +259,21 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
           <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
           <div class="buttons-folders">
             <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
-            <button>Custom Folder</button>
-            <button>Custom Folder</button>
+            @for(folder of CustomFolders; track $index){
+              <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
+            }
           </div>
           <div class="bottom-btn">
             <button (click)="tomove=false">Back</button>
-            <button>make new custom Folder</button>
+            <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
           </div>
+        </div>
+      </div>
+      <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
+        <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
+          <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
+          <button  (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
+          <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
         </div>
       </div>
     </div>
@@ -298,7 +307,28 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
       justify-content: center;
       z-index: 1000;
     }
-
+    #Custom-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap:60px;
+      height: 300px;
+    }
+    .content-container input{
+      border-radius: 15px;
+      padding: 10px;
+      border:2px solid black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s ease-in;
+    }
+    .content-container input:focus{
+      border:3px solid #3e8cf4;
+      outline: none;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+      transform: scale(1.05);
+    }
     .move-conatiner.active {
       visibility: visible;
       opacity: 1;
@@ -388,6 +418,8 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
 export class Sent implements OnInit{
   constructor(private MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router) {
   }
+  foldername:string='';
+  CustomFolderPopUp:boolean = false;
   Emails:Datafile[]=[];
   SentData:Datafile[]=[];
   CustomFolders:CustomFolderData[]=[];
@@ -518,10 +550,33 @@ export class Sent implements OnInit{
     }
     this.http.post(url, payload).subscribe({
       next:(respones) => {
+        const movedIdsSet = new Set(mailids);
+
+        this.SentData = this.SentData.filter(email => !movedIdsSet.has(email.mailId));
+
+        this.Emails = [];
+      },
+      error:(respones) => {
+        console.log("failed to move");
+      }
+    })
+  }
+  goToCustomFolder(Id:string){
+    this.MailDetails.setCustom(Id);
+    this.router.navigate([`/Custom`]);
+  }
+  CreateCustomFolder(){
+    const url = "http://localhost:8080/folders/createFolder"
+    const payload={
+      folderName:this.foldername,
+      folderId:this.folderStateService.userData().inboxFolderId,
+    }
+    this.http.post(url, payload).subscribe({
+      next:(respones) => {
         console.log(respones);
       },
       error:(respones) => {
-        console.log(respones);
+        alert("failed to create custom folder");
       }
     })
   }

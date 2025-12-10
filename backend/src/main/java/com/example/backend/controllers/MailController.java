@@ -2,6 +2,7 @@ package com.example.backend.controllers;
 
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
+import com.example.backend.dtos.MoveMaildto;
 import com.example.backend.entities.Mail;
 import com.example.backend.factories.MailFactory;
 import com.example.backend.repo.MailRepo;
@@ -87,9 +88,9 @@ public class MailController {
     @PostMapping("/move/{toFolderId}/{fromFolderId}")
     public ResponseEntity<?> move (@PathVariable String fromFolderId
             , @PathVariable String toFolderId
-            ,@RequestParam List<String> ids ) {
-        mailService.moveMails(fromFolderId , toFolderId , ids) ;
-        return ResponseEntity.ok("Moved" + ids.size()) ;
+            ,@RequestBody MoveMaildto dto ) {
+        mailService.moveMails(fromFolderId , toFolderId , dto.getIds()) ;
+        return ResponseEntity.ok("Moved" + dto.getIds().size()) ;
     }
 
     @GetMapping("/sort")

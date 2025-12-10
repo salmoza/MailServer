@@ -50,7 +50,4 @@ public class FolderController {
         return folderService.getCustomFolders(userId);
     }
 
-
-
-
 }
