@@ -120,38 +120,38 @@ public class ContactService {
     }
 
 
-//    public Page<ContactDto> sortContacts(String userId, String sortBy, String order, Pageable pageable) {
-//
-//        User owner = userRepo.findByUserId(userId)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//
-//        Sort sort = order.equalsIgnoreCase("asc")
-//                ? Sort.by(sortBy).ascending()
-//                : Sort.by(sortBy).descending();
-//
-//        Pageable sortedPageable = org.springframework.data.domain.PageRequest.of(
-//                pageable.getPageNumber(),
-//                pageable.getPageSize(),
-//                sort
-//        );
-//
-//
-//        Page<Contact> contacts = contactsRepo.findByOwner(owner, sortedPageable);
-//
-//        return contacts.map(contactFactory::toDto);
-//    }
+    public Page<ContactDto> sortContacts(String userId, String sortBy, String order, Pageable pageable) {
+
+        User owner = userRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
 
-//    public Page<ContactDto> searchContacts (String userId, String query, Pageable pageable) {
-//        User owner = userRepo.findByUserId(userId)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        Page<Contact> result = contactsRepo.searchContacts(owner, query, pageable);
-//
-//        return result.map(contactFactory::toDto);
-//
-//    }
+        Sort sort = order.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable sortedPageable = org.springframework.data.domain.PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                sort
+        );
+
+
+        Page<Contact> contacts = contactsRepo.findByOwner(owner, sortedPageable);
+
+        return contacts.map(contactFactory::toDto);
+    }
+
+
+    public Page<ContactDto> searchContacts (String userId, String query, Pageable pageable) {
+        User owner = userRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Page<Contact> result = contactsRepo.searchContacts(owner, query, pageable);
+
+        return result.map(contactFactory::toDto);
+
+    }
 
     public void deleteMultipleContacts(List<String> contactIds) {
         for (String contactId : contactIds) {

@@ -56,24 +56,24 @@ public class ContactController {
         return ResponseEntity.ok(list);
     }
 
-//    @GetMapping("/search/{userId}")
-//    public ResponseEntity<Page<ContactDto>> searchContacts (@PathVariable String userId, @RequestParam String query, Pageable pageable) {
-//        Page<ContactDto> contacts = contactService.searchContacts(userId, query, pageable);
-//        return ResponseEntity.ok(contacts);
-//    }
-//
-//    @GetMapping("/sort/{userId}")
-//    public ResponseEntity<Page<ContactDto>> sortContacts (@PathVariable String userId, @RequestParam(defaultValue = "name") String sortBy, @RequestParam(defaultValue = "asc") String order, Pageable pageable) {
-//        Page<ContactDto> contacts = contactService.sortContacts(userId, sortBy, order, pageable);
-//        return ResponseEntity.ok(contacts);
-//    }
+    @GetMapping("/search/{userId}")
+    public ResponseEntity<Page<ContactDto>> searchContacts (@PathVariable String userId, @RequestParam String query, Pageable pageable) {
+        Page<ContactDto> contacts = contactService.searchContacts(userId, query, pageable);
+        return ResponseEntity.ok(contacts);
+    }
+
+    @GetMapping("/sort/{userId}")
+    public ResponseEntity<Page<ContactDto>> sortContacts (@PathVariable String userId, @RequestParam(defaultValue = "name") String sortBy, @RequestParam(defaultValue = "asc") String order, Pageable pageable) {
+        Page<ContactDto> contacts = contactService.sortContacts(userId, sortBy, order, pageable);
+        return ResponseEntity.ok(contacts);
+    }
 
 
 
-//    @PutMapping("/{contactId}/star")
-//    public ResponseEntity<Void> toggleStar (@PathVariable String contactId) {
-//        contactService.toggleStar(contactId);
-//        return ResponseEntity.ok().build();
-//    }
+    @PutMapping("/{contactId}/star")
+    public ResponseEntity<Void> toggleStar (@PathVariable String contactId) {
+        contactService.toggleStar(contactId);
+        return ResponseEntity.ok().build();
+    }
 
 }
