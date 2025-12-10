@@ -1,6 +1,7 @@
 package com.example.backend.services.mailService;//package com.example.backend.services;
 
 import com.example.backend.dtos.MailDto;
+import com.example.backend.dtos.MailListDto;
 import com.example.backend.entities.*;
 import com.example.backend.factories.MailFactory;
 import com.example.backend.repo.FolderRepo;
@@ -19,7 +20,6 @@ import com.example.backend.services.mailService.strategy.SortByDate;
 import com.example.backend.services.mailService.strategy.SortByPriority;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -49,6 +49,9 @@ public class MailService {
     private FolderRepo folderRepo ;
 
     @Autowired
+    MailFactory mailFactory;
+
+    @Autowired
     private AttachmentService attachmentService;
     public List<String> createNewMail(MailDto dto) {
 
@@ -66,7 +69,6 @@ public class MailService {
 
         List<String> ids = new ArrayList<>();
         ids.add(senderCopy.getMailId());
-
         while (!receiversQueue.isEmpty()) {
 
             String currentReceiverEmail = receiversQueue.poll();
@@ -78,6 +80,30 @@ public class MailService {
 
             // receiver copy
             Mail receiverCopy = MailFactory.createReceiverCopy(receiverId, dto, currentReceiverEmail);
+
+
+            if (senderUser.getUsername()!= null) {
+                senderCopy.setSenderDisplayName(senderUser.getUsername());
+                receiverCopy.setSenderDisplayName(senderUser.getUsername());
+            }
+            else {
+                Contact contact = receiverUser.getContacts().stream().filter(
+                        contactTmp -> contactTmp.getEmailAddresses()
+                                .stream()
+                                .anyMatch(email -> email.equals(senderUser.getEmail())))
+                        .findFirst()
+                        .orElse(null);
+                if (contact != null) {
+                    senderCopy.setSenderDisplayName(contact.getName());
+                    receiverCopy.setSenderDisplayName(contact.getName());
+                }
+                else {
+                    senderCopy.setSenderDisplayName(senderUser.getEmail());
+                    receiverCopy.setSenderDisplayName(senderUser.getEmail());
+                }
+            }
+
+            senderCopy = mailRepo.save(senderCopy);
             receiverCopy = mailRepo.save(receiverCopy);
 
             attachmentService.duplicateAttachmentsForNewMail(
@@ -92,23 +118,34 @@ public class MailService {
 
         return ids;
     }
+    public void deleteMailById(String mailId) {
+        Mail mail = mailRepo.findByMailId(mailId)
+                .orElseThrow(() -> new RuntimeException("Mail not found"));
+        for (Folder folder: mail.getFolders()) {
+            folder.deleteMail(mail);
+        }
+        mailRepo.delete(mail);
+    }
 
     @Transactional
     public void deleteMailById(String mailId , String folderId) {
 
-        Folder folder = folderRepo.findByFolderId(folderId) ;
+        Folder folder = folderRepo.findByFolderId(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
         Mail mail = mailRepo.findById(mailId)
                 .orElseThrow(() -> new RuntimeException("Mail not found"));
 
         folderService.deleteMail( folderId , mail);
 
 
-        Mail helpingMail = mailRepo.findByMailId(mailId);
+        Mail helpingMail = mailRepo.findByMailId(mailId)
+                .orElseThrow (() -> new RuntimeException("Mail not found"));
 
         User user = userRepo.findByUserId(helpingMail.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Folder trash = folderRepo.findByFolderId(user.getTrashFolderId()) ;
+        Folder trash = folderRepo.findByFolderId(user.getTrashFolderId())
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
 
         if (!mail.getFolders().contains(trash)) {
             trash.addMail(mail);
@@ -124,7 +161,19 @@ public class MailService {
         }
     }
 
-    public List<Mail> filterEmails(String folderId, String subject, String sender) {
+    public MailDto mailDetails (String mailId, String folderId) {
+        Folder folder = folderRepo.findByFolderId(folderId)
+                .orElseThrow (() -> new RuntimeException("Folder not found"));
+        Mail mail = mailRepo.findByMailId(mailId)
+                .orElseThrow (() -> new RuntimeException("Mail not found"));
+        Mail found = folder.getMails().stream().filter(mail1 -> mail1.equals(mail)).findFirst()
+                .orElseThrow(() -> new RuntimeException("Mail not found"));
+
+        return mailFactory.toDto(mail, folderId);
+
+    }
+
+    public List<MailListDto> filterEmails(String folderId, String subject, String sender) {
 
         List<Mail> emails = mailRepo.getMailsByFolderId(folderId);
 
@@ -143,12 +192,12 @@ public class MailService {
         }
 
         if (criteria == null)
-            return emails;
+            return emails.stream().map(mailFactory::toListDto).toList();
 
-        return criteria.meetCriteria(emails);
+        return criteria.meetCriteria(emails).stream().map(mailFactory::toListDto).toList();
     }
 
-    public List<Mail> searchEmails(String folderId, String keyword, int page) {
+    public List<MailListDto> searchEmails(String folderId, String keyword, int page) {
         return paginateMails(mailRepo.getMailsByFolderId(folderId).stream()
                 .filter(mail -> mail.getSubject().contains(keyword)
                         || mail.getBody().contains(keyword)
@@ -171,7 +220,7 @@ public class MailService {
         }
     }
 
-    public List<Mail> sortMails(String folderId, String sortType, int page) {
+    public List<MailListDto> sortMails(String folderId, String sortType, int page) {
 
         List<Mail> mails = mailRepo.getMailsByFolderId(folderId);
         System.out.println(mails);
@@ -190,7 +239,7 @@ public class MailService {
         return paginateMails(sorter.sort(mails), page);
     }
 
-    public List<Mail> paginateMails(List<Mail> sortedMails, int page) {
+    public List<MailListDto> paginateMails(List<Mail> sortedMails, int page) {
         int size = 2;
         int start = page * size;
         int end = Math.min(start + size, sortedMails.size());
@@ -199,7 +248,7 @@ public class MailService {
             return new ArrayList<>(); // empty page if page number is too high
         }
 
-        return sortedMails.subList(start, end);
+        return sortedMails.subList(start, end).stream().map(mailFactory::toListDto).toList();
     }
 
     public Mail saveDraft(MailDto dto) {
@@ -228,12 +277,14 @@ public class MailService {
     public List<Mail> getDrafts(String userId) {
         User user = userRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        Folder draftFolder = folderRepo.findByFolderId(user.getDraftsFolderId()) ;
+        Folder draftFolder = folderRepo.findByFolderId(user.getDraftsFolderId())
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
         return mailRepo.getMailsByFolderId(draftFolder.getFolderId());
     }
 
     public Mail updateDraft(String mailId, MailDto dto) {
-        Mail draft = mailRepo.findByMailId(mailId);
+        Mail draft = mailRepo.findByMailId(mailId)
+                .orElseThrow(() -> new RuntimeException("Mail not found"));
         if (draft == null || draft.getStatus() != MailStatus.DRAFT) {
             throw new RuntimeException("Draft not found");
         }
@@ -262,14 +313,16 @@ public class MailService {
     }
 
     public List<MailSnapshot> getSnapshots(String mailId) {
-        Mail mail = mailRepo.findByMailId(mailId);
+        Mail mail = mailRepo.findByMailId(mailId)
+                .orElseThrow(() -> new RuntimeException("Mail not found"));
         if (mail == null) return new ArrayList<>();
         return mailSnapshotrepo.findByMail(mail);
     }
 
 
     public void sendDraft(String mailId) {
-        Mail draft = mailRepo.findByMailId(mailId);
+        Mail draft = mailRepo.findByMailId(mailId)
+                .orElseThrow(() -> new RuntimeException("Mail not found"));
         if (draft == null || draft.getStatus() != MailStatus.DRAFT) {
             throw new RuntimeException("Draft not found");
         }

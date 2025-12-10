@@ -1,11 +1,9 @@
 package com.example.backend.controllers;
 
-//import com.example.backend.dtos.UserSigninDTO;
-//import com.example.backend.dtos.UserSignupDTO;
+
 import com.example.backend.dtos.UserDto;
 import com.example.backend.dtos.UserSigninDTO;
 import com.example.backend.dtos.UserSignupDTO;
-import com.example.backend.entities.User;
 import com.example.backend.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController

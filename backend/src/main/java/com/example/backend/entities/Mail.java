@@ -22,6 +22,7 @@ public class Mail {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String mailId;
     private String userId;
+    private String senderDisplayName;
     @Builder.Default
     private List<String> receiverEmails  = new ArrayList<>();
     private String senderEmail;
@@ -37,7 +38,7 @@ public class Mail {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     public Timestamp date;
 
-    @ManyToMany(mappedBy = "mails")
+    @ManyToMany(mappedBy = "mails", cascade = CascadeType.ALL)
     @JsonIgnore
     @Builder.Default
     private Set<Folder> folders = new HashSet<>() ;

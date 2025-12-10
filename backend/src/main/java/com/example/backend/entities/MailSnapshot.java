@@ -4,6 +4,7 @@ import com.example.backend.entities.Mail;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Service
 public class MailSnapshot {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

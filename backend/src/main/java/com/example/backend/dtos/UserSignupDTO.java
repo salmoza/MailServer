@@ -12,8 +12,9 @@ import lombok.Setter;
 @Setter
 public class UserSignupDTO {
 
-    @NotBlank(message = "username is required")
-    @Size(min = 3, max = 30 , message = "Username must be between 3,30 letters to be accepted")
+    // making it optional
+//    @NotBlank(message = "username is required")
+//    @Size(min = 3, max = 30 , message = "Username must be between 3,30 letters to be accepted")
     private String username ;
 
     @NotBlank(message = "email is required")

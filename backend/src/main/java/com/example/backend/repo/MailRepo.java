@@ -1,5 +1,6 @@
 package com.example.backend.repo;
 
+import com.example.backend.dtos.MailDto;
 import com.example.backend.entities.Mail;
 import com.example.backend.entities.MailSnapshot;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MailRepo extends JpaRepository<Mail,String> {
@@ -18,6 +20,6 @@ public interface MailRepo extends JpaRepository<Mail,String> {
 
     List<Mail> findAllByUserId(String userId);
 
-    Mail findByMailId (String mailId) ;
+    Optional<Mail> findByMailId (String mailId) ;
 }
 
