@@ -37,7 +37,8 @@ public class FolderService {
     }
 
     public void addMail( String folderId, Mail mail){
-        Folder folder = folderRepo.findByFolderId(folderId);
+        Folder folder = folderRepo.findByFolderId(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
 
         folder.addMail(mail);
         folderRepo.save(folder);
@@ -45,7 +46,8 @@ public class FolderService {
     }
 
     public void deleteMail( String folderId, Mail mail){
-        Folder folder = folderRepo.findByFolderId(folderId);
+        Folder folder = folderRepo.findByFolderId(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
         folder.deleteMail(mail);
         folderRepo.save(folder) ;
     }

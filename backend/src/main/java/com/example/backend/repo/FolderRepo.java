@@ -7,12 +7,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FolderRepo extends JpaRepository<Folder, String> {
     Folder findByFolderNameAndUserUserId(String folderName, String userId);
     Folder findByFolderIdAndUserUserId(String folderId, String userId);
-    Folder findByFolderId (String folderId);
+    Optional<Folder> findByFolderId (String folderId) ;
     List<Folder> findByUserUserId(String userId);
     Folder findByFolderName (String folderNmae);
 
