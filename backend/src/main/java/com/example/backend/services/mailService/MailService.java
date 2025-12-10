@@ -128,10 +128,17 @@ public class MailService {
     }
 
     @Transactional
-    public void deleteMailById(String mailId , String folderId) {
+    public void deleteMailById(List<String> ids  , String folderId) {
+
+        Queue<String> queue = new LinkedList<>(ids);
 
         Folder folder = folderRepo.findByFolderId(folderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
+
+        while (!queue.isEmpty()) {
+
+        String mailId = queue.poll();
+
         Mail mail = mailRepo.findById(mailId)
                 .orElseThrow(() -> new RuntimeException("Mail not found"));
 
@@ -158,7 +165,7 @@ public class MailService {
 
             folderRepo.save(trash);
             mailRepo.save(mail);
-        }
+        } }
     }
 
     public MailDto mailDetails (String mailId, String folderId) {
@@ -250,113 +257,5 @@ public class MailService {
 
         return sortedMails.subList(start, end).stream().map(mailFactory::toListDto).toList();
     }
-
-    public Mail saveDraft(MailDto dto) {
-
-        User user = userRepo.findByEmail(dto.getSender()) ;
-
-
-        Mail draft = Mail.builder()
-                .userId(user.getUserId())
-                .senderEmail(dto.getSender())
-                .receiverEmails(dto.getReceivers() != null ? new ArrayList<>(dto.getReceivers()) : new ArrayList<>())
-                .subject(dto.getSubject())
-                .body(dto.getBody())
-                .priority(dto.getPriority())
-                .status(MailStatus.DRAFT)
-                .date(Timestamp.valueOf(LocalDateTime.now()))
-                .isRead(true)
-                .build();
-
-        draft = mailRepo.save(draft);
-        folderService.addMail(user.getDraftsFolderId(), draft);
-        saveSnapshot(draft);
-        return draft;
-    }
-
-    public List<Mail> getDrafts(String userId) {
-        User user = userRepo.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Folder draftFolder = folderRepo.findByFolderId(user.getDraftsFolderId())
-                .orElseThrow(() -> new RuntimeException("Folder not found"));
-        return mailRepo.getMailsByFolderId(draftFolder.getFolderId());
-    }
-
-    public Mail updateDraft(String mailId, MailDto dto) {
-        Mail draft = mailRepo.findByMailId(mailId)
-                .orElseThrow(() -> new RuntimeException("Mail not found"));
-        if (draft == null || draft.getStatus() != MailStatus.DRAFT) {
-            throw new RuntimeException("Draft not found");
-        }
-
-        draft.setSubject(dto.getSubject());
-        draft.setBody(dto.getBody());
-        draft.setPriority(dto.getPriority());
-        draft.setReceiverEmails(dto.getReceivers() != null ? dto.getReceivers() : new ArrayList<>());
-        draft.setDate(Timestamp.valueOf(LocalDateTime.now()));
-
-        draft = mailRepo.save(draft);
-
-        saveSnapshot(draft); // auto-saving snapshot
-        return draft;
-    }
-
-    private void saveSnapshot(Mail draft) {
-        MailSnapshot snapshot = MailSnapshot.builder()
-                .mail(draft)
-                .subject(draft.getSubject())
-                .body(draft.getBody())
-                .receiverEmails(new ArrayList<>(draft.getReceiverEmails()))
-                .savedAt(Timestamp.valueOf(LocalDateTime.now()))
-                .build();
-        mailSnapshotrepo.save(snapshot);
-    }
-
-    public List<MailSnapshot> getSnapshots(String mailId) {
-        Mail mail = mailRepo.findByMailId(mailId)
-                .orElseThrow(() -> new RuntimeException("Mail not found"));
-        if (mail == null) return new ArrayList<>();
-        return mailSnapshotrepo.findByMail(mail);
-    }
-
-
-    public void sendDraft(String mailId) {
-        Mail draft = mailRepo.findByMailId(mailId)
-                .orElseThrow(() -> new RuntimeException("Mail not found"));
-        if (draft == null || draft.getStatus() != MailStatus.DRAFT) {
-            throw new RuntimeException("Draft not found");
-        }
-
-        draft.setStatus(MailStatus.SENT);
-        draft.setDate(Timestamp.valueOf(LocalDateTime.now()));
-        mailRepo.save(draft);
-
-
-        for (String receiverEmail : draft.getReceiverEmails()) {
-            User receiver = userRepo.findByEmail(receiverEmail);
-            if (receiver == null) continue;
-            Mail receiverCopy = Mail.builder()
-                    .userId(receiver.getUserId())
-                    .senderEmail(draft.getSenderEmail())
-                    .receiverEmails(List.of(receiverEmail))
-                    .subject(draft.getSubject())
-                    .body(draft.getBody())
-                    .priority(draft.getPriority())
-                    .status(MailStatus.SENT)
-                    .date(Timestamp.valueOf(LocalDateTime.now()))
-                    .isRead(false)
-                    .build();
-            mailRepo.save(receiverCopy);
-            folderService.addMail(receiver.getInboxFolderId(), receiverCopy);
-        }
-
-
-        User sender = userRepo.findByUserId(draft.getUserId()).orElseThrow();
-        folderService.deleteMail(sender.getDraftsFolderId(), draft);
-        folderService.addMail(sender.getSentFolderId(), draft);
-        mailRepo.delete(draft);
-    }
-
-
 
 }

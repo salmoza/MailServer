@@ -47,16 +47,7 @@ public class MailController {
     // delete folder's mails
     @DeleteMapping("/deleteMails/{folderId}")
     public ResponseEntity<?> deleteMails(@RequestParam List<String> ids , @PathVariable String folderId) {
-
-
-        Queue<String> queue = new LinkedList<>(ids); //check here what email to be removed first ?
-
-        while (!queue.isEmpty()) {
-            String mailId = queue.poll();
-
-            mailService.deleteMailById(mailId , folderId);
-        }
-
+        mailService.deleteMailById(ids , folderId);
         return ResponseEntity.ok("Deleted " + ids.size() + " mails");
     }
 
