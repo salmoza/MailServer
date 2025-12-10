@@ -38,7 +38,7 @@ public class DraftService {
         User user = userRepo.findByEmail(dto.getSender()) ;
 
 
-        Mail draft = Mail.builder()
+        Mail draft = Mail.builder()    // will be added to factory
                 .userId(user.getUserId())
                 .senderEmail(dto.getSender())
                 .receiverEmails(dto.getReceivers() != null ? new ArrayList<>(dto.getReceivers()) : new ArrayList<>())
@@ -71,7 +71,7 @@ public class DraftService {
             throw new RuntimeException("Draft not found");
         }
 
-        draft.setSubject(dto.getSubject());
+        draft.setSubject(dto.getSubject()); // builder could make some troubles
         draft.setBody(dto.getBody());
         draft.setPriority(dto.getPriority());
         draft.setReceiverEmails(dto.getReceivers() != null ? dto.getReceivers() : new ArrayList<>());
@@ -84,13 +84,7 @@ public class DraftService {
     }
 
     private void saveSnapshot(Mail draft) {
-        MailSnapshot snapshot = MailSnapshot.builder()
-                .mail(draft)
-                .subject(draft.getSubject())
-                .body(draft.getBody())
-                .receiverEmails(new ArrayList<>(draft.getReceiverEmails()))
-                .savedAt(Timestamp.valueOf(LocalDateTime.now()))
-                .build();
+        MailSnapshot snapshot = MailFactory.createSnapshot(draft) ;
         mailSnapshotrepo.save(snapshot);
     }
 
@@ -117,17 +111,7 @@ public class DraftService {
         for (String receiverEmail : draft.getReceiverEmails()) {
             User receiver = userRepo.findByEmail(receiverEmail);
             if (receiver == null) continue;
-            Mail receiverCopy = Mail.builder()
-                    .userId(receiver.getUserId())
-                    .senderEmail(draft.getSenderEmail())
-                    .receiverEmails(List.of(receiverEmail))
-                    .subject(draft.getSubject())
-                    .body(draft.getBody())
-                    .priority(draft.getPriority())
-                    .status(MailStatus.SENT)
-                    .date(Timestamp.valueOf(LocalDateTime.now()))
-                    .isRead(false)
-                    .build();
+            Mail receiverCopy = MailFactory.createReceiverCopyFromDraft(receiver.getUserId() , draft , receiverEmail) ;
             mailRepo.save(receiverCopy);
             folderService.addMail(receiver.getInboxFolderId(), receiverCopy);
         }

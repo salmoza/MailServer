@@ -3,6 +3,8 @@ package com.example.backend.factories;
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
 import com.example.backend.entities.Mail;
+import com.example.backend.entities.MailSnapshot;
+import com.example.backend.entities.MailStatus;
 import com.example.backend.entities.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,10 +40,36 @@ public class MailFactory {
                 .priority(dto.getPriority())
                 .subject(dto.getSubject())
                 .body(dto.getBody())
+                .status(MailStatus.SENT)
                 .isRead(false)
                 .date(Timestamp.valueOf(LocalDateTime.now()))
                 .build();
     }
+
+    public static Mail createReceiverCopyFromDraft(String receiverId,  Mail draft , String receiverEmail) {
+        return Mail.builder()
+                .userId(receiverId)
+                .senderEmail(draft.getSenderEmail())
+                .receiverEmails(List.of(receiverEmail))
+                .priority(draft.getPriority())
+                .subject(draft.getSubject())
+                .body(draft.getBody())
+                .status(MailStatus.SENT)
+                .isRead(false)
+                .date(Timestamp.valueOf(LocalDateTime.now()))
+                .build();
+    }
+
+    public static MailSnapshot createSnapshot(Mail draft) {
+        return MailSnapshot.builder()
+                .mail(draft)
+                .subject(draft.getSubject())
+                .body(draft.getBody())
+                .receiverEmails(new ArrayList<>(draft.getReceiverEmails()))
+                .savedAt(Timestamp.valueOf(LocalDateTime.now()))
+                .build();
+    }
+
     public MailDto toDto (Mail mail, String folderId) {
         MailDto dto = new MailDto();
 
