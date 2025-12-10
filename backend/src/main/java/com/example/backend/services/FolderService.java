@@ -80,6 +80,14 @@ public class FolderService {
         return folderRepo.save(folder);
     }
 
+    public List<Folder> getCustomFolders(String userId) {
+        // The folders to exclude
+        List<String> defaultFolders = List.of("Inbox", "Sent", "Drafts", "Trash");
+
+        // Fetch from repo
+        return folderRepo.findCustomFolders(userId, defaultFolders);
+    }
+
 
 
 }

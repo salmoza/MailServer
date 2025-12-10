@@ -45,6 +45,11 @@ public class FolderController {
         return folderService.renameFolder(folderId, newName);
     }
 
+    @GetMapping("/custom")
+    public List<Folder> getCustomFolders(@RequestParam String userId) {
+        return folderService.getCustomFolders(userId);
+    }
+
 
 
 
