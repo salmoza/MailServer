@@ -3,8 +3,10 @@ package com.example.backend.controllers;
 import com.example.backend.dtos.ContactDto;
 import com.example.backend.entities.Contact;
 import com.example.backend.services.ContactService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +22,7 @@ public class ContactController {
     ContactService contactService;
 
     @PostMapping("/create/{userId}")
-    public ResponseEntity<ContactDto> createContact(@PathVariable String userId, @RequestBody ContactDto contactDto) {
+    public ResponseEntity<ContactDto> createContact(@PathVariable String userId, @Valid @RequestBody ContactDto contactDto) {
         ContactDto created = contactService.createContact(userId, contactDto);
         return ResponseEntity.ok(created);
     }
@@ -54,24 +56,24 @@ public class ContactController {
         return ResponseEntity.ok(list);
     }
 
-//    @GetMapping("/search/{userId}")
-//    public ResponseEntity<Page<ContactDto>> searchContacts (@PathVariable String userId, @RequestParam String query, Pageable pageable) {
-//        Page<ContactDto> contacts = contactService.searchContacts(userId, query, pageable);
-//        return ResponseEntity.ok(contacts);
-//    }
-//
-//    @GetMapping("/sort/{userId}")
-//    public ResponseEntity<Page<ContactDto>> sortContacts (@PathVariable String userId, @RequestParam(defaultValue = "name") String sortBy, @RequestParam(defaultValue = "asc") String order, Pageable pageable) {
-//        Page<ContactDto> contacts = contactService.sortContacts(userId, sortBy, order, pageable);
-//        return ResponseEntity.ok(contacts);
-//    }
+    @GetMapping("/search/{userId}")
+    public ResponseEntity<Page<ContactDto>> searchContacts (@PathVariable String userId, @RequestParam String query, Pageable pageable) {
+        Page<ContactDto> contacts = contactService.searchContacts(userId, query, pageable);
+        return ResponseEntity.ok(contacts);
+    }
+
+    @GetMapping("/sort/{userId}")
+    public ResponseEntity<Page<ContactDto>> sortContacts (@PathVariable String userId, @RequestParam(defaultValue = "name") String sortBy, @RequestParam(defaultValue = "asc") String order, Pageable pageable) {
+        Page<ContactDto> contacts = contactService.sortContacts(userId, sortBy, order, pageable);
+        return ResponseEntity.ok(contacts);
+    }
 
 
 
-//    @PutMapping("/{contactId}/star")
-//    public ResponseEntity<Void> toggleStar (@PathVariable String contactId) {
-//        contactService.toggleStar(contactId);
-//        return ResponseEntity.ok().build();
-//    }
+    @PutMapping("/{contactId}/star")
+    public ResponseEntity<Void> toggleStar (@PathVariable String contactId) {
+        contactService.toggleStar(contactId);
+        return ResponseEntity.ok().build();
+    }
 
 }

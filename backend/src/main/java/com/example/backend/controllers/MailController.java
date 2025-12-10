@@ -1,9 +1,8 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dtos.MailDto;
-import com.example.backend.entities.Folder;
-import com.example.backend.entities.Mail;
-import com.example.backend.repo.FolderRepo;
+import com.example.backend.dtos.MailListDto;
+import com.example.backend.factories.MailFactory;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.services.mailService.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -22,22 +20,31 @@ public class MailController {
     MailService mailService ;
 
     @Autowired
-    MailRepo mailRepo ;
+    MailFactory mailFactory;
 
     @Autowired
-    FolderRepo folderRepo ;
+    MailRepo mailRepo ;
+
 
     @PostMapping("/compose")
     public ResponseEntity<List<String>> compose (@RequestBody MailDto mailDto) {
-        List<String> createdmailIds = mailService.createNewMail(mailDto);
-        return ResponseEntity.ok(createdmailIds);
+        List<String> createdMailIds = mailService.createNewMail(mailDto);
+        return ResponseEntity.ok(createdMailIds);
     }
 
-    @GetMapping("/{folderId}/mails")
-    public List<Mail> getMails(@PathVariable String folderId) {  // get mails from a specific folder
-        return mailRepo.getMailsByFolderId(folderId);
+    @GetMapping("/{folderId}/details/{mailId}")
+    public MailDto mailDetails (@PathVariable String folderId, @PathVariable String mailId) {
+       return mailService.mailDetails(mailId, folderId);
     }
 
+    // delete specific mail
+    @DeleteMapping("/delete/{mailId}")
+    public ResponseEntity<String> deleteMail (@PathVariable String mailId) {
+        mailService.deleteMailById(mailId);
+        return ResponseEntity.ok("Mail deleted successfully!");
+    }
+
+    // delete folder's mails
     @DeleteMapping("/deleteMails/{folderId}")
     public ResponseEntity<?> deleteMails(@RequestParam List<String> ids , @PathVariable String folderId) {
 
@@ -54,7 +61,7 @@ public class MailController {
     }
 
     @GetMapping("/filter")
-    public List<Mail> filter(
+    public List<MailListDto> filter(
             @RequestParam String folderId,
             @RequestParam(required = false) String subject,
             @RequestParam(required = false) String sender) {
@@ -64,14 +71,14 @@ public class MailController {
 
 
     @GetMapping("/getAllMails")
-    public List<Mail> getAllMails(@RequestParam String folderId, @RequestParam int page) {
+    public List<MailListDto> getAllMails(@RequestParam String folderId, @RequestParam int page) {
         return mailService.sortMails(folderId, "date", page);
 
 //        return mailRepo.findAll() ;
     }
 
     @GetMapping("/search")
-    public List<Mail> search(
+    public List<MailListDto> search(
             @RequestParam String folderId,
             @RequestParam String keyword,
             @RequestParam int page) {
@@ -87,17 +94,22 @@ public class MailController {
     }
 
     @GetMapping("/sort")
-    public List<Mail> sort(
+    public List<MailListDto> sort(
             @RequestParam String folderId,
             @RequestParam String sortBy,
             @RequestParam int page) {
         return mailService.sortMails(folderId, sortBy, page);
     }
 
-     @GetMapping("/mails")
-    public List<Mail> getAll (){
-        return mailRepo.findAll() ;
+    @GetMapping("/mails")
+    public List<MailListDto> getAll (){
+        return mailRepo.findAll().stream().map(mailFactory::toListDto).toList();
     }    // for testing
 
+    @DeleteMapping("/deleteAllMails")
+    public ResponseEntity<String> deleteAll () {
+        mailRepo.deleteAll();
+        return ResponseEntity.ok("All mails deleted successfully!");
+    }
 
 }

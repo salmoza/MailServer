@@ -24,6 +24,7 @@ public class FolderService {
     @Autowired
     private MailRepo mailRepo;
     public Folder createFolder(String userId, String folderName){
+        System.out.println("in createFolder");
         User user = userRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 //        System.out.println(user.getUserId());
@@ -36,7 +37,8 @@ public class FolderService {
     }
 
     public void addMail( String folderId, Mail mail){
-        Folder folder = folderRepo.findByFolderId(folderId);
+        Folder folder = folderRepo.findByFolderId(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
 
         folder.addMail(mail);
         folderRepo.save(folder);
@@ -44,7 +46,8 @@ public class FolderService {
     }
 
     public void deleteMail( String folderId, Mail mail){
-        Folder folder = folderRepo.findByFolderId(folderId);
+        Folder folder = folderRepo.findByFolderId(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
         folder.deleteMail(mail);
         folderRepo.save(folder) ;
     }
@@ -77,6 +80,14 @@ public class FolderService {
 
         // Save the updated folder
         return folderRepo.save(folder);
+    }
+
+    public List<Folder> getCustomFolders(String userId) {
+        // The folders to exclude
+        List<String> defaultFolders = List.of("Inbox", "Sent", "Drafts", "Trash");
+
+        // Fetch from repo
+        return folderRepo.findCustomFolders(userId, defaultFolders);
     }
 
 

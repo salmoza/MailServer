@@ -24,16 +24,18 @@ public class ContactService {
     @Autowired
     private UserRepo userRepo;
 
-//    @Autowired
-    private ContactFactory contactFactory =  new ContactFactory();
+    @Autowired
+    private ContactFactory contactFactory;
 
     public ContactDto createContact (String userId, ContactDto dto) {
+        System.out.println("in contact create");
         User owner = userRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Contact contact = contactFactory.toEntity(dto, owner);
         contact = contactsRepo.save(contact);
 
         return contactFactory.toDto(contact);
+//        return contactFactory.toDto(contact);
     }
 
     public ContactDto editContact (String contactId, ContactDto dto) {
@@ -56,15 +58,6 @@ public class ContactService {
         contactsRepo.delete(contact);
     }
 
-    public Page<ContactDto> searchContacts (String userId, String query, Pageable pageable) {
-        User owner = userRepo.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Page<Contact> result = contactsRepo.searchContacts(owner, query, pageable);
-
-        return result.map(contactFactory::toDto);
-
-    }
 
     public List<ContactDto> getContacts(String userId, String query, String sortBy, String order) {
         User owner = userRepo.findByUserId(userId)
@@ -148,6 +141,17 @@ public class ContactService {
         Page<Contact> contacts = contactsRepo.findByOwner(owner, sortedPageable);
 
         return contacts.map(contactFactory::toDto);
+    }
+
+
+    public Page<ContactDto> searchContacts (String userId, String query, Pageable pageable) {
+        User owner = userRepo.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Page<Contact> result = contactsRepo.searchContacts(owner, query, pageable);
+
+        return result.map(contactFactory::toDto);
+
     }
 
     public void deleteMultipleContacts(List<String> contactIds) {
