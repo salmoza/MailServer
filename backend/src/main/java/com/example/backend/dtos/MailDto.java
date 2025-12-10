@@ -1,13 +1,16 @@
 package com.example.backend.dtos;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
-
+@Builder
+@Data
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class MailDto {
 
     private String userId ;

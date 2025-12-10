@@ -36,19 +36,9 @@ public class DraftService {
     public Mail saveDraft(MailDto dto) {
 
         User user = userRepo.findByEmail(dto.getSender()) ;
+        dto.setUserId(user.getUserId());
 
-
-        Mail draft = Mail.builder()    // will be added to factory
-                .userId(user.getUserId())
-                .senderEmail(dto.getSender())
-                .receiverEmails(dto.getReceivers() != null ? new ArrayList<>(dto.getReceivers()) : new ArrayList<>())
-                .subject(dto.getSubject())
-                .body(dto.getBody())
-                .priority(dto.getPriority())
-                .status(MailStatus.DRAFT)
-                .date(Timestamp.valueOf(LocalDateTime.now()))
-                .isRead(true)
-                .build();
+        Mail draft = MailFactory.createDraftCopy(dto) ;
 
         draft = mailRepo.save(draft);
         folderService.addMail(user.getDraftsFolderId(), draft);
