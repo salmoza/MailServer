@@ -16,9 +16,6 @@ import java.util.List;
 @Service
 public class MailFactory {
 
-    @Autowired
-    AttachmentFactory attachmentFactory;
-
     public static Mail createSenderCopy(String userId, MailDto dto) {
         return Mail.builder()
                 .userId(userId)
@@ -27,6 +24,7 @@ public class MailFactory {
                 .priority(dto.getPriority())
                 .subject(dto.getSubject())
                 .body(dto.getBody())
+                .status(MailStatus.SENT)
                 .isRead(true)
                 .date(Timestamp.valueOf(LocalDateTime.now()))
                 .build();
@@ -44,6 +42,21 @@ public class MailFactory {
                 .isRead(false)
                 .date(Timestamp.valueOf(LocalDateTime.now()))
                 .build();
+    }
+
+    public static Mail createDraftCopy (MailDto dto) {
+        return Mail.builder()
+                .userId(dto.getUserId())
+                .senderEmail(dto.getSender())
+                .receiverEmails(dto.getReceivers() != null ? new ArrayList<>(dto.getReceivers()) : new ArrayList<>())
+                .subject(dto.getSubject())
+                .body(dto.getBody())
+                .priority(dto.getPriority())
+                .status(MailStatus.DRAFT)
+                .date(Timestamp.valueOf(LocalDateTime.now()))
+                .isRead(true)
+                .build();
+
     }
 
     public static Mail createReceiverCopyFromDraft(String receiverId,  Mail draft , String receiverEmail) {
@@ -71,19 +84,19 @@ public class MailFactory {
     }
 
     public MailDto toDto (Mail mail, String folderId) {
-        MailDto dto = new MailDto();
 
-        dto.setUserId(mail.getUserId());
-        dto.setFolderId(folderId);
-        dto.setReceivers(mail.getReceiverEmails());
-        dto.setSender(mail.getSenderEmail());
-        dto.setSenderDisplayName(mail.getSenderDisplayName());
-        dto.setSubject(mail.getSubject());
-        dto.setBody(mail.getBody());
-        dto.setPriority(mail.getPriority());
-        dto.setDate(mail.getDate().toLocalDateTime());
 
-        return dto;
+        return MailDto.builder()  // changed to be builder
+                .userId(mail.getUserId())
+                .folderId(folderId)
+                .receivers(mail.getReceiverEmails())
+                .sender(mail.getSenderEmail())
+                .senderDisplayName(mail.getSenderDisplayName())
+                .subject(mail.getSubject())
+                .body(mail.getBody())
+                .priority(mail.getPriority())
+                .date(mail.getDate().toLocalDateTime())
+                .build() ;
     }
 
 //    public MailComposeDto toMailComposeDto (Mail mail) {
@@ -93,14 +106,15 @@ public class MailFactory {
 
     // For inbox/folder list
     public MailListDto toListDto(Mail mail) {
-        MailListDto dto = new MailListDto();
-        dto.setMailId(mail.getMailId());
-        dto.setSenderEmail(mail.getSenderEmail());
-        dto.setSenderDisplayName(mail.getSenderDisplayName());
-        dto.setSubject(mail.getSubject());
-        dto.setDate(mail.getDate().toLocalDateTime());
-        dto.setIsRead(mail.getIsRead());
-        return dto;
+
+        return MailListDto.builder()  // changed to builder
+                .mailId(mail.getMailId())
+                .senderEmail(mail.getSenderEmail())
+                .senderDisplayName(mail.getSenderDisplayName())
+                .subject(mail.getSubject())
+                .date(mail.getDate().toLocalDateTime())
+                .isRead(mail.getIsRead())
+                .build() ;
     }
 
 

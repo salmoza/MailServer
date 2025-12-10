@@ -227,6 +227,14 @@ public class MailService {
         }
     }
 
+    public String changeIsRead(String mailId) {
+        Mail mail = mailRepo.findByMailId(mailId)
+                .orElseThrow(() -> new RuntimeException("Mail not found"));
+        mail.setIsRead(true);
+        mailRepo.save(mail) ;
+        return mailId ;
+    }
+
     public List<MailListDto> sortMails(String folderId, String sortType, int page) {
 
         List<Mail> mails = mailRepo.getMailsByFolderId(folderId);
@@ -257,8 +265,6 @@ public class MailService {
 
         return sortedMails.subList(start, end).stream().map(mailFactory::toListDto).toList();
     }
-
-
 
 
 }

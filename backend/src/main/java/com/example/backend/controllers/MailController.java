@@ -2,6 +2,7 @@ package com.example.backend.controllers;
 
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
+import com.example.backend.entities.Mail;
 import com.example.backend.factories.MailFactory;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.services.mailService.MailService;
@@ -50,6 +51,12 @@ public class MailController {
             mailService.deleteMailById(ids , folderId);
 
         return ResponseEntity.ok("Deleted " + ids.size() + " mails");
+    }
+
+    @PostMapping("/isRead/{mailId}")
+    public String changeIsRead (@PathVariable String mailId) {
+       return mailService.changeIsRead(mailId) ;
+
     }
 
     @GetMapping("/filter")
@@ -103,5 +110,7 @@ public class MailController {
         mailRepo.deleteAll();
         return ResponseEntity.ok("All mails deleted successfully!");
     }
+
+
 
 }
