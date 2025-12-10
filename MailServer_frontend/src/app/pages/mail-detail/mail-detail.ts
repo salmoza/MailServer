@@ -133,7 +133,7 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
                 <p
                   class="text-gray-900 text-2xl lg:text-3xl font-bold leading-tight tracking-[-0.03em]"
                 >
-                  {{mail?.subject}}
+                  {{ mail?.subject }}
                 </p>
                 <p class="text-gray-500 text-sm font-normal leading-normal">
                   Inbox
@@ -189,12 +189,17 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
                   <span class="font-medium">From:</span> {{ mail?.senderEmail }}
                 </p>
                 <p class="text-gray-500 text-sm font-normal leading-normal">
-                  <span class="font-medium">To:</span> {{mail?.receiverEmails}}
+                  <span class="font-medium">To:</span>
+                  @for (mail of mail?.receiverEmails; track $index){
+                  <span>
+                  {{mail}}
+                    </span>
+                }
                 </p>
               </div>
               <div class="shrink-0 text-right">
                 <p class="text-gray-500 text-sm font-normal leading-normal">
-                  {{mail?.date}}
+                  {{ mail?.date }}
                 </p>
               </div>
             </div>
@@ -229,8 +234,8 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
                       <p class="text-xs text-gray-500">{{ item.fileSize }}</p>
                     </div>
                     <button (click)="getDownloadUrl(item.attachmentId)"
-                      class="p-2 text-gray-500 hover:text-[#137fec]"
-                      title="Download"
+                            class="p-2 text-gray-500 hover:text-[#137fec]"
+                            title="Download"
                     >
                       <span class="material-symbols-outlined">download</span>
                     </button>

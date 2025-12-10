@@ -17,3 +17,9 @@ interface attachment{
   fileSize:string;
   attachmentId:string;
 }
+export interface CustomFolderData{
+  folderId:string;
+  folderName:string;
+  User:string;
+  mails:Datafile[]
+}

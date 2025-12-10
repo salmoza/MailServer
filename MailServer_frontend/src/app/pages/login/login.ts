@@ -252,7 +252,8 @@ login(){
     },
     error:(response:any)=>{
       console.log(response);
-      alert(response.error.error);
+      alert("fuck")
+      alert(response.error);
     }
   })
 }

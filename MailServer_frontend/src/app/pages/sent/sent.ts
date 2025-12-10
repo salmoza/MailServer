@@ -7,7 +7,7 @@ import {CustomFolderData, Datafile} from '../../Dtos/datafile';
 import {MailShuttleService} from '../../Dtos/MailDetails';
 
 @Component({
-  selector: 'app-inbox',
+  selector: 'app-sent',
   standalone: true,
   imports: [CommonModule, RouterLink,HttpClientModule],
   template: `
@@ -30,53 +30,53 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
               </h1>
             </div>
             <button [routerLink]="['/compose']"
-              class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
+                    class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
             >
               <span class="truncate">Compose</span>
             </button>
             <div class="flex flex-col gap-1">
               <!-- Active Inbox Link -->
               <a [routerLink]="['/inbox']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20"
+                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
               >
                 <!-- Removed dark:text-slate-200 -->
                 <span class="material-symbols-outlined text-slate-800 fill"
-                  >inbox</span
+                >inbox</span
                 >
                 <p class="text-slate-800 text-sm font-medium leading-normal">
                   Inbox
                 </p>
                 <span
                   class="ml-auto text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5"
-                  >3</span
+                >3</span
                 >
               </a>
               <a [routerLink]="['/sent']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+                 class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20"
               >
                 <!-- Removed dark:text-slate-400 -->
                 <span class="material-symbols-outlined text-slate-600"
-                  >send</span
+                >send</span
                 >
                 <p class="text-slate-600 text-sm font-medium leading-normal">
                   Sent
                 </p>
               </a>
               <a [routerLink]="['/drafts']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
               >
                 <span class="material-symbols-outlined text-slate-600"
-                  >draft</span
+                >draft</span
                 >
                 <p class="text-slate-600 text-sm font-medium leading-normal">
                   Drafts
                 </p>
               </a>
               <a [routerLink]="['/trash']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
               >
                 <span class="material-symbols-outlined text-slate-600"
-                  >delete</span
+                >delete</span
                 >
                 <p class="text-slate-600 text-sm font-medium leading-normal">
                   Trash
@@ -91,7 +91,7 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
                 >
                   Custom Folders
                 </h2>
-                <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CreateCustomFolder()">
+                <button class="text-slate-500 hover:text-primary">
                   <span class="material-symbols-outlined text-base">add</span>
                 </button>
               </div>
@@ -119,21 +119,21 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
         >
           <div class="flex gap-2">
             <button (click)="delete()"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
+                    class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    [disabled]="Emails.length === 0"
             >
               <span class="material-symbols-outlined">delete</span>
             </button>
             <button (click)="tomove = true"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
+                    class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    [disabled]="Emails.length === 0"
             >
               <span class="material-symbols-outlined">folder_open</span>
             </button>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-slate-600"
-              >Priority Mode</span
+            >Priority Mode</span
             >
             <label class="relative inline-flex items-center cursor-pointer">
               <input class="sr-only peer" type="checkbox" value="" />
@@ -178,7 +178,7 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
               </thead>
 
               <tbody>
-                @for(item of InboxData; track $index){
+                @for(item of SentData; track $index){
                   <tr
                     class="border-t border-t-slate-200 hover:bg-slate-50"
                   >
@@ -230,24 +230,24 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
           class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto"
         >
           <a (click)="updatePage(page-1)"
-            class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary"
+             class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary"
           >
             <span class="material-symbols-outlined text-lg">chevron_left</span>
           </a>
           <a (click)="updatePage(0)"
-            class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary"
-            >1</a
+             class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary"
+          >1</a
           >
           <a (click)="updatePage(1)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >2</a
+             class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
+          >2</a
           >
           <a (click)="updatePage(2)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >3</a
+             class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
+          >3</a
           >
           <a (click)="updatePage(page+1)"
-            class="flex  size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer"
+             class="flex  size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer"
           >
             <span class="material-symbols-outlined text-lg">chevron_right</span>
           </a>
@@ -257,14 +257,13 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
         <div class="content-container ">
           <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
           <div class="buttons-folders">
-          <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
-          @for(folder of CustomFolders; track $index){
-            <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
-          }
+            <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
+            <button>Custom Folder</button>
+            <button>Custom Folder</button>
           </div>
           <div class="bottom-btn">
             <button (click)="tomove=false">Back</button>
-          <button>make new custom Folder</button>
+            <button>make new custom Folder</button>
           </div>
         </div>
       </div>
@@ -386,17 +385,16 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
     }
   `],
 })
-export class Inbox implements OnInit{
+export class Sent implements OnInit{
   constructor(private MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router) {
   }
-  foldername:string=''
   Emails:Datafile[]=[];
-  InboxData:Datafile[]=[];
+  SentData:Datafile[]=[];
   CustomFolders:CustomFolderData[]=[];
   page:number = 0;
   tomove:boolean=false;
   ngOnInit() {
-    this.getInbox(0);
+    this.getSent(0);
     this.getCustomFolders();
   }
   updatePage(page:number){
@@ -404,7 +402,7 @@ export class Inbox implements OnInit{
       return;
     }
     this.page=page;
-    this.getInbox(this.page);
+    this.getSent(this.page);
   }
   getCustomFolders(){
     const url = "http://localhost:8080/folders/custom";
@@ -421,19 +419,19 @@ export class Inbox implements OnInit{
       }
     })
   }
-  getInbox(page:number){
+  getSent(page:number){
     const userData: UserData = this.folderStateService.userData();
-    const inboxId = userData.inboxFolderId;
-    if(!inboxId){
-      console.error('inboxId is missing');
+    const SentId = userData.sentFolderId;
+    if(!SentId){
+      console.error('SendId is missing');
       return;
     }
     let param = new HttpParams
     param = param.set('page', page);
-    param = param.set("folderId",this.folderStateService.userData().inboxFolderId);
+    param = param.set("folderId",this.folderStateService.userData().sentFolderId);
     this.http.get<Datafile[]>(`http://localhost:8080/mail/getAllMails`,{params:param}).subscribe({
       next:(respones) => {
-        this.InboxData=respones;
+        this.SentData=respones;
         console.log(respones);
       },
       error:(respones) => {
@@ -463,35 +461,35 @@ export class Inbox implements OnInit{
   addallemails(check:boolean){
     if(check){
       console.log("added")
-      this.Emails = this.InboxData;
+      this.Emails = this.SentData;
     }
     else{
       console.log("removed");
       this.Emails=[];
     }
-}
-checked(id:string){
-  const emailIndex = this.Emails.findIndex(e => e.mailId === id);
-  if (emailIndex != -1) {
-    return true;
   }
-  else{
-    return false;
+  checked(id:string){
+    const emailIndex = this.Emails.findIndex(e => e.mailId === id);
+    if (emailIndex != -1) {
+      return true;
+    }
+    else{
+      return false;
+    }
   }
-}
   delete(){
     const userData: UserData = this.folderStateService.userData();
-    const inboxId = userData.inboxFolderId;
-    const url = `http://localhost:8080/mail/deleteMails/${inboxId}`
+    const SentId = userData.sentFolderId;
+    const url = `http://localhost:8080/mail/deleteMails/${SentId}`
     if(this.Emails.length == 0){
       return
     }
     let ids:string[]=[];
     for(let i:number=0; i<this.Emails.length;i++){
       ids.push(this.Emails[i].mailId);
-      /*to remove the email form inbox*/
-      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
+      /*to remove the email form Sent*/
+      const emailIndex = this.SentData.findIndex(e => e.mailId === this.Emails[i].mailId);
+      this.toggleEmailsSelected(this.SentData[emailIndex],false)
     }
     let params = new HttpParams();
     ids.forEach((id) => {
@@ -505,33 +503,19 @@ checked(id:string){
         console.log(respones);
       }
     })
-}
-  CreateCustomFolder(){
-    const url = "http://localhost:8080/folders/createFolder"
-    const payload={
-      folderName:this.foldername,
-      folderId:this.folderStateService.userData().inboxFolderId,
-    }
-    this.http.post(url, payload).subscribe({
-      next:(respones) => {
-        console.log(respones);
-      },
-      error:(respones) => {
-        alert("failed to create custom folder");
-      }
-    })
   }
+
   move(moveMailToFolderId:string){
     let mailids:string[]=[];
-    const url = `http://localhost:8080/mail/move/${moveMailToFolderId}/${this.folderStateService.userData().inboxFolderId}`;
+    const url = `http://localhost:8080/mail/move/${moveMailToFolderId}/${this.folderStateService.userData().sentFolderId}`;
     for(let i:number=0; i<this.Emails.length;i++){
       mailids.push(this.Emails[i].mailId);
-      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
+      const emailIndex = this.SentData.findIndex(e => e.mailId === this.Emails[i].mailId);
+      this.toggleEmailsSelected(this.SentData[emailIndex],false)
     }
-      const payload={
-        ids:mailids
-      }
+    const payload={
+      ids:mailids
+    }
     this.http.post(url, payload).subscribe({
       next:(respones) => {
         console.log(respones);
