@@ -98,6 +98,7 @@ public class MailService {
 
 
         Mail helpingMail = mailRepo.findByMailId(mailId);
+        System.out.println("in delete mail");
 
         User user = userRepo.findByUserId(helpingMail.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));

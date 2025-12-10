@@ -28,6 +28,7 @@ public class ContactService {
     private ContactFactory contactFactory =  new ContactFactory();
 
     public ContactDto createContact (String userId, ContactDto dto) {
+        System.out.println("in contact create");
         User owner = userRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Contact contact = contactFactory.toEntity(dto, owner);
@@ -57,6 +58,7 @@ public class ContactService {
     }
 
     public Page<ContactDto> searchContacts (String userId, String query, Pageable pageable) {
+        System.out.println("in searchContacts");
         User owner = userRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 

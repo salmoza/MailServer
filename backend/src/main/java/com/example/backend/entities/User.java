@@ -2,6 +2,7 @@ package com.example.backend.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.List;
@@ -32,6 +33,7 @@ public class User {
 
     public User() {
     }
+
 
     public String getInboxFolderId() {
         if (folders == null) return null;

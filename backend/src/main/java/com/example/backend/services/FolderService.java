@@ -24,6 +24,7 @@ public class FolderService {
     @Autowired
     private MailRepo mailRepo;
     public Folder createFolder(String userId, String folderName){
+        System.out.println("in createFolder");
         User user = userRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 //        System.out.println(user.getUserId());
