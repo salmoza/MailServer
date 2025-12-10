@@ -7,6 +7,9 @@ import {Inbox} from './pages/inbox/inbox';
 import {Login} from './pages/login/login';
 import {MailDetail} from './pages/mail-detail/mail-detail';
 import {authGuard} from './Auth/AuthGuard';
+import {Sent} from './pages/sent/sent';
+import {Trash} from './pages/trash/trash';
+
 
 export const routes: Routes = [
   {path:'', redirectTo:'login',pathMatch:'full'},
@@ -17,5 +20,7 @@ export const routes: Routes = [
   {path:'inbox',component:Inbox, canActivate:[authGuard]},
   {path:'Filters',component:Filters, canActivate:[authGuard]},
   {path:'mail',component:MailDetail, canActivate:[authGuard]},
+  {path:'sent',component:Sent, canActivate:[authGuard]},
+  {path:'trash',component:Trash, canActivate:[authGuard]},
   {path:'**',redirectTo:'login'},
 ];

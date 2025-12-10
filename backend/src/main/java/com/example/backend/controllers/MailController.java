@@ -33,10 +33,10 @@ public class MailController {
         return ResponseEntity.ok(createdmailIds);
     }
 
-//    @GetMapping("/{folderId}/mails")
-//    public List<Mail> getMails(@PathVariable String folderId) {  // get mails from a specific folder
-//        return mailRepo.getMailsByFolderId(folderId);
-//    }
+    @GetMapping("/{folderId}/mails")
+    public List<Mail> getMails(@PathVariable String folderId) {  // get mails from a specific folder
+        return mailRepo.getMailsByFolderId(folderId);
+    }
 
     @DeleteMapping("/deleteMails/{folderId}")
     public ResponseEntity<?> deleteMails(@RequestParam List<String> ids , @PathVariable String folderId) {

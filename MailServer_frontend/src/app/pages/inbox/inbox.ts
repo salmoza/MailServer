@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {Router, RouterLink} from '@angular/router';
 import {FolderStateService} from '../../Dtos/FolderStateService';
-import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {HttpClient, HttpClientModule, HttpParams} from '@angular/common/http';
 import {Datafile} from '../../Dtos/datafile';
 import {MailShuttleService} from '../../Dtos/MailDetails';
 
@@ -24,15 +24,9 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
         <div class="flex h-full flex-col justify-between">
           <div class="flex flex-col gap-6">
             <div class="flex items-center gap-3 px-3">
-              <div
-                class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-                data-alt="Company Logo"
-                style="
-                  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDhHSriJgc-UumFnkoqSXN4J6aJwW9cXi28BcUxqcDMNpzEFKQzz2I35gH4VFhoz3g4b52-NgAmRlAY2e53od4IGEX1EfMua_aW-puEy430OsbYibhoWcVIWtu_j-kZWgDNYtxjL_5bP2GAjgu4vf91W-kCd03dZdC-oAsbvmQwm9u-9V8bQQo8tVNsSSPs3jlk1U4CZS01CZScj4psc69zFuTTNLgRFKDGwc_NAuc5lI1JWlCb-hvpuZyJnT9kVF_-PgRxjo_S3uY');
-                "
-              ></div>
+
               <h1 class="text-slate-800 text-base font-medium leading-normal">
-                emailclient.com
+                {{folderStateService.userData().email}}
               </h1>
             </div>
             <button [routerLink]="['/compose']"
@@ -57,7 +51,7 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
                   >3</span
                 >
               </a>
-              <a [routerLink]="['/compose']"
+              <a [routerLink]="['/sent']"
                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
               >
                 <!-- Removed dark:text-slate-400 -->
@@ -136,23 +130,17 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
           class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
         >
           <div class="flex gap-2">
-            <button
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled=""
+            <button (click)="delete()"
+              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              [disabled]="Emails.length === 0"
             >
               <span class="material-symbols-outlined">delete</span>
             </button>
-            <button
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled=""
+            <button (click)="tomove = true"
+              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              [disabled]="Emails.length === 0"
             >
               <span class="material-symbols-outlined">folder_open</span>
-            </button>
-            <button
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled=""
-            >
-              <span class="material-symbols-outlined">mark_email_unread</span>
             </button>
           </div>
           <div class="flex items-center gap-2">
@@ -174,63 +162,76 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
           >
             <table class="w-full text-left">
               <thead class="bg-slate-50">
-                <tr>
-                  <th class="px-4 py-3 w-12">
-                    <input
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                    />
-                  </th>
-                  <th
-                    class="px-4 py-3 text-slate-800 w-1/4 text-sm font-medium"
-                  >
-                    Sender
-                  </th>
-                  <th
-                    class="px-4 py-3 text-slate-800 w-1/2 text-sm font-medium"
-                  >
-                    Subject
-                  </th>
-                  <th
-                    class="px-4 py-3 text-slate-800 w-auto text-sm font-medium"
-                  ></th>
-                  <th
-                    class="px-4 py-3 text-slate-800 w-1/6 text-sm font-medium text-right"
-                  >
-                    Date
-                  </th>
-                </tr>
+              <tr>
+                <th class="px-4 py-3 w-12">
+                  <input
+                    class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+                    type="checkbox"
+                    #checkbox
+                    (click)="addallemails(checkbox.checked)"
+                  />
+                </th>
+
+                <th class="py-3 pl-0 pr-4" colspan="4">
+                  <div class="flex items-center w-full">
+                    <div class="px-4 text-slate-800 w-1/4 text-sm font-medium">
+                      Sender
+                    </div>
+                    <div class="px-4 text-slate-800 w-1/2 text-sm font-medium">
+                      Subject
+                    </div>
+                    <div class="px-4 text-slate-800 w-auto text-sm font-medium"></div>
+                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-right">
+                      Date
+                    </div>
+                  </div>
+                </th>
+              </tr>
               </thead>
+
               <tbody>
                 @for(item of InboxData; track $index){
-                <tr
-                  class="border-t border-t-slate-200 hover:bg-slate-50 cursor-pointer"
-                  (click)="goToMailDetails(item)"
-                >
-                  <td class="px-4 py-2">
-                    <input
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                    />
-                  </td>
-                  <td class="px-4 py-2 text-slate-800 text-sm font-semibold">
-                    {{item.senderEmail}}
-                  </td>
-                  <td class="px-4 py-2">
+                  <tr
+                    class="border-t border-t-slate-200 hover:bg-slate-50"
+                  >
+                    <td class="px-4 py-2">
+                      <input
+                        class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+                        type="checkbox"
+                        #checkbox
+                        (change)="toggleEmailsSelected(item,checkbox.checked)"
+                        [checked]="checked(item.mailId)"
+                      />
+                    </td>
+
+                    <td class="py-0 pl-0 pr-4" colspan="4">
+                      <div
+                        class="flex items-center w-full py-2 cursor-pointer"
+                        (click)="goToMailDetails(item)"
+                      >
+                        <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
+                          {{item.senderEmail}}
+                        </div>
+
+                        <div class="px-4 w-1/2">
                     <span class="text-slate-800 text-sm font-semibold"
-                      >{{item.subject}}</span
+                    >{{item.subject}}</span
                     >
-                    <span class="text-slate-500 text-sm ml-2 truncate"
-                      >{{item.body}}</span
-                    >
-                  </td>
-                  <td class="px-4 py-2 text-right">
-                    <span class="material-symbols-outlined text-slate-400 text-lg">attachment</span>
-                  </td>
-                  <td class="px-4 py-2 text-slate-500 text-sm text-right">
-                    {{item.date}}
-                  </td>
-                </tr>
+                          <span class="text-slate-500 text-sm ml-2 truncate"
+                          >{{item.body}}</span
+                          >
+                        </div>
+
+                        <div class="px-4 text-right w-auto">
+                          <span class="material-symbols-outlined text-slate-400 text-lg">attachment</span>
+                        </div>
+
+                        <div class="px-4 text-slate-500 text-sm text-right w-1/6">
+                          {{item.date}}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
                 }
               </tbody>
             </table>
@@ -272,6 +273,20 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
           </a>
         </div>
       </main>
+      <div class="move-conatiner bg-black/50" [class.active]="tomove">
+        <div class="content-container ">
+          <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
+          <div class="buttons-folders">
+          <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
+          <button>Custom Folder</button>
+          <button>Custom Folder</button>
+          </div>
+          <div class="bottom-btn">
+            <button (click)="tomove=false">Back</button>
+          <button>make new custom Folder</button>
+          </div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -289,6 +304,82 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
       background-color: #f6f7f8; /* background-light hex */
     }
 
+    .move-conatiner {
+      visibility: hidden;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      position: fixed;
+      transition: all 0.2s ease-in;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .move-conatiner.active {
+      visibility: visible;
+      opacity: 1;
+      cursor: auto;
+    }
+
+    .content-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 500px;
+      min-width: 400px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      background-color: #e8e8e8;
+    }
+
+    .buttons-folders {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .content-container button {
+      display: flex;
+      padding: 15px;
+      border-radius: 30px;
+      background-color: #f9f9f9;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.1s ease-in-out;
+    }
+
+    .content-container button:hover {
+      transform: scale(1.05);
+      background-color: #3e8cf4;
+      border: 3px solid rgba(62, 140, 244, 0.88);
+      color: #fff;
+    }
+
+    #trash-btn:hover {
+      border: 3px solid rgba(243, 53, 53, 0.87);
+      background-color: #f6f7f8;
+      color: black;
+      /* box-shadow: 5px 5px 5px rgba(255, 0, 0, 0.55);*/
+    }
+
+    .content-container button:active {
+      transform: scale(0.95);
+    }
+
+    .bottom-btn {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+
     .material-symbols-outlined {
       /* Ensure icons are correctly rendered */
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -296,7 +387,9 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
     }
 
     /* FIX: Re-enforcing primary color styles */
-    .text-primary, .hover\\:text-primary { color: #137fec !important; }
+    .text-primary, .hover\\:text-primary {
+      color: #137fec !important;
+    }
 
     .bg-primary {
       background-color: #137fec !important;
@@ -313,10 +406,12 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
   `],
 })
 export class Inbox implements OnInit{
-  constructor(private MailDetails:MailShuttleService,private folderStateService: FolderStateService,private http : HttpClient,private router : Router) {
+  constructor(private MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router) {
   }
-  switchId:string='';
+  Emails:Datafile[]=[];
   InboxData:Datafile[]=[];
+  CustomFolders:Datafile[]=[];
+  tomove:boolean=false;
   ngOnInit() {
     this.getInbox();
   }
@@ -339,5 +434,85 @@ export class Inbox implements OnInit{
   goToMailDetails(details:Datafile){
     this.MailDetails.setMailData(details);
     this.router.navigate([`/mail`]);
+  }
+  toggleEmailsSelected(email:Datafile,ischecked:boolean){
+    if(ischecked){
+      if(!this.Emails.includes(email)) {
+        this.Emails.push(email);
+      }
+    }
+    else {
+      const emailIndex = this.Emails.findIndex(e => e.mailId === email.mailId);
+      if (emailIndex != -1) {
+        this.Emails.splice(emailIndex, 1);
+      }
+    }
+  }
+  addallemails(check:boolean){
+    if(check){
+      console.log("added")
+      this.Emails = this.InboxData;
+    }
+    else{
+      console.log("removed");
+      this.Emails=[];
+    }
+}
+checked(id:string){
+  const emailIndex = this.Emails.findIndex(e => e.mailId === id);
+  if (emailIndex != -1) {
+    return true;
+  }
+  else{
+    return false;
+  }
+}
+  delete(){
+    const userData: UserData = this.folderStateService.userData();
+    const inboxId = userData.inboxFolderId;
+    const url = `http://localhost:8080/mail/deleteMails/${inboxId}}`
+    if(this.Emails.length == 0){
+      return
+    }
+    let ids:string[]=[];
+    for(let i:number=0; i<this.Emails.length;i++){
+      ids.push(this.Emails[i].mailId);
+      /*to remove the email form inbox*/
+      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
+      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
+    }
+    let params = new HttpParams();
+    ids.forEach((id) => {
+      params = params.append('ids', id);
+    });
+    this.http.delete(url, {params:params}).subscribe({
+      next:(respones) => {
+        console.log(respones);
+      },
+      error:(respones) => {
+        console.log(respones);
+      }
+    })
+}
+
+  move(moveMailToFolderId:string){
+    let mailids:string[]=[];
+    const url = `http://localhost:8080/mail/move/${moveMailToFolderId}/${this.folderStateService.userData().inboxFolderId}`;
+    for(let i:number=0; i<this.Emails.length;i++){
+      mailids.push(this.Emails[i].mailId);
+      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
+      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
+    }
+      const payload={
+        ids:mailids
+      }
+    this.http.post(url, payload).subscribe({
+      next:(respones) => {
+        console.log(respones);
+      },
+      error:(respones) => {
+        console.log(respones);
+      }
+    })
   }
 }
