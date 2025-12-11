@@ -1,8 +1,8 @@
 import {Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
-import {HttpClient, HttpClientModule} from '@angular/common/http';
-import {Datafile} from '../../Dtos/datafile';
+import {HttpClient, HttpClientModule, HttpParams} from '@angular/common/http';
+import {CustomFolderData, Datafile} from '../../Dtos/datafile';
 import {FolderStateService} from '../../Dtos/FolderStateService';
 import {take} from 'rxjs';
 import {MailShuttleService} from '../../Dtos/MailDetails';
@@ -93,7 +93,7 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
                 <span class="material-symbols-outlined">inbox</span>
                 <p class="text-sm font-medium leading-normal">Inbox</p>
               </a>
-              <a [routerLink]="['/mail']"
+              <a [routerLink]="['/sent']"
                  class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
               >
                 <span class="material-symbols-outlined">send</span>
@@ -111,6 +111,31 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
                 <span class="material-symbols-outlined">delete</span>
                 <p class="text-sm font-medium leading-normal">Trash</p>
               </a>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center justify-between px-3 py-2">
+                <h2
+                  class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                >
+                  Custom Folders
+                </h2>
+                <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp=true">
+                  <span class="material-symbols-outlined text-base">add</span>
+                </button>
+              </div>
+              @for(custom of CustomFolders; track $index) {
+                <a (click)="goToCustomFolder(custom.folderId)"
+                   class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+                >
+                <span class="material-symbols-outlined text-slate-600"
+                >folder</span
+                >
+                  <p class="text-slate-600 text-sm font-medium leading-normal">
+                    {{custom.folderName}}
+                  </p>
+                </a>
+              }
             </div>
           </div>
         </aside>
@@ -136,27 +161,9 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
               <div class="flex gap-1 sm:gap-2">
                 <button
                   class="p-2 rounded-lg text-gray-700 hover:bg-gray-200"
-                  title="Reply"
-                >
-                  <span class="material-symbols-outlined">reply</span>
-                </button>
-                <button
-                  class="p-2 rounded-lg text-gray-700 hover:bg-gray-200"
-                  title="Forward"
-                >
-                  <span class="material-symbols-outlined">forward</span>
-                </button>
-                <button
-                  class="p-2 rounded-lg text-gray-700 hover:bg-gray-200"
                   title="Move to"
                 >
                   <span class="material-symbols-outlined">drive_file_move</span>
-                </button>
-                <button
-                  class="p-2 rounded-lg text-gray-700 hover:bg-gray-200"
-                  title="Mark as unread"
-                >
-                  <span class="material-symbols-outlined">mark_email_unread</span>
                 </button>
                 <button
                   class="p-2 rounded-lg text-gray-700 hover:bg-gray-200"
@@ -209,11 +216,11 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
             <!-- Attachments -->
             <div class="mt-8 pt-6 border-t border-gray-200">
               <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                {{ mail?.attachmentMetadata?.length }}
+                {{ mail?.attachments?.length }}
               </h3>
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Attachment Card 1 -->
-                @for (item of mail?.attachmentMetadata; track $index) {
+                @for (item of mail?.attachments; track $index) {
                   <div
                     class="flex items-center gap-4 p-3 border border-gray-200 rounded-xl bg-white"
                   >
@@ -311,6 +318,12 @@ export class MailDetail implements OnInit{
     private route: ActivatedRoute,
     private MailDetails:MailShuttleService,// Used to read URL parameters
   ) {}
+  goToCustomFolder(Id:string){
+    this.MailDetails.setCustom(Id);
+    this.router.navigate([`/Custom`]);
+  }
+  CustomFolderPopUp:boolean = false;
+  CustomFolders:CustomFolderData[]=[];
   MailDetails2 = inject(MailShuttleService);
   mail: Datafile | null = this.MailDetails2.getMailData();
   mailId: string | undefined;
@@ -318,6 +331,7 @@ export class MailDetail implements OnInit{
 
   error: string | null = null;
   ngOnInit() {
+    this.getCustomFolders()
     const id = this.MailDetails2.getMailData()?.mailId
     this.http.get<Datafile>(`http://localhost:8080/mail/${this.folderStateService.userData().inboxFolderId}/details/${id}`).subscribe({
       next: (res) => {
@@ -329,7 +343,21 @@ export class MailDetail implements OnInit{
       }
     })
   }
-
+  getCustomFolders(){
+    const url = "http://localhost:8080/folders/custom";
+    let param = new HttpParams;
+    param = param.set("userId", this.folderStateService.userData().userId);
+    this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
+      next: data => {
+        this.CustomFolders = data;
+        console.log(data);
+      },
+      error: err => {
+        console.log(err);
+        alert("failed to fetch custom folders");
+      }
+    })
+  }
   deleteMail(): void {
     if (!this.mailId) return;
     console.log(`Deleting mail ID: ${this.mailId}`);

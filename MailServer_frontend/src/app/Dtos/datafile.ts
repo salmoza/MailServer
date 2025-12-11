@@ -1,5 +1,5 @@
 export interface Datafile{
-  attachmentMetadata:attachment[];
+  attachments:attachment[];
   body:string;
   date:string;
   deletedAt:string;
