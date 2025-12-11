@@ -1,11 +1,9 @@
 package com.example.backend.factories;
 
+import com.example.backend.dtos.AttachmentDto;
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
-import com.example.backend.entities.Mail;
-import com.example.backend.entities.MailSnapshot;
-import com.example.backend.entities.MailStatus;
-import com.example.backend.entities.User;
+import com.example.backend.entities.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 @Service
 public class MailFactory {
+
+    @Autowired
+    AttachmentFactory attachmentFactory;
 
     public static Mail createSenderCopy(String userId, MailDto dto) {
         return Mail.builder()
@@ -85,7 +86,10 @@ public class MailFactory {
 
     public MailDto toDto (Mail mail, String folderId) {
 
-
+        List<AttachmentDto> attachments = new ArrayList<>();
+        for (Attachment attachment : mail.getAttachments()) {
+            attachments.add(attachmentFactory.toDTO(attachment));
+        }
         return MailDto.builder()  // changed to be builder
                 .userId(mail.getUserId())
                 .folderId(folderId)
@@ -96,12 +100,14 @@ public class MailFactory {
                 .body(mail.getBody())
                 .priority(mail.getPriority())
                 .date(mail.getDate().toLocalDateTime())
+                .attachments(attachments)
                 .build() ;
     }
 
 //    public MailComposeDto toMailComposeDto (Mail mail) {
 //        if (mail.getSenderEmail().equals())
 //    }
+
 
 
     // For inbox/folder list
@@ -114,6 +120,7 @@ public class MailFactory {
                 .subject(mail.getSubject())
                 .date(mail.getDate().toLocalDateTime())
                 .isRead(mail.getIsRead())
+                .receiverEmails(mail.getReceiverEmails())
                 .build() ;
     }
 

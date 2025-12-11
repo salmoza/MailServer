@@ -3,6 +3,8 @@ package com.example.backend.dtos;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
 @Builder
 @Data
 @Getter
@@ -13,7 +15,7 @@ public class MailListDto {
     private String mailId;
     private String senderEmail;
     private String senderDisplayName;
-    private String receiver;
+    private List<String> receiverEmails;
     private String subject;
     private LocalDateTime date;
     private Boolean isRead;
