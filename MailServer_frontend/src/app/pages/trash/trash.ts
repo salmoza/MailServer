@@ -209,7 +209,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
                         (click)="goToMailDetails(item)"
                       >
                         <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
-                          {{item.senderEmail}}
+                          {{item.sender}}
                         </div>
 
                         <div class="px-4 w-1/2">
@@ -268,7 +268,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
         <div class="content-container ">
           <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
           <div class="buttons-folders">
-            <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
+            <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
             @for(folder of CustomFolders; track $index){
               <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
             }

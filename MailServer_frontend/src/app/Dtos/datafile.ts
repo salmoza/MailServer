@@ -1,17 +1,18 @@
 export interface Datafile{
-  attachmentMetadata:attachment[];
+  attachments:attachment[];
   body:string;
   date:string;
   deletedAt:string;
   isRead:boolean;
   mailId:string;
   priority:number;
-  receiverEmails:string[];
-  senderEmail:string;
+  receivers:string[];
+  sender:string;
   userId:string;
   subject:string;
+  senderDisplayName:string;
 }
-interface attachment{
+export interface attachment{
   fileName: string;
   fileType: string;
   fileSize:string;

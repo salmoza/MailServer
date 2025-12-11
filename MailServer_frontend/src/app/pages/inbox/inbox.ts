@@ -209,7 +209,7 @@ import {FormsModule} from '@angular/forms';
                         (click)="goToMailDetails(item)"
                       >
                         <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
-                          {{item.senderEmail}}
+                          {{item.sender}}
                         </div>
 
                         <div class="px-4 w-1/2">
@@ -403,7 +403,6 @@ import {FormsModule} from '@angular/forms';
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
       line-height: 1;
     }
-
     /* FIX: Re-enforcing primary color styles */
     .text-primary, .hover\\:text-primary {
       color: #137fec !important;
@@ -469,6 +468,7 @@ export class Inbox implements OnInit{
     let param = new HttpParams
     param = param.set('page', page);
     param = param.set("folderId",this.folderStateService.userData().inboxFolderId);
+    console.log(param);
     this.http.get<Datafile[]>(`http://localhost:8080/mail/getAllMails`,{params:param}).subscribe({
       next:(respones) => {
         this.InboxData=respones;
@@ -482,7 +482,7 @@ export class Inbox implements OnInit{
   }
   goToMailDetails(details:Datafile){
     this.MailDetails.setMailData(details);
-    console.log(details)
+    this.MailDetails.setFromId(this.folderStateService.userData().inboxFolderId);
     this.router.navigate([`/mail`]);
   }
   goToCustomFolder(Id:string){

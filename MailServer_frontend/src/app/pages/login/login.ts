@@ -252,7 +252,6 @@ login(){
     },
     error:(response:any)=>{
       console.log(response);
-      alert("fuck")
       alert(response.error);
     }
   })
@@ -268,7 +267,6 @@ sign_up(){
     this.issign_up=false;
     },
     error:(response:any)=>{
-
       alert(response.error.error);
     }
   })

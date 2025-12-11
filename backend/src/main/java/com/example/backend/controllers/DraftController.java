@@ -18,8 +18,8 @@ public class DraftController {
 
 
     @PostMapping("/save")
-    public ResponseEntity<Mail> saveDraft(@RequestBody MailDto mailDto) {
-        return ResponseEntity.ok(draftService.saveDraft(mailDto));
+    public ResponseEntity<String> saveDraft(@RequestBody MailDto mailDto) {
+        return ResponseEntity.ok(draftService.saveDraft(mailDto).getMailId());
     }
 
     @GetMapping("/get/{userId}")
