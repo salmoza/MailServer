@@ -94,7 +94,6 @@ public class MailService {
                         .findFirst()
                         .orElse(null);
                 if (contact != null) {
-                    senderCopy.setSenderDisplayName(contact.getName());
                     receiverCopy.setSenderDisplayName(contact.getName());
                 }
                 else {
