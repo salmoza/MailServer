@@ -459,6 +459,7 @@ export class Inbox implements OnInit{
     let param = new HttpParams
     param = param.set('page', page);
     param = param.set("folderId",this.folderStateService.userData().inboxFolderId);
+    console.log(param);
     this.http.get<Datafile[]>(`http://localhost:8080/mail/getAllMails`,{params:param}).subscribe({
       next:(respones) => {
         this.InboxData=respones;
@@ -472,6 +473,7 @@ export class Inbox implements OnInit{
   }
   goToMailDetails(details:Datafile){
     this.MailDetails.setMailData(details);
+    console.log(this.MailDetails.getMailData());
     console.log(details)
     this.router.navigate([`/mail`]);
   }

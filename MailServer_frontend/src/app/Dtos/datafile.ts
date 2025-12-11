@@ -6,10 +6,11 @@ export interface Datafile{
   isRead:boolean;
   mailId:string;
   priority:number;
-  receiverEmails:string[];
-  senderEmail:string;
+  receivers:string[];
+  sender:string;
   userId:string;
   subject:string;
+  senderDisplayName:string;
 }
 interface attachment{
   fileName: string;

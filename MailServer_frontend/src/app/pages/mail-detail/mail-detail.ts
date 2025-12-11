@@ -113,12 +113,6 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
               </a>
             </div>
           </div>
-          <div class="flex flex-col gap-3">
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div class="bg-[#137fec] h-2 rounded-full" style="width: 70%"></div>
-            </div>
-            <p class="text-xs text-gray-500">10.5 GB of 15 GB used</p>
-          </div>
         </aside>
         <!-- Main Content Area -->
         <main
@@ -183,14 +177,14 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
               ></div>
               <div class="flex flex-col justify-center flex-1">
                 <p class="text-gray-900 text-base font-medium leading-normal">
-                  Alejandro Vargas
+                  {{mail?.senderDisplayName}}
                 </p>
                 <p class="text-gray-500 text-sm font-normal leading-normal">
-                  <span class="font-medium">From:</span> {{ mail?.senderEmail }}
+                  <span class="font-medium">From:</span> {{ mail?.sender }}
                 </p>
                 <p class="text-gray-500 text-sm font-normal leading-normal">
                   <span class="font-medium">To:</span>
-                  @for (mail of mail?.receiverEmails; track $index){
+                  @for (mail of mail?.receivers; track $index){
                   <span>
                   {{mail}}
                     </span>
@@ -307,7 +301,7 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
 
   `],
 })
-export class MailDetail {
+export class MailDetail implements OnInit{
 
   // Data structures
   constructor(
@@ -323,14 +317,22 @@ export class MailDetail {
   isLoading: boolean = true;
 
   error: string | null = null;
-  // --- Inject Dependencies via Constructor Parameters ---
-  // Note: The 'private' keyword automatically declares these as instance fields.
-  // --- Utility Methods (Using the correct 'router' reference) ---
+  ngOnInit() {
+    const id = this.MailDetails2.getMailData()?.mailId
+    this.http.get<Datafile>(`http://localhost:8080/mail/${this.folderStateService.userData().inboxFolderId}/details/${id}`).subscribe({
+      next: (res) => {
+        console.log(res);
+        this.mail = res;
+      },
+      error: (err) => {
+        alert("failed to get data");
+      }
+    })
+  }
 
   deleteMail(): void {
     if (!this.mailId) return;
     console.log(`Deleting mail ID: ${this.mailId}`);
-    // NOTE: After deletion, redirect: this.router.navigate(['/inbox']);
   }
 
   reply(): void {

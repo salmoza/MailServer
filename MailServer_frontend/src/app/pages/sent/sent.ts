@@ -258,7 +258,6 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
         <div class="content-container ">
           <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
           <div class="buttons-folders">
-            <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
             @for(folder of CustomFolders; track $index){
               <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
             }

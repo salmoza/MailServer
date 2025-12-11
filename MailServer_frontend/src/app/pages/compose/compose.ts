@@ -178,7 +178,7 @@ export interface att{
             >
               <span>Send</span>
             </button>
-            <button
+            <button (click)="SaveDraft()"
               class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD] dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
             >
               Save Draft
@@ -281,131 +281,179 @@ export interface att{
 })
 export class Compose {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-  constructor(private route : Router,private http : HttpClient) {
+
+  constructor(private route: Router, private http: HttpClient) {
     this.folderStateService = inject(FolderStateService);
     this.sender = this.folderStateService.userData().email;
   }
-  recipients:string[]=[];
+
+  recipients: string[] = [];
   folderStateService;
-  currentEmailInput:string='';
-  sender:string;
-  subject:string="";
-  body:string="";
-  priority:number=4;
-  attachments:att[] = [];
-  mailId:string='';
-  isVaildEmail(email:string):boolean {
+  currentEmailInput: string = '';
+  sender: string;
+  subject: string = "";
+  body: string = "";
+  priority: number = 4;
+  attachments: att[] = [];
+  mailId: string = '';
+
+  isVaildEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }
-  close(){
+
+  close() {
     this.route.navigate(['/inbox']);
   }
 
-  private formatFileSize(bytes:number){
-    const KB = bytes/1024;
-    if(KB < 1024){
+  private formatFileSize(bytes: number) {
+    const KB = bytes / 1024;
+    if (KB < 1024) {
       return `${KB.toFixed(1)} KB`
     }
-    const MB = KB/1024;
+    const MB = KB / 1024;
     return `${MB.toFixed(2)} MB`;
   }
 
-  openFileUpload(){
+  openFileUpload() {
     this.fileInput.nativeElement.click();
   }
 
-  handleFileupload(event:Event){
+  handleFileupload(event: Event) {
     const target = event.target as HTMLInputElement;
     const files = target.files;
-    if(files && files.length > 0){
-      const file : File = files[0];
-      const newAtt:att={
+    if (files && files.length > 0) {
+      const file: File = files[0];
+      const newAtt: att = {
         id: crypto.randomUUID(),
-        name:file.name,
-        filetype:file.type,
-        fileData:file,
-        sizeMB:this.formatFileSize(file.size),
-        mailId:this.mailId
+        name: file.name,
+        filetype: file.type,
+        fileData: file,
+        sizeMB: this.formatFileSize(file.size),
+        mailId: this.mailId
       };
       this.attachments.push(newAtt);
-      target.value='';
+      target.value = '';
     }
   }
 
-  removeAttachment(attId:string){
+  removeAttachment(attId: string) {
     this.attachments = this.attachments.filter(att => att.id !== attId);
   }
 
-  sendCompose(){
-    if(this.attachments.length > 0){
+  sendCompose() {
+    if (this.attachments.length > 0) {
       this.uploadAndSend();
-      alert("finally")
       this.route.navigate(['/inbox']);
-    }
-    else{
+    } else {
       this.createMailBase();
       this.route.navigate(['/inbox']);
     }
 
   }
-  private async uploadAndSend(){
-    try{
-    const mailIds:string[] = await this.createMailBase();
-    console.log(mailIds);
-    await this.delay(500);
-    await this.uploadAttachments(mailIds);
-    this.sendFinalMail();
-  }
-  catch(error){
+
+  private async uploadAndSend() {
+    try {
+      const mailIds: string[] = await this.createMailBase();
+      console.log(mailIds);
+      await this.delay(500);
+      await this.uploadAttachments(mailIds);
+      this.sendFinalMail();
+    } catch (error) {
       console.log(error);
+    }
   }
-  }
+
   private delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
-  private createMailBase():Promise<string[]>{
-    const payload={
-      subject:this.subject,
-      body:this.body,
-      priority:this.priority,
-      receivers:this.recipients,
-      sender:this.sender,
+
+  private createMailBase(): Promise<string[]> {
+    const payload = {
+      subject: this.subject,
+      body: this.body,
+      priority: this.priority,
+      receivers: this.recipients,
+      sender: this.sender,
     };
-    console.log(payload);
     return lastValueFrom(
-      this.http.post<string[]>("http://localhost:8080/mail/compose",payload)
+      this.http.post<string[]>("http://localhost:8080/mail/compose", payload)
     );
   }
-  private uploadAttachments(mailId:string[]) {
+
+  private uploadAttachments(mailId: string[]) {
 
     const uploadPromises = this.attachments.map(att => {
       const formData = new FormData();
-      formData.append('file',att.fileData,att.name);
+      formData.append('file', att.fileData, att.name);
       mailId.forEach(id => formData.append('mailIds', id));
       console.log(formData);
-      return this.http.post("http://localhost:8080/api/attachment/upload", formData).toPromise();
+      return this.http.post("http://localhost:8080/api/attachment/upload", formData,{responseType:'text'}).toPromise();
     });
     return Promise.all(uploadPromises);
   }
-  private sendFinalMail(){
+
+  private sendFinalMail() {
     alert('mail Sent');
   }
 
-  addRecipient(event:Event | null):void {
-    if(event){
+  addRecipient(event: Event | null): void {
+    if (event) {
       event.preventDefault();
     }
     const email = this.currentEmailInput;
-    if(email && this.isVaildEmail(email)){
-      if(!this.recipients.includes(email)){
+    if (email && this.isVaildEmail(email)) {
+      if (!this.recipients.includes(email)) {
         this.recipients.push(email);
       }
       this.currentEmailInput = '';
     }
   }
-  removeRecipient(toremoveemail:string):void {
+
+  removeRecipient(toremoveemail: string): void {
     this.recipients = this.recipients.filter(email => email !== toremoveemail);
   }
 
+  SaveDraft() {
+    if (this.attachments.length > 0) {
+      this.uploadAndSaveDraft();
+      this.route.navigate(['/Drafts']);
+    } else {
+      this.createDraftBase();
+      this.route.navigate(['/Drafts']);
+    }
+  }
+  private createDraftBase(): Promise<string> {
+    const payload = {
+      subject: this.subject,
+      body: this.body,
+      priority: this.priority,
+      receivers: this.recipients,
+      sender: this.sender,
+    };
+    return lastValueFrom(
+      this.http.post<string>("http://localhost:8080/mail/compose", payload)
+    );
+  }
+  private async uploadAndSaveDraft() {
+    try {
+      const mailIds: string = await this.createDraftBase();
+      console.log(mailIds);
+      await this.delay(500);
+      await this.DraftUploadAtt(mailIds);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  private DraftUploadAtt(mailId: string) {
+
+    const uploadPromises = this.attachments.map(att => {
+      const formData = new FormData();
+      formData.append('file', att.fileData, att.name);
+      formData.append('Ids', mailId);
+      console.log(formData);
+      return this.http.post("http://localhost:8080/api/attachment/upload", formData).toPromise();
+    });
+    return Promise.all(uploadPromises);
+  }
 }
