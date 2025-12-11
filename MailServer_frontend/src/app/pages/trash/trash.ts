@@ -83,6 +83,16 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
                   Trash
                 </p>
               </a>
+              <a [routerLink]="['/contacts']"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+              >
+                <span class="material-symbols-outlined text-slate-600"
+                  >contacts</span
+                >
+                <p class="text-slate-600 text-sm font-medium leading-normal">
+                  Contacts
+                </p>
+              </a>
             </div>
             <!-- Custom Folders -->
             <div class="flex flex-col gap-1">

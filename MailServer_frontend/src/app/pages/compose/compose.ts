@@ -93,10 +93,10 @@ export interface att{
           <!-- Rich Text Editor -->
           <div>
             <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-              <div
+              <!-- <div
                 class="flex items-center p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-100 "
-              >
-                <button
+              > -->
+                <!-- <button
                   class="p-2 text-gray-600  rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
                 >
                   <span class="material-symbols-outlined text-xl">format_bold</span>
@@ -116,19 +116,19 @@ export interface att{
                   class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
                 >
                   <span class="material-symbols-outlined text-xl">format_list_bulleted</span>
-                </button>
-                <button
+                </button> -->
+                <!-- <button
                   class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
                 >
                   <span class="material-symbols-outlined text-xl">format_list_numbered</span>
-                </button>
-                <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
+                </button> -->
+                <!-- <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
                 <button
                   class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
                 >
                   <span class="material-symbols-outlined text-xl">link</span>
-                </button>
-              </div>
+                </button> -->
+              <!-- </div> -->
               <textarea
                 class="form-textarea w-full h-48 p-3 border-none resize-y focus:ring-0 text-black bg-white  placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 placeholder="Compose your message..."
@@ -195,20 +195,22 @@ export interface att{
               <!-- Priority Buttons -->
               <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
                 <button (click)="priority=4"
-                  class="px-2 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-l-md border-r border-gray-300 dark:border-gray-600"
+                  [class]="priority === 4 ? 'px-2 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-l-md border-r border-gray-300 dark:border-gray-600' : 'px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 border-r border-gray-300 dark:border-gray-600'"
                 >
                   4
                 </button>
-                <button (click)="priority=3" class="px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                <button (click)="priority=3" 
+                  [class]="priority === 3 ? 'px-2 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200' : 'px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-600'"
+                >
                   3
                 </button>
                 <button (click)="priority=2"
-                  class="px-2 py-1 text-sm text-yellow-600 hover:bg-yellow-100 dark:hover:bg-yellow-900/50"
+                  [class]="priority === 2 ? 'px-2 py-1 text-sm bg-yellow-200 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200' : 'px-2 py-1 text-sm text-yellow-600 hover:bg-yellow-100 dark:hover:bg-yellow-900/50'"
                 >
                   2
                 </button>
                 <button (click)="priority=1"
-                  class="px-2 py-1 text-sm text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-r-md border-l border-gray-300 dark:border-gray-600"
+                  [class]="priority === 1 ? 'px-2 py-1 text-sm bg-red-200 dark:bg-red-900/50 text-red-800 dark:text-red-200 rounded-r-md border-l border-gray-300 dark:border-gray-600' : 'px-2 py-1 text-sm text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-r-md border-l border-gray-300 dark:border-gray-600'"
                 >
                   1
                 </button>
@@ -338,6 +340,15 @@ export class Compose {
   }
 
   sendCompose(){
+    if(this.recipients.length === 0){
+      alert('Please add at least one recipient');
+      return;
+    }
+    // Validate subject and body
+    if(!this.subject.trim() && !this.body.trim()){
+      alert('Please provide either a subject or message body');
+      return;
+    }
     if(this.attachments.length > 0){
       this.uploadAndSend();
       alert("finally")
