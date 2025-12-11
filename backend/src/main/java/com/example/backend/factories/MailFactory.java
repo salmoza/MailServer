@@ -1,11 +1,9 @@
 package com.example.backend.factories;
 
+import com.example.backend.dtos.AttachmentDto;
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
-import com.example.backend.entities.Mail;
-import com.example.backend.entities.MailSnapshot;
-import com.example.backend.entities.MailStatus;
-import com.example.backend.entities.User;
+import com.example.backend.entities.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -91,15 +89,23 @@ public class MailFactory {
 //    }
 
 
+
     // For inbox/folder list
     public MailListDto toListDto(Mail mail) {
         MailListDto dto = new MailListDto();
         dto.setMailId(mail.getMailId());
         dto.setSenderEmail(mail.getSenderEmail());
         dto.setSenderDisplayName(mail.getSenderDisplayName());
+        dto.setReceiver(mail.getReceiverEmails());
         dto.setSubject(mail.getSubject());
+        dto.setBody(mail.getBody());
         dto.setDate(mail.getDate().toLocalDateTime());
         dto.setIsRead(mail.getIsRead());
+        List<AttachmentDto> attachments = new ArrayList<>();
+        for (Attachment attachment : mail.getAttachments()) {
+            attachments.add(attachmentFactory.toDTO(attachment));
+        }
+        dto.setAttachments(attachments);
         return dto;
     }
 

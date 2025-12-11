@@ -37,12 +37,12 @@ public class MailController {
        return mailService.mailDetails(mailId, folderId);
     }
 
-    // delete specific mail
-    @DeleteMapping("/delete/{mailId}")
-    public ResponseEntity<String> deleteMail (@PathVariable String mailId) {
-        mailService.deleteMailById(mailId);
-        return ResponseEntity.ok("Mail deleted successfully!");
-    }
+//    // delete specific mail
+//    @DeleteMapping("/delete/{mailId}")
+//    public ResponseEntity<String> deleteMail (@PathVariable String mailId) {
+//        mailService.deleteMailById(mailId);
+//        return ResponseEntity.ok("Mail deleted successfully!");
+//    }
 
     // delete folder's mails
     @DeleteMapping("/deleteMails/{folderId}")
