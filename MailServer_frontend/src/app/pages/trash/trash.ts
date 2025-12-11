@@ -5,12 +5,12 @@ import {FolderStateService} from '../../Dtos/FolderStateService';
 import {HttpClient, HttpClientModule, HttpParams} from '@angular/common/http';
 import {CustomFolderData, Datafile} from '../../Dtos/datafile';
 import {MailShuttleService} from '../../Dtos/MailDetails';
-import {FormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 
 @Component({
-  selector: 'app-inbox',
+  selector: 'app-trash',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule],
+  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule],
   template: `
     <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -31,53 +31,53 @@ import {FormsModule} from '@angular/forms';
               </h1>
             </div>
             <button [routerLink]="['/compose']"
-              class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
+                    class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
             >
               <span class="truncate">Compose</span>
             </button>
             <div class="flex flex-col gap-1">
               <!-- Active Inbox Link -->
               <a [routerLink]="['/inbox']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20"
+                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
               >
                 <!-- Removed dark:text-slate-200 -->
                 <span class="material-symbols-outlined text-slate-800 fill"
-                  >inbox</span
+                >inbox</span
                 >
                 <p class="text-slate-800 text-sm font-medium leading-normal">
                   Inbox
                 </p>
                 <span
                   class="ml-auto text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5"
-                  >3</span
+                >3</span
                 >
               </a>
               <a [routerLink]="['/sent']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
               >
                 <!-- Removed dark:text-slate-400 -->
                 <span class="material-symbols-outlined text-slate-600"
-                  >send</span
+                >send</span
                 >
                 <p class="text-slate-600 text-sm font-medium leading-normal">
                   Sent
                 </p>
               </a>
               <a [routerLink]="['/drafts']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
               >
                 <span class="material-symbols-outlined text-slate-600"
-                  >draft</span
+                >draft</span
                 >
                 <p class="text-slate-600 text-sm font-medium leading-normal">
                   Drafts
                 </p>
               </a>
               <a [routerLink]="['/trash']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+                 class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 "
               >
                 <span class="material-symbols-outlined text-slate-600"
-                  >delete</span
+                >delete</span
                 >
                 <p class="text-slate-600 text-sm font-medium leading-normal">
                   Trash
@@ -92,21 +92,21 @@ import {FormsModule} from '@angular/forms';
                 >
                   Custom Folders
                 </h2>
-                <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp=true">
-                  <span class="material-symbols-outlined text-base">add</span>
+                <button (click)="CustomFolderPopUp=true" class="text-slate-500 hover:text-primary cursor-pointer ">
+                  <span class="material-symbols-outlined text-base cursor-pointer">add</span>
                 </button>
               </div>
               @for(custom of CustomFolders; track $index) {
-                <a (click)="goToCustomFolder(custom.folderId)"
-                   class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-                >
+              <a (click)="goToCustomFolder(custom.folderId)"
+                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+              >
                 <span class="material-symbols-outlined text-slate-600"
                 >folder</span
                 >
-                  <p class="text-slate-600 text-sm font-medium leading-normal">
-                    {{custom.folderName}}
-                  </p>
-                </a>
+                <p class="text-slate-600 text-sm font-medium leading-normal">
+                  {{custom.folderName}}
+                </p>
+              </a>
               }
             </div>
           </div>
@@ -120,21 +120,21 @@ import {FormsModule} from '@angular/forms';
         >
           <div class="flex gap-2">
             <button (click)="delete()"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
+                    class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    [disabled]="Emails.length === 0"
             >
               <span class="material-symbols-outlined">delete</span>
             </button>
             <button (click)="tomove = true"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
+                    class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    [disabled]="Emails.length === 0"
             >
               <span class="material-symbols-outlined">folder_open</span>
             </button>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-slate-600"
-              >Priority Mode</span
+            >Priority Mode</span
             >
             <label class="relative inline-flex items-center cursor-pointer">
               <input class="sr-only peer" type="checkbox" value="" />
@@ -179,7 +179,7 @@ import {FormsModule} from '@angular/forms';
               </thead>
 
               <tbody>
-                @for(item of InboxData; track $index){
+                @for(item of TrashData; track $index){
                   <tr
                     class="border-t border-t-slate-200 hover:bg-slate-50"
                   >
@@ -231,24 +231,24 @@ import {FormsModule} from '@angular/forms';
           class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto"
         >
           <a (click)="updatePage(page-1)"
-            class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary"
+             class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary"
           >
             <span class="material-symbols-outlined text-lg">chevron_left</span>
           </a>
           <a (click)="updatePage(0)"
-            class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary"
-            >1</a
+             class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary"
+          >1</a
           >
           <a (click)="updatePage(1)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >2</a
+             class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
+          >2</a
           >
           <a (click)="updatePage(2)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >3</a
+             class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
+          >3</a
           >
           <a (click)="updatePage(page+1)"
-            class="flex  size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer"
+             class="flex  size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer"
           >
             <span class="material-symbols-outlined text-lg">chevron_right</span>
           </a>
@@ -258,23 +258,23 @@ import {FormsModule} from '@angular/forms';
         <div class="content-container ">
           <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
           <div class="buttons-folders">
-          <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
-          @for(folder of CustomFolders; track $index){
-            <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
-          }
+            <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
+            @for(folder of CustomFolders; track $index){
+              <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
+            }
           </div>
           <div class="bottom-btn">
             <button (click)="tomove=false">Back</button>
-          <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
+            <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
           </div>
         </div>
       </div>
       <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
-      <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
-        <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
-        <button  (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
-        <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
-      </div>
+        <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
+          <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
+          <button  (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
+          <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
+        </div>
       </div>
     </div>
   `,
@@ -292,6 +292,7 @@ import {FormsModule} from '@angular/forms';
       display: block;
       background-color: #f6f7f8; /* background-light hex */
     }
+
     .move-conatiner {
       visibility: hidden;
       top: 0;
@@ -305,29 +306,6 @@ import {FormsModule} from '@angular/forms';
       align-items: center;
       justify-content: center;
       z-index: 1000;
-    }
-
-    .move-conatiner.active {
-      visibility: visible;
-      opacity: 1;
-      cursor: auto;
-    }
-
-    .content-container {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      min-height: 500px;
-      min-width: 400px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-      background-color: #e8e8e8;
-    }
-    .buttons-folders {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
     }
     #Custom-container {
       display: flex;
@@ -351,7 +329,31 @@ import {FormsModule} from '@angular/forms';
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
       transform: scale(1.05);
     }
-    .content-container button{
+    .move-conatiner.active {
+      visibility: visible;
+      opacity: 1;
+      cursor: auto;
+    }
+
+    .content-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 500px;
+      min-width: 400px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      background-color: #e8e8e8;
+    }
+
+    .buttons-folders {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .content-container button {
       display: flex;
       padding: 15px;
       border-radius: 30px;
@@ -361,7 +363,7 @@ import {FormsModule} from '@angular/forms';
       transition: all 0.1s ease-in-out;
     }
 
-    .content-container button:hover,content-container2 button:hover {
+    .content-container button:hover {
       transform: scale(1.05);
       background-color: #3e8cf4;
       border: 3px solid rgba(62, 140, 244, 0.88);
@@ -413,18 +415,18 @@ import {FormsModule} from '@angular/forms';
     }
   `],
 })
-export class Inbox implements OnInit{
+export class Trash implements OnInit{
   constructor(private MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router) {
   }
-  CustomFolderPopUp:boolean = false;
   foldername:string=''
+  CustomFolderPopUp:boolean=false;
   Emails:Datafile[]=[];
-  InboxData:Datafile[]=[];
+  TrashData:Datafile[]=[];
   CustomFolders:CustomFolderData[]=[];
   page:number = 0;
   tomove:boolean=false;
   ngOnInit() {
-    this.getInbox(0);
+    this.getTrash(0);
     this.getCustomFolders();
   }
   updatePage(page:number){
@@ -432,7 +434,7 @@ export class Inbox implements OnInit{
       return;
     }
     this.page=page;
-    this.getInbox(this.page);
+    this.getTrash(this.page);
   }
   getCustomFolders(){
     const url = "http://localhost:8080/folders/custom";
@@ -449,19 +451,19 @@ export class Inbox implements OnInit{
       }
     })
   }
-  getInbox(page:number){
+  getTrash(page:number){
     const userData: UserData = this.folderStateService.userData();
-    const inboxId = userData.inboxFolderId;
-    if(!inboxId){
-      console.error('inboxId is missing');
+    const TrashId = userData.trashFolderId;
+    if(!TrashId){
+      console.error('SendId is missing');
       return;
     }
     let param = new HttpParams
     param = param.set('page', page);
-    param = param.set("folderId",this.folderStateService.userData().inboxFolderId);
+    param = param.set("folderId",this.folderStateService.userData().trashFolderId);
     this.http.get<Datafile[]>(`http://localhost:8080/mail/getAllMails`,{params:param}).subscribe({
       next:(respones) => {
-        this.InboxData=respones;
+        this.TrashData=respones;
         console.log(respones);
       },
       error:(respones) => {
@@ -474,10 +476,6 @@ export class Inbox implements OnInit{
     this.MailDetails.setMailData(details);
     console.log(details)
     this.router.navigate([`/mail`]);
-  }
-  goToCustomFolder(Id:string){
-    this.MailDetails.setCustom(Id);
-    this.router.navigate([`/Custom`]);
   }
   toggleEmailsSelected(email:Datafile,ischecked:boolean){
     if(ischecked){
@@ -495,35 +493,35 @@ export class Inbox implements OnInit{
   addallemails(check:boolean){
     if(check){
       console.log("added")
-      this.Emails = this.InboxData;
+      this.Emails = this.TrashData;
     }
     else{
       console.log("removed");
       this.Emails=[];
     }
-}
+  }
   checked(id:string){
-  const emailIndex = this.Emails.findIndex(e => e.mailId === id);
-  if (emailIndex != -1) {
-    return true;
+    const emailIndex = this.Emails.findIndex(e => e.mailId === id);
+    if (emailIndex != -1) {
+      return true;
+    }
+    else{
+      return false;
+    }
   }
-  else{
-    return false;
-  }
-}
   delete(){
     const userData: UserData = this.folderStateService.userData();
-    const inboxId = userData.inboxFolderId;
-    const url = `http://localhost:8080/mail/deleteMails/${inboxId}`
+    const TrashId = userData.trashFolderId;
+    const url = `http://localhost:8080/mail/deleteMails/${TrashId}`
     if(this.Emails.length == 0){
       return
     }
     let ids:string[]=[];
     for(let i:number=0; i<this.Emails.length;i++){
       ids.push(this.Emails[i].mailId);
-      /*to remove the email form inbox*/
-      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
+      /*to remove the email form Sent*/
+      const emailIndex = this.TrashData.findIndex(e => e.mailId === this.Emails[i].mailId);
+      this.toggleEmailsSelected(this.TrashData[emailIndex],false)
     }
     let params = new HttpParams();
     ids.forEach((id) => {
@@ -537,13 +535,41 @@ export class Inbox implements OnInit{
         console.log(respones);
       }
     })
-}
+  }
+
+  move(moveMailToFolderId:string){
+    let mailids:string[]=[];
+    const url = `http://localhost:8080/mail/move/${moveMailToFolderId}/${this.folderStateService.userData().trashFolderId}`;
+    for(let i:number=0; i<this.Emails.length;i++){
+      mailids.push(this.Emails[i].mailId);
+      const emailIndex = this.TrashData.findIndex(e => e.mailId === this.Emails[i].mailId);
+      this.toggleEmailsSelected(this.TrashData[emailIndex],false)
+    }
+    const payload={
+      ids:mailids
+    }
+    this.http.post(url, payload).subscribe({
+      next:(respones) => {
+        const movedIdsSet = new Set(mailids);
+
+        this.TrashData = this.TrashData.filter(email => !movedIdsSet.has(email.mailId));
+
+        this.Emails = [];
+      },
+      error:(respones) => {
+        console.log("failed to move");
+      }
+    })
+  }
+  goToCustomFolder(Id:string){
+    this.MailDetails.setCustom(Id);
+    this.router.navigate([`/Custom`]);
+  }
   CreateCustomFolder(){
     const url = "http://localhost:8080/folders/createFolder"
     const payload={
       folderName:this.foldername,
       folderId:this.folderStateService.userData().inboxFolderId,
-      userId:this.folderStateService.userData().userId,
     }
     this.http.post(url, payload).subscribe({
       next:(respones) => {
@@ -551,30 +577,6 @@ export class Inbox implements OnInit{
       },
       error:(respones) => {
         alert("failed to create custom folder");
-      }
-    })
-  }
-  move(moveMailToFolderId:string){
-    let mailids:string[]=[];
-    const url = `http://localhost:8080/mail/move/${moveMailToFolderId}/${this.folderStateService.userData().inboxFolderId}`;
-    for(let i:number=0; i<this.Emails.length;i++){
-      mailids.push(this.Emails[i].mailId);
-      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
-    }
-      const payload={
-        ids:mailids
-      }
-    this.http.post(url, payload).subscribe({
-      next:(respones) => {
-        const movedIdsSet = new Set(mailids);
-
-        this.InboxData = this.InboxData.filter(email => !movedIdsSet.has(email.mailId));
-
-        this.Emails = [];
-      },
-      error:(respones) => {
-        console.log("failed to move");
       }
     })
   }

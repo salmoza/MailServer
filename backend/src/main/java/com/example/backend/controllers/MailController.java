@@ -2,6 +2,8 @@ package com.example.backend.controllers;
 
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
+import com.example.backend.dtos.MoveMaildto;
+import com.example.backend.entities.Mail;
 import com.example.backend.factories.MailFactory;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.services.mailService.MailService;
@@ -47,8 +49,15 @@ public class MailController {
     // delete folder's mails
     @DeleteMapping("/deleteMails/{folderId}")
     public ResponseEntity<?> deleteMails(@RequestParam List<String> ids , @PathVariable String folderId) {
-        mailService.deleteMailById(ids , folderId);
+            mailService.deleteMailById(ids , folderId);
+
         return ResponseEntity.ok("Deleted " + ids.size() + " mails");
+    }
+
+    @PostMapping("/isRead/{mailId}")
+    public String changeIsRead (@PathVariable String mailId) {
+       return mailService.changeIsRead(mailId) ;
+
     }
 
     @GetMapping("/filter")
@@ -79,9 +88,9 @@ public class MailController {
     @PostMapping("/move/{toFolderId}/{fromFolderId}")
     public ResponseEntity<?> move (@PathVariable String fromFolderId
             , @PathVariable String toFolderId
-            ,@RequestParam List<String> ids ) {
-        mailService.moveMails(fromFolderId , toFolderId , ids) ;
-        return ResponseEntity.ok("Moved" + ids.size()) ;
+            ,@RequestBody MoveMaildto dto ) {
+        mailService.moveMails(fromFolderId , toFolderId , dto.getIds()) ;
+        return ResponseEntity.ok("Moved" + dto.getIds().size()) ;
     }
 
     @GetMapping("/sort")
@@ -102,5 +111,7 @@ public class MailController {
         mailRepo.deleteAll();
         return ResponseEntity.ok("All mails deleted successfully!");
     }
+
+
 
 }

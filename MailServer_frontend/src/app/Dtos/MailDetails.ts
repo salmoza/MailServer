@@ -7,7 +7,7 @@ import { Datafile } from './datafile';  // Import the main data interface
 export class MailShuttleService {
 
   private currentMail: Datafile | null = null;
-
+  private CustomId:string='';
   /**
    * Called by the Inbox component immediately upon row click.
    * @param mailData The full data object for the selected email.
@@ -15,15 +15,17 @@ export class MailShuttleService {
   setMailData(mailData: Datafile): void {
     this.currentMail = mailData;
   }
-
+  setCustom(data: string): void {
+    this.CustomId = data;
+  }
+  getCustomId():string {
+    return this.CustomId;
+  }
   /**
    * Called by the MailDetail component in ngOnInit.
    * @returns The stored MailData object, or null.
    */
   getMailData(): Datafile | null {
-    // We clear the data immediately after retrieval to ensure the state isn't reused accidentally
-    const data = this.currentMail;
-    this.currentMail = null;
-    return data;
+    return this.currentMail;
   }
 }

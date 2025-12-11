@@ -25,14 +25,14 @@ public class AttachmentController {
 
 
     @PostMapping("/upload")
-    public String addattachments(@RequestParam("file") MultipartFile file,
+    public ResponseEntity<String> addattachments(@RequestParam("file") MultipartFile file,
                                                         @RequestParam("mailIds") List<String> mailId){
         if(file.isEmpty()){
             throw new IllegalArgumentException("nope");
         }
         try{
             AttachmentDto savedAttachment = attachmentService.createNewAttachment(file,mailId);
-            return savedAttachment.getId();
+            return ResponseEntity.ok(savedAttachment.getId());
         }
        catch (IllegalArgumentException ex){
            throw new IllegalArgumentException("not found");

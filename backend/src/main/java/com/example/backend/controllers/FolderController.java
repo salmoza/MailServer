@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/folders")
 public class FolderController {
@@ -34,7 +34,7 @@ public class FolderController {
         folderService.deleteFolder(userId, folderId);
     }
 
-    @PostMapping
+    @PostMapping("/createFolder")
     public Folder createFolder(@RequestBody FolderDto folderDto){
         System.out.println("createFolder");
         return folderService.createFolder(folderDto.userId, folderDto.folderName);
@@ -49,8 +49,5 @@ public class FolderController {
     public List<Folder> getCustomFolders(@RequestParam String userId) {
         return folderService.getCustomFolders(userId);
     }
-
-
-
 
 }
