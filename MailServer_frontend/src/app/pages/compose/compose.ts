@@ -417,10 +417,10 @@ export class Compose {
   SaveDraft() {
     if (this.attachments.length > 0) {
       this.uploadAndSaveDraft();
-      this.route.navigate(['/Drafts']);
+      this.route.navigate(['/drafts']);
     } else {
       this.createDraftBase();
-      this.route.navigate(['/Drafts']);
+      this.route.navigate(['/drafts']);
     }
   }
   private createDraftBase(): Promise<string> {
@@ -432,7 +432,7 @@ export class Compose {
       sender: this.sender,
     };
     return lastValueFrom(
-      this.http.post<string>("http://localhost:8080/mail/compose", payload)
+      this.http.post("http://localhost:8080/draft/save", payload,{responseType:"text"})
     );
   }
   private async uploadAndSaveDraft() {

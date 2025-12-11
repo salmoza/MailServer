@@ -12,7 +12,7 @@ export interface Datafile{
   subject:string;
   senderDisplayName:string;
 }
-interface attachment{
+export interface attachment{
   fileName: string;
   fileType: string;
   fileSize:string;

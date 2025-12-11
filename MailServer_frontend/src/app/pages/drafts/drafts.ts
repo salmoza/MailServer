@@ -1,11 +1,19 @@
-import { Component } from '@angular/core';
+import {Component, ElementRef, inject, OnInit, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import {Router, RouterLink, RouterModule} from '@angular/router';
+import {MailDetail} from '../mail-detail/mail-detail';
+import {MailShuttleService} from '../../Dtos/MailDetails';
+import {attachment, CustomFolderData, Datafile} from '../../Dtos/datafile';
+import {FolderStateService} from '../../Dtos/FolderStateService';
+import {HttpClient, HttpClientModule, HttpParams} from '@angular/common/http';
+import {att} from '../compose/compose';
+import {FormsModule} from '@angular/forms';
+import {lastValueFrom} from 'rxjs';
 
 @Component({
   selector: 'app-drafts',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule],
   template: `
     <!-- Global resource loading added for robustness -->
     <link
@@ -27,20 +35,13 @@ import { RouterLink } from '@angular/router';
         >
           <div class="flex flex-col gap-4">
             <div class="flex items-center gap-3 px-2">
-              <div
-                class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-                data-alt="User avatar of Eleanor Vance"
-                style="
-                  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCMSSUljiSO1pCoQxoJ0ElknhRadBUVyD8hDwyi3i5in6Gn5MPe2zf4DRJcRrAvupZq6bqmyr85SRrrH8aI9FsVwJPrEaIZWKOLx_IPf8Xzp0LLAmNnHKRAeFJgmhje4bUa2nKB1HZgDdHeADvBD7KFaoaG5h8CEGoHycBgX41J0mTVfHUy9MImELDputc0Jwk-zIkwO9wSEjI9cFVOtfKZJPMN8dLvbOgrjU396BwGwchfptHrr_jQZcrexrZZj9zTQ1Rklal4upc');
-                "
-              ></div>
               <div class="flex flex-col">
                 <!-- Text Color Fix: Ensure text is dark -->
                 <h1 class="text-gray-900 text-base font-medium leading-normal">
-                  Eleanor Vance
+                  {{folderStateService.userData().username}}
                 </h1>
                 <p class="text-gray-500 text-sm font-normal leading-normal">
-                  eleanor.v@example.com
+                  {{folderStateService.userData().email}}
                 </p>
               </div>
             </div>
@@ -73,14 +74,6 @@ import { RouterLink } from '@angular/router';
                   Drafts
                 </p>
               </a>
-              <a [routerLink]="['/spam']"
-                 class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100"
-              >
-                <span class="material-symbols-outlined text-gray-800"
-                >report</span
-                >
-                <p class="text-sm font-medium leading-normal">Spam</p>
-              </a>
               <a [routerLink]="['/trash']"
                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100"
               >
@@ -89,6 +82,30 @@ import { RouterLink } from '@angular/router';
                 >
                 <p class="text-sm font-medium leading-normal">Trash</p>
               </a>
+              <div class="flex flex-col gap-1">
+                <div class="flex items-center justify-between px-3 py-2">
+                  <h2
+                    class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                  >
+                    Custom Folders
+                  </h2>
+                  <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp=true">
+                    <span class="material-symbols-outlined text-base">add</span>
+                  </button>
+                </div>
+                @for(custom of CustomFolders; track $index) {
+                  <a (click)="goToCustomFolder(custom.folderId)"
+                     class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+                  >
+                <span class="material-symbols-outlined text-slate-600"
+                >folder</span
+                >
+                    <p class="text-slate-600 text-sm font-medium leading-normal">
+                      {{custom.folderName}}
+                    </p>
+                  </a>
+                }
+              </div>
             </div>
           </div>
           <button [routerLink]="['/compose']"
@@ -120,14 +137,16 @@ import { RouterLink } from '@angular/router';
                   <input
                     class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
                     type="checkbox"
+                    #checkbox
+                    (click)="addallemails(checkbox.checked)"
                   />
-                  <button
+                  <button (click)="delete()"
                     class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg disabled:opacity-50"
                     disabled=""
                   >
                     <span class="material-symbols-outlined">delete</span>
                   </button>
-                  <button
+                  <button (click)="getDraftData()"
                     class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
                   >
                     <span class="material-symbols-outlined">refresh</span>
@@ -152,11 +171,6 @@ import { RouterLink } from '@angular/router';
                         Subject
                       </th>
                       <th
-                        class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal"
-                      >
-                        Last Modified
-                      </th>
-                      <th
                         class="px-4 py-3 text-left text-gray-500 text-sm font-medium leading-normal"
                       >
                         Actions
@@ -164,7 +178,7 @@ import { RouterLink } from '@angular/router';
                     </tr>
                     </thead>
                     <tbody>
-                    <!-- Table Rows (Removed dark: classes) -->
+                    @for(item of DraftData ; track $index) {
                     <tr
                       class="border-b border-gray-200 hover:bg-gray-50 group"
                     >
@@ -172,33 +186,30 @@ import { RouterLink } from '@angular/router';
                         <input
                           class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
                           type="checkbox"
+                          #checkbox
+                          [checked]="checked(item.mailId)"
                         />
                       </td>
                       <td
                         class="h-[72px] px-4 py-2 text-gray-900 text-sm font-normal leading-normal"
                       >
-                        Aria Monroe
+                        {{item.receivers}}
                       </td>
                       <td
                         class="h-[72px] px-4 py-2 text-gray-500 text-sm font-normal leading-normal"
                       >
-                        Project Phoenix Kick-off
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-900 text-sm font-bold leading-normal tracking-[0.015em]"
-                      >
-                        2 hours ago
+                        {{item.subject}}
                       </td>
                       <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
                         <div
                           class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          <button
-                            class="p-2 text-gray-600 hover:text-gray-900"
+                          <button (click)="openEdit(item.mailId)"
+                            class="p-2 text-gray-600 hover:border-b-blue-950"
                           >
                             <span class="material-symbols-outlined text-xl">edit</span>
                           </button>
-                          <button
+                          <button (click)="deleteMail(item.mailId)"
                             class="p-2 text-gray-600 hover:text-gray-900"
                           >
                             <span class="material-symbols-outlined text-xl">delete</span>
@@ -206,212 +217,233 @@ import { RouterLink } from '@angular/router';
                         </div>
                       </td>
                     </tr>
-                    <tr
-                      class="border-b border-gray-200 hover:bg-gray-50 group"
-                    >
-                      <td class="h-[72px] px-4 py-2">
-                        <input
-                          class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
-                          type="checkbox"
-                        />
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-900 text-sm font-normal leading-normal"
-                      >
-                        Liam Gallagher
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-500 text-sm font-normal leading-normal"
-                      >
-                        Re: Q2 Financial Report
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-900 text-sm font-bold leading-normal tracking-[0.015em]"
-                      >
-                        Yesterday
-                      </td>
-                      <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
-                        <div
-                          class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <button
-                            class="p-2 text-gray-600 hover:text-gray-900"
-                          >
-                            <span class="material-symbols-outlined text-xl">edit</span>
-                          </button>
-                          <button
-                            class="p-2 text-gray-600 hover:text-gray-900"
-                          >
-                            <span class="material-symbols-outlined text-xl">delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr
-                      class="border-b border-gray-200 hover:bg-gray-50 group"
-                    >
-                      <td class="h-[72px] px-4 py-2">
-                        <input
-                          class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
-                          type="checkbox"
-                        />
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-900 text-sm font-normal leading-normal"
-                      >
-                        s.chen@corp.net
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-500 text-sm font-normal leading-normal italic"
-                      >
-                        (no subject)
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-900 text-sm font-bold leading-normal tracking-[0.015em]"
-                      >
-                        Mar 15
-                      </td>
-                      <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
-                        <div
-                          class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <button
-                            class="p-2 text-gray-600 hover:text-gray-900"
-                          >
-                            <span class="material-symbols-outlined text-xl">edit</span>
-                          </button>
-                          <button
-                            class="p-2 text-gray-600 hover:text-gray-900"
-                          >
-                            <span class="material-symbols-outlined text-xl">delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr
-                      class="border-b border-gray-200 hover:bg-gray-50 group"
-                    >
-                      <td class="h-[72px] px-4 py-2">
-                        <input
-                          class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
-                          type="checkbox"
-                        />
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-900 text-sm font-normal leading-normal"
-                      >
-                        Marketing Team
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-500 text-sm font-normal leading-normal"
-                      >
-                        Weekly Newsletter Draft
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-900 text-sm font-bold leading-normal tracking-[0.015em]"
-                      >
-                        Mar 14
-                      </td>
-                      <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
-                        <div
-                          class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <button
-                            class="p-2 text-gray-600 hover:text-gray-900"
-                          >
-                            <span class="material-symbols-outlined text-xl">edit</span>
-                          </button>
-                          <button
-                            class="p-2 text-gray-600 hover:text-gray-900"
-                          >
-                            <span class="material-symbols-outlined text-xl">delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr class="hover:bg-gray-50 group">
-                      <td class="h-[72px] px-4 py-2">
-                        <input
-                          class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
-                          type="checkbox"
-                        />
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-900 text-sm font-normal leading-normal"
-                      >
-                        Dr. Evans
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-500 text-sm font-normal leading-normal"
-                      >
-                        Follow-up on our meeting
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-900 text-sm font-bold leading-normal tracking-[0.015em]"
-                      >
-                        Mar 12
-                      </td>
-                      <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
-                        <div
-                          class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <button
-                            class="p-2 text-gray-600 hover:text-gray-900"
-                          >
-                            <span class="material-symbols-outlined text-xl">edit</span>
-                          </button>
-                          <button
-                            class="p-2 text-gray-600 hover:text-gray-900"
-                          >
-                            <span class="material-symbols-outlined text-xl">delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                    }
                     </tbody>
                   </table>
                 </div>
               </div>
-              <!-- Pagination -->
-              <div
-                class="flex items-center justify-end p-4 border-t border-gray-200"
-              >
-                <a [routerLink]="['/previous']"
-                   class="flex size-10 items-center justify-center text-gray-600 hover:text-gray-900"
-                >
-                  <span class="material-symbols-outlined">chevron_left</span>
-                </a>
-                <a [routerLink]="['/drafts/1']"
-                   class="text-sm font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-full bg-primary"
-                >
-                  1
-                </a>
-                <a [routerLink]="['/drafts/2']"
-                   class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-gray-700 rounded-full hover:bg-gray-100"
-                >2</a
-                >
-                <a [routerLink]="['/drafts/3']"
-                   class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-gray-700 rounded-full hover:bg-gray-100"
-                >3</a
-                >
-                <span
-                  class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-gray-700 rounded-full"
-                >...</span
-                >
-                <a [routerLink]="['/drafts/10']"
-                   class="text-sm font-normal leading-normal flex size-10 items-center justify-center text-gray-700 rounded-full hover:bg-gray-100"
-                >10</a
-                >
-                <a [routerLink]="['/next']"
-                   class="flex size-10 items-center justify-center text-gray-600 hover:text-gray-900"
-                >
-                  <span class="material-symbols-outlined">chevron_right</span>
-                </a>
-              </div>
             </div>
           </div>
         </main>
+        <div class="popup" [class.active]="isopen">
+        <div
+          class="relative flex h-full w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8"
+        >
+          <!-- Main Compose Modal Card -->
+          <div
+            class="flex w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-gray-900/10 dark:bg-[#101922] dark:ring-white/10"
+          >
+            <!-- Header -->
+            <header
+              class="flex items-center justify-between border-b border-gray-200  bg-gray-100  px-4 py-3"
+            >
+              <h3 class="text-lg font-semibold text-gray-800 ">New Message</h3>
+              <button
+                class="p-2 text-gray-500 rounded-full hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-700 dark:text-gray-400 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0D6EFD]"
+                (click)="isopen=false">
+                <span class="material-symbols-outlined text-xl">close</span>
+              </button>
+            </header>
+            <!-- Form Content -->
+            <div class="flex flex-col p-4 sm:p-6 space-y-4 bg-white">
+              <!-- To Field -->
+              <div class="flex items-center border-b border-gray-200 dark:border-gray-700 pb-2">
+                <label class="w-16 text-sm font-medium text-gray-600 dark:text-gray-400" for="to"
+                >To</label
+                >
+                <div class="flex-1 flex items-center space-x-2">
+                  @for(email of recipients;track email){
+                    <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+                {{email}}
+                      <button (click)="removeRecipient(email)" class="ml-2 text-red-600 hover:text-red-900 cursor-pointer">&times;
+                </button>
+              </span>
+                  }
+                  <input
+                    class="form-input w-full flex-1 resize-none border-none bg-transparent p-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-0 focus:ring-0"
+                    id="to"
+                    placeholder="Recipients"
+                    type="email"
+                    name="current_receiver"
+                    [(ngModel)]="currentEmailInput"
+                    (keydown.enter)="addRecipient($event)"
+                    (keydown.tab)="addRecipient($event)"
+                  />
+                  <div class="flex items-center space-x-2">
+                    <button class="text-sm font-medium text-[#0D6EFD] hover:underline">Cc</button>
+                    <button class="text-sm font-medium text-[#0D6EFD] hover:underline">Bcc</button>
+                  </div>
+                </div>
+              </div>
+              <!-- Subject Field -->
+              <div class="flex items-center border-b border-gray-200 dark:border-gray-700">
+                <label class="w-16 text-sm font-medium text-gray-600 dark:text-gray-400" for="subject"
+                >Subject</label
+                >
+                <input
+                  class="form-input w-full flex-1 resize-none border-none bg-transparent p-2   placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-0 focus:ring-0"
+                  id="subject"
+                  placeholder="Subject"
+                  type="text"
+                  name="subject"
+                  [(ngModel)]="subject"
+                />
+              </div>
+              <!-- Rich Text Editor -->
+              <div>
+                <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                  <div
+                    class="flex items-center p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-100 "
+                  >
+                    <button
+                      class="p-2 text-gray-600  rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                    >
+                      <span class="material-symbols-outlined text-xl">format_bold</span>
+                    </button>
+                    <button
+                      class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                    >
+                      <span class="material-symbols-outlined text-xl">format_italic</span>
+                    </button>
+                    <button
+                      class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                    >
+                      <span class="material-symbols-outlined text-xl">format_underlined</span>
+                    </button>
+                    <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
+                    <button
+                      class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                    >
+                      <span class="material-symbols-outlined text-xl">format_list_bulleted</span>
+                    </button>
+                    <button
+                      class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                    >
+                      <span class="material-symbols-outlined text-xl">format_list_numbered</span>
+                    </button>
+                    <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
+                    <button
+                      class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                    >
+                      <span class="material-symbols-outlined text-xl">link</span>
+                    </button>
+                  </div>
+                  <textarea
+                    class="form-textarea w-full h-48 p-3 border-none resize-y focus:ring-0 text-black bg-white  placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                    placeholder="Compose your message..."
+                    [(ngModel)]="body"></textarea>
+                </div>
+              </div>
+              <!-- Attachment Area -->
+              <div (click)="openFileUpload()"
+                   class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer"
+              >
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  click to upload.
+                </p>
+              </div>
+              <input #fileInput type="file" (change)="handleFileupload($event)" hidden name="upload_file_input" />
+              <!-- Attached Files List -->
+              @for(item of attachments;track item){
+                <div class="space-y-2">
+                  <div
+                    class="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                  >
+                    <div class="flex items-center space-x-2">
+                      <span class="material-symbols-outlined text-gray-500">{{item.name}}</span>
+                      <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >{{item.filetype}}</span
+                      >
+                      <span class="text-xs text-gray-500 dark:text-gray-400">{{item.sizeMB}}</span>
+                    </div>
+                    <button (click)="removeAttachment(item.id)"
+                            class="p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-red-700"
+                    >
+                      <span class="material-symbols-outlined text-lg">close</span>
+                    </button>
+                  </div>
+                </div>
+              }
+              @for(item of oldattachments;track item){
+                <div class="space-y-2">
+                  <div
+                    class="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                  >
+                    <div class="flex items-center space-x-2">
+                      <span class="material-symbols-outlined text-gray-500">{{item.fileName}}</span>
+                      <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >{{item.fileType}}</span
+                      >
+                      <span class="text-xs text-gray-500 dark:text-gray-400">{{item.fileSize}}</span>
+                    </div>
+                    <button (click)="removeAttachment(item.attachmentId)"
+                            class="p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-red-700"
+                    >
+                      <span class="material-symbols-outlined text-lg">close</span>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+            <!-- Footer / Action Bar -->
+            <footer
+              class="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-200  bg-gray-50 "
+            >
+              <div class="flex items-center space-x-2 mb-4 sm:mb-0">
+                <!-- Send Button -->
+                <!-- FIX: Use hex code for primary color -->
+                <button (click)="sendCompose()"
+                        class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0D6EFD] rounded-lg shadow-sm hover:bg-[#0D6EFD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD]"
+                >
+                  <span>Send</span>
+                </button>
+                <button (click)="SaveDraft()"
+                        class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD] dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
+                >
+                  Save Draft
+                </button>
+                <button
+                  class="p-2 text-gray-600 rounded-full hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                >
+                  <span class="material-symbols-outlined">attach_file</span>
+                </button>
+              </div>
+              <div class="flex items-center space-x-2">
+                <div class="flex items-center gap-1">
+                  <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Priority:</span>
+                  <!-- Priority Buttons -->
+                  <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
+                    <button (click)="priority=4"
+                            class="px-2 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-l-md border-r border-gray-300 dark:border-gray-600"
+                    >
+                      4
+                    </button>
+                    <button (click)="priority=3" class="px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                      3
+                    </button>
+                    <button (click)="priority=2"
+                            class="px-2 py-1 text-sm text-yellow-600 hover:bg-yellow-100 dark:hover:bg-yellow-900/50"
+                    >
+                      2
+                    </button>
+                    <button (click)="priority=1"
+                            class="px-2 py-1 text-sm text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-r-md border-l border-gray-300 dark:border-gray-600"
+                    >
+                      1
+                    </button>
+                  </div>
+                </div>
+                <button
+                  class="p-2 text-gray-600 rounded-full hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                >
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </footer>
+          </div>
+        </div>
       </div>
+    </div>
     </div>
   `,
   styles: [`
@@ -428,12 +460,35 @@ import { RouterLink } from '@angular/router';
       display: block;
       /* FIX: Explicitly enforce light background */
       background-color: #f6f7f8;
-    }
 
+    }
+    .popup{
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      visibility: hidden;
+      transition: all 0.1s ease-in;
+    }
+    .popup.active {
+      visibility: visible;
+      opacity: 1;
+    }
     .material-symbols-outlined {
       /* Ensure icons are correctly rendered */
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
       line-height: 1;
+    }
+    .form-textarea:focus {
+      box-shadow: none !important;
+      border-color: transparent !important;
+      outline: none !important;
+      --tw-ring-color: transparent !important;
     }
 
     /* FIX: Re-enforcing primary color styles */
@@ -473,4 +528,295 @@ import { RouterLink } from '@angular/router';
     }
   `],
 })
-export class Drafts {}
+export class Drafts implements OnInit {
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  constructor(private http:HttpClient,protected folderStateService: FolderStateService,private route:Router,private Shuffler:MailShuttleService) {
+  }
+  currentEmailInput:string='';
+  isopen:boolean = false;
+  recipients:string[]=[];
+  subject:string='';
+  body:string='';
+  priority:number=4;
+  attachments: att[] = [];
+  oldattachments:attachment[]=[];
+  maildId:string='';
+  Emails:Datafile[]=[];
+  CustomFolderPopUp:boolean = false;
+  CustomFolders:CustomFolderData[]=[];
+  DraftData:Datafile[]=[];
+  ngOnInit() {
+    this.getDraftData();
+    this.getCustomFolders();
+  }
+  getDraftData():void {
+    const url = `http://localhost:8080/draft/get/${this.folderStateService.userData().userId}`;
+    this.http.get<Datafile[]>(url).subscribe({
+      next:(respones) => {
+        console.log(respones);
+        this.DraftData = respones;
+      },
+      error:(respones) => {
+        alert("failed to get Drafts");
+      }
+    })
+  }
+  getCustomFolders(){
+    const url = "http://localhost:8080/folders/custom";
+    let param = new HttpParams;
+    param = param.set("userId", this.folderStateService.userData().userId);
+    this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
+      next: data => {
+        this.CustomFolders = data;
+        console.log(data);
+      },
+      error: err => {
+        console.log(err);
+        alert("failed to fetch custom folders");
+      }
+    })
+  }
+  goToCustomFolder(Id:string){
+    this.Shuffler.setCustom(Id);
+    this.route.navigate([`/Custom`]);
+  }
+  delete(){
+    const userData: UserData = this.folderStateService.userData();
+    const inboxId = userData.draftsFolderId;
+    const url = `http://localhost:8080/mail/deleteMails/${inboxId}`
+    if(this.Emails.length == 0){
+      return
+    }
+    let ids:string[]=[];
+    for(let i:number=0; i<this.Emails.length;i++){
+      ids.push(this.Emails[i].mailId);
+      const emailIndex = this.DraftData.findIndex(e => e.mailId === this.Emails[i].mailId);
+      this.toggleEmailsSelected(this.DraftData[emailIndex],false)
+    }
+    let params = new HttpParams();
+    ids.forEach((id) => {
+      params = params.append('ids', id);
+    });
+    this.http.delete(url, {params:params}).subscribe({
+      next:(respones) => {
+        console.log(respones);
+      },
+      error:(respones) => {
+        console.log(respones);
+      }
+    })
+  }
+  toggleEmailsSelected(email:Datafile,ischecked:boolean){
+    if(ischecked){
+      if(!this.Emails.includes(email)) {
+        this.Emails.push(email);
+      }
+    }
+    else {
+      const emailIndex = this.Emails.findIndex(e => e.mailId === email.mailId);
+      if (emailIndex != -1) {
+        this.Emails.splice(emailIndex, 1);
+      }
+    }
+  }
+  addallemails(check:boolean){
+    if(check){
+      console.log("added")
+      this.Emails = this.DraftData;
+    }
+    else{
+      console.log("removed");
+      this.Emails=[];
+    }
+  }
+  checked(id:string){
+    const emailIndex = this.Emails.findIndex(e => e.mailId === id);
+    if (emailIndex != -1) {
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
+  deleteMail(id:string){
+    const userData: UserData = this.folderStateService.userData();
+    const inboxId = userData.draftsFolderId;
+    const url = `http://localhost:8080/mail/deleteMails/${inboxId}`
+
+    let params = new HttpParams();
+    params = params.append('ids', id);
+    this.http.delete(url, {params:params}).subscribe({
+      next:(respones) => {
+        console.log(respones);
+        const emailIndex = this.DraftData.findIndex(e => e.mailId === id);
+
+        if (emailIndex > -1) {
+          this.DraftData.splice(emailIndex, 1);
+          this.DraftData = [...this.DraftData];
+        }
+      },
+      error:(respones) => {
+        console.log(respones);
+      }
+    })
+  }
+  openEdit(id:string){
+    let mail:Datafile;
+    let emailIndex = this.DraftData.findIndex(e => e.mailId === id);
+    if (emailIndex != -1) {
+      mail = this.DraftData[emailIndex];
+      this.recipients=mail.receivers || [];
+      this.subject=mail.subject;
+      this.body=mail.body;
+      this.priority=mail.priority;
+      this.oldattachments = mail.attachments;
+      this.maildId=mail.mailId;
+      this.isopen=true;
+    }
+    else{
+      alert("failed to open edit email");
+      return;
+    }
+  }
+  removeRecipient(toremoveemail: string): void {
+    this.recipients = this.recipients.filter(email => email !== toremoveemail);
+  }
+  addRecipient(event: Event | null): void {
+    if (event) {
+      event.preventDefault();
+    }
+    const email = this.currentEmailInput;
+    if (email && this.isVaildEmail(email)) {
+      if (!this.recipients.includes(email)) {
+        this.recipients.push(email);
+      }
+      this.currentEmailInput = '';
+    }
+  }
+  isVaildEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+  openFileUpload() {
+    this.fileInput.nativeElement.click();
+  }
+  handleFileupload(event: Event) {
+    const target = event.target as HTMLInputElement;
+    const files = target.files;
+    if (files && files.length > 0) {
+      const file: File = files[0];
+      const newAtt: att = {
+        id: crypto.randomUUID(),
+        name: file.name,
+        filetype: file.type,
+        fileData: file,
+        sizeMB: this.formatFileSize(file.size),
+        mailId: this.maildId
+      };
+      this.attachments.push(newAtt);
+      target.value = '';
+    }
+  }
+  private formatFileSize(bytes: number) {
+    const KB = bytes / 1024;
+    if (KB < 1024) {
+      return `${KB.toFixed(1)} KB`
+    }
+    const MB = KB / 1024;
+    return `${MB.toFixed(2)} MB`;
+  }
+  removeAttachment(attId: string) {
+    this.attachments = this.attachments.filter(att => att.id !== attId);
+  }
+  sendCompose() {
+    if (this.attachments.length > 0) {
+      this.uploadAndSend();
+      this.isopen=false;
+    } else {
+      this.createMailBase();
+      this.isopen=false;
+    }
+
+  }
+  private async uploadAndSend() {
+    try {
+      const mailIds: string[] = await this.createMailBase();
+      console.log(mailIds);
+      await this.delay(500);
+      await this.uploadAttachments(mailIds);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  private createMailBase(): Promise<string[]> {
+    const payload = {
+      subject: this.subject,
+      body: this.body,
+      priority: this.priority,
+      receivers: this.recipients,
+      sender: this.folderStateService.userData().email,
+    };
+    return lastValueFrom(
+      this.http.post<string[]>("http://localhost:8080/mail/compose", payload)
+    );
+  }
+  private uploadAttachments(mailId: string[]) {
+
+    const uploadPromises = this.attachments.map(att => {
+      const formData = new FormData();
+      formData.append('file', att.fileData, att.name);
+      mailId.forEach(id => formData.append('mailIds', id));
+      console.log(formData);
+      return this.http.post("http://localhost:8080/api/attachment/upload", formData,{responseType:'text'}).toPromise();
+    });
+    return Promise.all(uploadPromises);
+  }
+  SaveDraft() {
+    if (this.attachments.length > 0) {
+      this.uploadAndSaveDraft();
+      this.route.navigate(['/drafts']);
+    } else {
+      this.createDraftBase();
+      this.route.navigate(['/drafts']);
+    }
+  }
+  private createDraftBase(): Promise<string> {
+    const payload = {
+      subject: this.subject,
+      body: this.body,
+      priority: this.priority,
+      receivers: this.recipients,
+      sender: this.folderStateService.userData().email,
+    };
+    return lastValueFrom(
+      this.http.post("http://localhost:8080/draft/save", payload,{responseType:"text"})
+    );
+  }
+  private async uploadAndSaveDraft() {
+    try {
+      const mailIds: string = await this.createDraftBase();
+      console.log(mailIds);
+      await this.delay(500);
+      await this.DraftUploadAtt(mailIds);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  private DraftUploadAtt(mailId: string) {
+
+    const uploadPromises = this.attachments.map(att => {
+      const formData = new FormData();
+      formData.append('file', att.fileData, att.name);
+      formData.append('Ids', mailId);
+      console.log(formData);
+      return this.http.post("http://localhost:8080/api/attachment/upload", formData).toPromise();
+    });
+    return Promise.all(uploadPromises);
+  }
+  private delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  protected readonly MailDetail = MailDetail;
+  protected readonly MailShuttleService = MailShuttleService;
+  protected readonly FolderStateService = FolderStateService;
+}

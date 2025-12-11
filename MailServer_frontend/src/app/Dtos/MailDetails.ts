@@ -5,7 +5,7 @@ import { Datafile } from './datafile';  // Import the main data interface
   providedIn: 'root' // Singleton service
 })
 export class MailShuttleService {
-
+  private FromId:string='';
   private currentMail: Datafile | null = null;
   private CustomId:string='';
   /**
@@ -20,6 +20,12 @@ export class MailShuttleService {
   }
   getCustomId():string {
     return this.CustomId;
+  }
+  setFromId(id: string): void {
+    this.FromId = id;
+  }
+  getFromId():string {
+    return this.FromId;
   }
   /**
    * Called by the MailDetail component in ngOnInit.

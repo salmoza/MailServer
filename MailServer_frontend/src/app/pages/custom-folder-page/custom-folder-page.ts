@@ -216,7 +216,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
                         (click)="goToMailDetails(item)"
                       >
                         <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
-                          {{item.senderEmail}}
+                          {{item.sender}}
                         </div>
 
                         <div class="px-4 w-1/2">

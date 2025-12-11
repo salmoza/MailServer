@@ -6,6 +6,7 @@ import {CustomFolderData, Datafile} from '../../Dtos/datafile';
 import {FolderStateService} from '../../Dtos/FolderStateService';
 import {take} from 'rxjs';
 import {MailShuttleService} from '../../Dtos/MailDetails';
+import {FormsModule} from '@angular/forms';
 
 // @ts-ignore
 // @ts-ignore
@@ -13,7 +14,7 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
 @Component({
   selector: 'app-mail-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink,HttpClientModule],
+  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule],
   template: `
     <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
@@ -165,7 +166,7 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
                 >
                   <span class="material-symbols-outlined">drive_file_move</span>
                 </button>
-                <button
+                <button (click)="deleteMail()"
                   class="p-2 rounded-lg text-gray-700 hover:bg-gray-200"
                   title="Delete"
                 >
@@ -246,6 +247,28 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
             </div>
           </div>
         </main>
+        <div class="move-conatiner bg-black/50" [class.active]="tomove">
+          <div class="content-container ">
+            <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
+            <div class="buttons-folders">
+              <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
+              @for(folder of CustomFolders; track $index){
+                <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
+              }
+            </div>
+            <div class="bottom-btn">
+              <button (click)="tomove=false">Back</button>
+              <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
+            </div>
+          </div>
+        </div>
+        <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
+          <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
+            <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
+            <button  (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
+            <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
+          </div>
+        </div>
       </div>
     </div>
   `,
@@ -263,7 +286,101 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
       display: block;
       background-color: #f6f7f8; /* background-light hex */
     }
+    .move-conatiner {
+      visibility: hidden;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      position: fixed;
+      transition: all 0.2s ease-in;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
 
+    .move-conatiner.active {
+      visibility: visible;
+      opacity: 1;
+      cursor: auto;
+    }
+
+    .content-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 500px;
+      min-width: 400px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      background-color: #e8e8e8;
+    }
+    .buttons-folders {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    #Custom-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap:60px;
+      height: 300px;
+    }
+    .content-container input{
+      border-radius: 15px;
+      padding: 10px;
+      border:2px solid black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s ease-in;
+    }
+    .content-container input:focus{
+      border:3px solid #3e8cf4;
+      outline: none;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+      transform: scale(1.05);
+    }
+    .content-container button{
+      display: flex;
+      padding: 15px;
+      border-radius: 30px;
+      background-color: #f9f9f9;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.1s ease-in-out;
+    }
+
+    .content-container button:hover,content-container2 button:hover {
+      transform: scale(1.05);
+      background-color: #3e8cf4;
+      border: 3px solid rgba(62, 140, 244, 0.88);
+      color: #fff;
+    }
+
+    #trash-btn:hover {
+      border: 3px solid rgba(243, 53, 53, 0.87);
+      background-color: #f6f7f8;
+      color: black;
+      /* box-shadow: 5px 5px 5px rgba(255, 0, 0, 0.55);*/
+    }
+
+    .content-container button:active {
+      transform: scale(0.95);
+    }
+
+    .bottom-btn {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
     .material-symbols-outlined {
       /* Ensure icons are correctly rendered */
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -312,7 +429,7 @@ export class MailDetail implements OnInit{
 
   // Data structures
   constructor(
-    private folderStateService: FolderStateService,
+    protected folderStateService: FolderStateService,
     private http: HttpClient,
     private router: Router,
     private route: ActivatedRoute,
@@ -322,18 +439,20 @@ export class MailDetail implements OnInit{
     this.MailDetails.setCustom(Id);
     this.router.navigate([`/Custom`]);
   }
+  foldername:string='';
+  tomove:boolean=false;
   CustomFolderPopUp:boolean = false;
   CustomFolders:CustomFolderData[]=[];
   MailDetails2 = inject(MailShuttleService);
   mail: Datafile | null = this.MailDetails2.getMailData();
-  mailId: string | undefined;
+  mailId: string | undefined = this.MailDetails2.getMailData()?.mailId;
   isLoading: boolean = true;
 
   error: string | null = null;
   ngOnInit() {
     this.getCustomFolders()
     const id = this.MailDetails2.getMailData()?.mailId
-    this.http.get<Datafile>(`http://localhost:8080/mail/${this.folderStateService.userData().inboxFolderId}/details/${id}`).subscribe({
+    this.http.get<Datafile>(`http://localhost:8080/mail/${this.MailDetails2.getFromId()}/details/${id}`).subscribe({
       next: (res) => {
         console.log(res);
         this.mail = res;
@@ -361,6 +480,8 @@ export class MailDetail implements OnInit{
   deleteMail(): void {
     if (!this.mailId) return;
     console.log(`Deleting mail ID: ${this.mailId}`);
+    const url = `http://localhost:8080/mail/deleteMails/${this.MailDetails2.getFromId()}`;
+
   }
 
   reply(): void {
@@ -371,5 +492,33 @@ export class MailDetail implements OnInit{
   getDownloadUrl(attachmentId: string): string {
     const attachmentApiUrl = 'http://localhost:8080/api/attachments';
     return `${attachmentApiUrl}/${attachmentId}/download`;
+  }
+  CreateCustomFolder(){
+    const url = "http://localhost:8080/folders/createFolder"
+    const payload={
+      folderName:this.foldername,
+      folderId:this.folderStateService.userData().inboxFolderId,
+    }
+    this.http.post(url, payload).subscribe({
+      next:(respones) => {
+        console.log(respones);
+      },
+      error:(respones) => {
+        alert("failed to create custom folder");
+      }
+    })
+  }
+  move(moveMailToFolderId:string){
+    const url = `http://localhost:8080/mail/move/${moveMailToFolderId}/${this.MailDetails.getCustomId()}`;
+    const payload={
+      ids:this.MailDetails2.getMailData()?.mailId
+    }
+    this.http.post(url, payload).subscribe({
+      next:(respones) => {
+      },
+      error:(respones) => {
+        console.log("failed to move");
+      }
+    })
   }
 }

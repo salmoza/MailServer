@@ -393,7 +393,6 @@ import {FormsModule} from '@angular/forms';
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
       line-height: 1;
     }
-
     /* FIX: Re-enforcing primary color styles */
     .text-primary, .hover\\:text-primary {
       color: #137fec !important;
@@ -473,8 +472,7 @@ export class Inbox implements OnInit{
   }
   goToMailDetails(details:Datafile){
     this.MailDetails.setMailData(details);
-    console.log(this.MailDetails.getMailData());
-    console.log(details)
+    this.MailDetails.setFromId(this.folderStateService.userData().inboxFolderId);
     this.router.navigate([`/mail`]);
   }
   goToCustomFolder(Id:string){
