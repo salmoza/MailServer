@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import {Compose} from './pages/compose/compose';
-import {Contacts} from './pages/contacts/contacts';
+import { Contacts } from './pages/contacts/contacts';
+import { ContactFormComponent } from './pages/contact-form/contact-form';
 import {Drafts} from './pages/drafts/drafts';
 import {Filters} from './pages/filters/filters';
 import {Inbox} from './pages/inbox/inbox';
@@ -13,6 +14,8 @@ import{CustomFolderPage} from './pages/custom-folder-page/custom-folder-page';
 
 
 export const routes: Routes = [
+  { path: 'contacts/new', component: ContactFormComponent }, 
+  { path: 'contacts/edit/:id', component: ContactFormComponent },
   {path:'', redirectTo:'login',pathMatch:'full'},
   {path:'login',component:Login},
   {path:'compose',component:Compose, canActivate:[authGuard]},
