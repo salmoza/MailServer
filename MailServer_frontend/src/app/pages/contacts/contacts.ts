@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ContactDto } from '../../Dtos/ContactDto';
+import { ContactService } from '../../services/contact.services';
 
 @Component({
   selector: 'app-contacts',
@@ -168,17 +169,36 @@ import { ContactDto } from '../../Dtos/ContactDto';
     }
   `],
 })
-export class Contacts {
 
-  contacts: ContactDto[] = [
-    { contactId: '1', name: 'Olivia Rhye', emailAddresses: ['olivia@email.com'], starred: false },
-    { contactId: '2', name: 'Phoenix Baker', emailAddresses: ['phoenix@email.com', 'ph@work.com'], starred: true }
-  ];
+export class Contacts implements OnInit {
+  contacts: ContactDto[] = [];
 
-  onDelete(contact: ContactDto) {
-    if(confirm('Are you sure you want to delete ' + contact.name + '?')) {
-      this.contacts = this.contacts.filter(c => c.contactId !== contact.contactId);
-    }
+  constructor(private contactService: ContactService) {}
+
+  ngOnInit() {
+    this.loadContacts();
   }
 
+  loadContacts() {
+    
+    this.contactService.getContacts().subscribe({
+        next: (data : any ) => this.contacts = data,
+        error: (err : any ) => console.error('Error fetching contacts', err)
+    });
+  }
+
+  onDelete(contact: ContactDto) {
+    if (!contact.contactId) return;
+
+    if(confirm('Are you sure you want to delete ' + contact.name + '?')) {
+      
+      this.contactService.deleteContact(contact.contactId).subscribe({
+        next: () => {
+            // Remove without refreshing
+            this.contacts = this.contacts.filter(c => c.contactId !== contact.contactId);
+        },
+        error: (err : any ) => alert('Failed to delete contact')
+      });
+    }
+  }
 }

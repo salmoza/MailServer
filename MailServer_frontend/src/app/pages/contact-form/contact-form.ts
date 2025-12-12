@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; 
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router'; 
+import { ContactService } from '../../services/contact.services'; 
+import { ContactDto } from '../../Dtos/ContactDto';
 
 @Component({
   selector: 'app-contact-form',
@@ -21,15 +23,14 @@ export class ContactFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private contactService: ContactService
   ) {
-    
     this.contactForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
-      phoneNumber: ['', [Validators.pattern(/^\d+$/)]], // Digits only
+      phoneNumber: ['', [Validators.pattern(/^\d+$/)]],
       notes: [''],
       starred: [false],
-      
       emailAddresses: this.fb.array([
         this.fb.control('', [Validators.required, Validators.email])
       ])
@@ -37,7 +38,6 @@ export class ContactFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    
     this.contactId = this.route.snapshot.paramMap.get('id');
     if (this.contactId) {
       this.isEditMode = true;
@@ -45,7 +45,6 @@ export class ContactFormComponent implements OnInit {
     }
   }
 
-  
   get emailControls() {
     return (this.contactForm.get('emailAddresses') as FormArray).controls;
   }
@@ -61,23 +60,58 @@ export class ContactFormComponent implements OnInit {
   }
 
   loadContactData(id: string) {
+    //  Fetch all contacts and find the one matching ID
+    this.contactService.getContacts().subscribe({
+        next: (contacts : any ) => {
+            const contact = contacts.find( (c : any )  => c.contactId === id);
+            if (contact) {
+                this.patchForm(contact);
+            }
+        },
+        error: (err : any ) => console.error('Failed to load contact', err)
+    });
+  }
+
+  
+  patchForm(contact: ContactDto) {
+    this.contactForm.patchValue({
+        name: contact.name,
+        phoneNumber: contact.phoneNumber,
+        notes: contact.notes,
+        starred: contact.starred
+    });
+
     
-    // this.contactService.getById(id).subscribe(data => ...)
+    const emailArray = this.contactForm.get('emailAddresses') as FormArray;
+    emailArray.clear();
+    contact.emailAddresses.forEach(email => {
+        emailArray.push(this.fb.control(email, [Validators.required, Validators.email]));
+    });
   }
 
   onSubmit() {
     if (this.contactForm.invalid) return;
 
-    const formValue = this.contactForm.value;
-    
-    
-    if (this.isEditMode) {
-        console.log('Updating...', formValue);
+    const formValue: ContactDto = this.contactForm.value;
+
+    if (this.isEditMode && this.contactId) {
+        
+        this.contactService.editContact(this.contactId, formValue).subscribe({
+            next: () => {
+                console.log('Contact Updated');
+                this.router.navigate(['/contacts']);
+            },
+            error: (err : any ) => console.error('Update failed', err)
+        });
     } else {
-        console.log('Creating...', formValue);
+        
+        this.contactService.createContact(formValue).subscribe({
+            next: () => {
+                console.log('Contact Created');
+                this.router.navigate(['/contacts']);
+            },
+            error: (err : any ) => console.error('Creation failed', err)
+        });
     }
-    
-    
-    this.router.navigate(['/contacts']);
   }
 }
