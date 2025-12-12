@@ -60,7 +60,7 @@ export class ContactFormComponent implements OnInit {
   }
 
   loadContactData(id: string) {
-    //  Fetch all contacts and find the one matching ID
+    
     this.contactService.getContacts().subscribe({
         next: (contacts : any ) => {
             const contact = contacts.find( (c : any )  => c.contactId === id);

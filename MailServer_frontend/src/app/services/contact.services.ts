@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ContactDto } from '../Dtos/ContactDto'; 
 import { FolderStateService } from '../Dtos/FolderStateService';
+import { Page } from '../Dtos/Page';
 
 @Injectable({
   providedIn: 'root'
@@ -55,5 +56,36 @@ export class ContactService {
   // @PutMapping("/{contactId}/star")
   toggleStar(contactId: string): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${contactId}/star`, {});
+  }
+
+  deleteMultipleContacts(contactIds: string[]): Observable<string> {
+    
+    return this.http.delete(`${this.apiUrl}/deleteMultipleContacts`, { 
+      body: contactIds, 
+      responseType: 'text' 
+    });
+  }
+
+  
+  searchContacts(query: string, page: number = 0, size: number = 10): Observable<Page<ContactDto>> {
+    const userId = this.getUserId();
+    let params = new HttpParams()
+      .set('query', query)
+      .set('page', page)
+      .set('size', size);
+
+    return this.http.get<Page<ContactDto>>(`${this.apiUrl}/search/${userId}`, { params });
+  }
+
+  
+  sortContacts(sortBy: string, order: string, page: number = 0, size: number = 10): Observable<Page<ContactDto>> {
+    const userId = this.getUserId();
+    let params = new HttpParams()
+      .set('sortBy', sortBy)
+      .set('order', order)
+      .set('page', page)
+      .set('size', size);
+
+    return this.http.get<Page<ContactDto>>(`${this.apiUrl}/sort/${userId}`, { params });
   }
 }

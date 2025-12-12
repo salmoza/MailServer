@@ -6,4 +6,4 @@ export interface ContactDto {
     starred: boolean;
     phoneNumber?: string;
     notes?: string;
-  }
+}
