@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule , DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ContactDto } from '../../Dtos/ContactDto';
 import { ContactService } from '../../services/contact.services';
@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-contacts',
   standalone: true,
-  imports: [CommonModule, RouterLink , FormsModule],
+  imports: [CommonModule, RouterLink , FormsModule , DatePipe],
   template: `
     <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-10 py-3 bg-white sticky top-0 z-10">
   <div class="flex items-center gap-8">
@@ -22,104 +22,120 @@ import { FormsModule } from '@angular/forms';
               <span class="material-symbols-outlined text-xl">search</span>
            </div>
            <input 
-              [(ngModel)]="searchQuery"
+              [(ngModel)]="searchQuery" 
               (keyup.enter)="onSearch()"
               class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-800 focus:outline-0 focus:ring-0 border-none bg-slate-100 focus:border-none h-full placeholder:text-slate-500 px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" 
-              placeholder="Search contacts..." 
+              placeholder="Search..." 
            />
         </div>
      </label>
   </div>
-  </header>
+</header>
 
 <main class="px-10 flex flex-1 justify-center py-8">
   <div class="layout-content-container flex flex-col w-full">
+     
      <div class="flex flex-wrap justify-between gap-4 p-4 items-center">
-        <div class="flex items-center gap-4">
-            <h1 class="text-slate-900 text-4xl font-black min-w-72">Contacts</h1>
+        <div class="flex items-center gap-3">
+            <h1 class="text-slate-900 text-4xl font-black min-w-44">Contacts</h1>
             
-            <button 
-                *ngIf="selectedIds.size > 0" 
-                (click)="deleteSelected()"
-                class="flex items-center justify-center rounded-lg h-10 px-4 bg-red-100 text-red-600 text-sm font-bold gap-2 hover:bg-red-200 transition"
-            >
+            <button *ngIf="selectedIds.size > 0" (click)="deleteSelected()" class="flex items-center justify-center rounded-lg h-10 px-4 bg-red-100 text-red-600 text-sm font-bold gap-2 hover:bg-red-200 transition">
                 <span class="material-symbols-outlined text-xl">delete</span>
                 Delete ({{ selectedIds.size }})
             </button>
+
+            <div class="flex items-center bg-white border border-slate-200 rounded-lg px-2 h-10">
+                <span class="text-xs font-bold text-slate-500 mr-2">Sort By:</span>
+                <select [ngModel]="currentSortBy" (ngModelChange)="onSortChange($event)" class="bg-transparent border-none text-sm font-semibold text-slate-700 focus:ring-0 cursor-pointer h-full outline-none">
+                    <option value="name">Name</option>
+                    <option value="phoneNumber">Phone</option>
+                    <option value="createdAt">Date Created</option>
+                    <option value="updatedAt">Last Updated</option>
+                    <option value="starred">Starred</option>
+                    <option value="notes">Notes</option>
+                </select>
+                
+                <button (click)="toggleSortOrder()" class="ml-2 p-1 rounded hover:bg-slate-100 text-slate-600 flex items-center" title="Toggle Order">
+                    <span class="material-symbols-outlined text-lg">
+                        {{ currentOrder === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
+                    </span>
+                </button>
+            </div>
+
+            <button *ngIf="searchQuery || currentSortBy !== 'name' || currentOrder !== 'asc'" (click)="resetView()" class="flex items-center justify-center size-10 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition" title="Reset View">
+                <span class="material-symbols-outlined text-xl">restart_alt</span>
+            </button>
         </div>
 
-        <button 
-           [routerLink]="['/contacts/new']"
-           class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#137fec] text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2"
-        >
+        <button [routerLink]="['/contacts/new']" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#137fec] text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2">
            <span class="material-symbols-outlined text-xl">add</span>
            <span class="truncate">Add Contact</span>
         </button>
      </div>
 
      <div class="px-4 py-3 @container">
-        <div class="flex overflow-hidden rounded-xl border border-slate-200 bg-white">
+        
+        <div *ngIf="contacts.length === 0" class="flex flex-col items-center justify-center py-12 text-slate-500 bg-white rounded-xl border border-slate-200">
+            <span class="material-symbols-outlined text-5xl mb-2">person_off</span>
+            <p class="text-lg font-medium">No contacts found</p>
+            <button (click)="resetView()" class="mt-4 text-[#137fec] font-bold hover:underline">Return to full list</button>
+        </div>
+
+        <div *ngIf="contacts.length > 0" class="flex overflow-hidden rounded-xl border border-slate-200 bg-white">
            <table class="flex-1">
               <thead class="border-b border-b-slate-200">
                  <tr class="bg-slate-50">
-                    
                     <th class="px-4 py-3 w-[5%]">
                         <input type="checkbox" (change)="toggleAll($event)" class="size-4 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]">
                     </th>
-
-                    <th (click)="onSort('name')" class="cursor-pointer px-4 py-3 text-left text-slate-600 w-[35%] text-sm font-medium hover:bg-slate-100">
-                       <div class="flex items-center gap-1">
-                          Name
-                          <span *ngIf="currentSortBy === 'name'" class="material-symbols-outlined text-sm">
-                              {{ currentOrder === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
-                          </span>
-                       </div>
-                    </th>
-
-                    <th (click)="onSort('phoneNumber')" class="cursor-pointer px-4 py-3 text-left text-slate-600 w-[35%] text-sm font-medium hover:bg-slate-100">
-                       <div class="flex items-center gap-1">
-                          Phone / Emails
-                          <span *ngIf="currentSortBy === 'phoneNumber'" class="material-symbols-outlined text-sm">
-                              {{ currentOrder === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
-                          </span>
-                       </div>
-                    </th>
-
-                    <th class="px-4 py-3 text-left text-slate-600 w-[25%] text-sm font-medium leading-normal">Actions</th>
+                    <th class="px-4 py-3 text-left text-slate-600 w-[30%] text-sm font-medium">Name</th>
+                    <th class="px-4 py-3 text-left text-slate-600 w-[30%] text-sm font-medium">Contact Info</th>
+                    <th class="px-4 py-3 text-left text-slate-600 w-[20%] text-sm font-medium">Activity</th>
+                    <th class="px-4 py-3 text-left text-slate-600 w-[15%] text-sm font-medium">Actions</th>
                  </tr>
               </thead>
               <tbody>
                  <tr *ngFor="let contact of contacts" class="border-t border-t-slate-200 hover:bg-slate-50">
                     
                     <td class="h-[72px] px-4 py-2">
-                        <input 
-                            type="checkbox" 
-                            [checked]="isSelected(contact.contactId)" 
-                            (change)="toggleSelection(contact.contactId)"
-                            class="size-4 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]"
-                        >
+                        <input type="checkbox" [checked]="isSelected(contact.contactId)" (change)="toggleSelection(contact.contactId)" class="size-4 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]">
                     </td>
 
-                    <td class="h-[72px] px-4 py-2 w-[35%] text-slate-800 text-sm font-normal leading-normal">
+                    <td class="h-[72px] px-4 py-2 w-[30%] text-slate-800 text-sm font-normal leading-normal">
                        <div class="flex items-center gap-3">
                           <div class="flex size-10 items-center justify-center rounded-full bg-[#137fec]/20 text-[#137fec] font-bold">
                              {{ contact.name?.charAt(0) | uppercase }}
                           </div>
-                          <div class="flex flex-col">
+                          <div class="flex flex-col items-start">
                              <span class="font-medium">{{ contact.name }}</span>
-                             <span *ngIf="contact.starred" class="text-xs text-yellow-500">★ Starred</span>
+                             <button (click)="toggleStar(contact, $event)" class="text-xs flex items-center gap-1 hover:bg-slate-100 px-1 rounded transition">
+                                <span class="material-symbols-outlined text-[16px]" [ngClass]="{'text-yellow-500': contact.starred, 'text-slate-400 unfilled': !contact.starred}">star</span>
+                                <span [class.text-yellow-500]="contact.starred" [class.text-slate-400]="!contact.starred">
+                                    {{ contact.starred ? 'Starred' : 'Not Starred' }}
+                                </span>
+                             </button>
                           </div>
                        </div>
                     </td>
 
-                    <td class="h-[72px] px-4 py-2 w-[35%] text-slate-500 text-sm font-normal leading-normal">
-                       {{ contact.emailAddresses ? contact.emailAddresses[0] : 'No Email' }}
-                       <span *ngIf="contact.emailAddresses && contact.emailAddresses.length > 1" class="text-xs bg-slate-100 rounded px-1">
-                          +{{ contact.emailAddresses.length - 1 }}
-                       </span>
+                    <td class="h-[72px] px-4 py-2 w-[30%] text-slate-500 text-sm font-normal leading-normal">
+                       <div>{{ contact.phoneNumber || 'No Phone' }}</div>
+                       <div class="text-xs text-slate-400 mt-1">
+                           {{ contact.emailAddresses ? contact.emailAddresses[0] : 'No Email' }}
+                           <span *ngIf="contact.emailAddresses && contact.emailAddresses.length > 1" class="bg-slate-100 rounded px-1 text-slate-600">+{{ contact.emailAddresses.length - 1 }}</span>
+                       </div>
                     </td>
 
-                    <td class="h-[72px] px-4 py-2 w-[25%] text-sm font-bold leading-normal tracking-[0.015em]">
+                    <td class="h-[72px] px-4 py-2 w-[20%] text-slate-500 text-xs font-normal leading-normal">
+                       <div class="flex flex-col gap-1">
+                           <span title="Created At">Created: {{ contact.createdAt | date:'shortDate' }}</span>
+                           <span *ngIf="contact.updatedAt" title="Updated At" class="text-slate-400">
+                               Updated: {{ contact.updatedAt | date:'shortDate' }}
+                           </span>
+                       </div>
+                    </td>
+
+                    <td class="h-[72px] px-4 py-2 w-[15%] text-sm font-bold leading-normal tracking-[0.015em]">
                        <div class="flex items-center gap-2">
                           <button [routerLink]="['/contacts/edit', contact.contactId]" class="flex items-center justify-center size-9 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-[#137fec]">
                              <span class="material-symbols-outlined text-xl">edit</span>
@@ -186,19 +202,12 @@ import { FormsModule } from '@angular/forms';
 
 export class Contacts implements OnInit {
   contacts: ContactDto[] = [];
-
-  
   selectedIds: Set<string> = new Set();
   
   
   searchQuery: string = '';
-
-  
-  currentSortBy: string = 'name';
-  currentOrder: string = 'asc';
-
-  currentPage: number = 0;
-  pageSize: number = 20;
+  currentSortBy: string = 'name'; 
+  currentOrder: string = 'asc';   
 
   constructor(private contactService: ContactService) {}
 
@@ -207,49 +216,56 @@ export class Contacts implements OnInit {
   }
 
   loadContacts() {
+    this.contactService.getContacts(this.searchQuery, this.currentSortBy, this.currentOrder)
+      .subscribe({
+        next: (data) => {
+          this.contacts = data;
+          this.selectedIds.clear(); 
+        },
+        error: (err) => console.error('Error fetching contacts', err)
+      });
+  }
+
+  onSearch() {
+    this.loadContacts();
+  }
+
+  
+  resetView() {
+    this.searchQuery = '';
+    this.currentSortBy = 'name';
+    this.currentOrder = 'asc';
+    this.loadContacts();
+  }
+
+  
+  onSortChange(sortBy: string) {
+    this.currentSortBy = sortBy;
+    this.loadContacts();
+  }
+
+  
+  toggleSortOrder() {
+    this.currentOrder = this.currentOrder === 'asc' ? 'desc' : 'asc';
+    this.loadContacts();
+  }
+
+ 
+
+  toggleStar(contact: ContactDto, event: Event) {
+    event.stopPropagation(); 
+    if (!contact.contactId) return;
     
-    this.contactService.getContacts().subscribe({
-        next: (data : any ) => this.contacts = data,
-        error: (err : any ) => console.error('Error fetching contacts', err)
+    contact.starred = !contact.starred; 
+
+    this.contactService.toggleStar(contact.contactId).subscribe({
+      error: () => {
+        contact.starred = !contact.starred; 
+        alert("Failed to update star");
+      }
     });
   }
-  
-  onSearch() {
-    if (!this.searchQuery || this.searchQuery.trim() === '') {
-      this.loadContacts(); 
-      return;
-    }
 
-    this.contactService.searchContacts(this.searchQuery, this.currentPage, this.pageSize)
-      .subscribe({
-        next: (page) => {
-          this.contacts = page.content;
-        },
-        error: (err) => console.error('Search failed', err)
-      });
-  }
-
-  onSort(column: string) {
-    
-    if (this.currentSortBy === column) {
-      this.currentOrder = this.currentOrder === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.currentSortBy = column;
-      this.currentOrder = 'asc';
-    }
-
-    this.contactService.sortContacts(this.currentSortBy, this.currentOrder, this.currentPage, this.pageSize)
-      .subscribe({
-        next: (page) => {
-          this.contacts = page.content;
-        },
-        error: (err) => console.error('Sort failed', err)
-      });
-  }
-
-  
-  
-  
   toggleSelection(id: string | undefined) {
     if(!id) return;
     if (this.selectedIds.has(id)) {
@@ -259,7 +275,6 @@ export class Contacts implements OnInit {
     }
   }
 
-  
   toggleAll(event: any) {
     if (event.target.checked) {
       this.contacts.forEach(c => {
@@ -270,40 +285,32 @@ export class Contacts implements OnInit {
     }
   }
 
-  
   isSelected(id: string | undefined): boolean {
     return !!id && this.selectedIds.has(id);
   }
 
-  
   deleteSelected() {
     if (this.selectedIds.size === 0) return;
-
     if(confirm(`Delete ${this.selectedIds.size} contacts?`)) {
       const idsToDelete = Array.from(this.selectedIds);
-      
       this.contactService.deleteMultipleContacts(idsToDelete).subscribe({
         next: () => {
-          
           this.contacts = this.contacts.filter(c => c.contactId && !this.selectedIds.has(c.contactId));
           this.selectedIds.clear();
         },
-        error: (err) => alert('Failed to delete contacts')
+        error: () => alert('Failed to delete contacts')
       });
     }
   }
 
   onDelete(contact: ContactDto) {
     if (!contact.contactId) return;
-
     if(confirm('Are you sure you want to delete ' + contact.name + '?')) {
-      
       this.contactService.deleteContact(contact.contactId).subscribe({
         next: () => {
-            // Remove without refreshing
-            this.contacts = this.contacts.filter(c => c.contactId !== contact.contactId);
+           this.contacts = this.contacts.filter(c => c.contactId !== contact.contactId);
         },
-        error: (err : any ) => alert('Failed to delete contact')
+        error: () => alert('Failed to delete contact')
       });
     }
   }

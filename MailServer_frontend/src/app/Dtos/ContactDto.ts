@@ -6,4 +6,6 @@ export interface ContactDto {
     starred: boolean;
     phoneNumber?: string;
     notes?: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
