@@ -121,6 +121,21 @@ public class ContactService {
     }
 
 
+
+    public void deleteMultipleContacts(List<String> contactIds) {
+        for (String contactId : contactIds) {
+            contactsRepo.deleteById(contactId);
+        }
+    }
+
+    public void toggleStar(String contactId) {
+        Contact contact = contactsRepo.findById(contactId)
+                .orElseThrow  (() -> new RuntimeException("Contact not found"));
+        contact.setStarred(!contact.isStarred());
+        contactsRepo.save(contact);
+    }
+
+/*
     public Page<ContactDto> sortContacts(String userId, String sortBy, String order, Pageable pageable) {
 
         User owner = userRepo.findByUserId(userId)
@@ -152,20 +167,7 @@ public class ContactService {
 
         return result.map(contactFactory::toDto);
 
-    }
-
-    public void deleteMultipleContacts(List<String> contactIds) {
-        for (String contactId : contactIds) {
-            contactsRepo.deleteById(contactId);
-        }
-    }
-
-    public void toggleStar(String contactId) {
-        Contact contact = contactsRepo.findById(contactId)
-                .orElseThrow  (() -> new RuntimeException("Contact not found"));
-        contact.setStarred(!contact.isStarred());
-        contactsRepo.save(contact);
-    }
+    } */
 
 }
 

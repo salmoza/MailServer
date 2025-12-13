@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/contact")
+
 public class ContactController {
 
     @Autowired
@@ -56,6 +58,14 @@ public class ContactController {
         return ResponseEntity.ok(list);
     }
 
+
+
+    @PutMapping("/{contactId}/star")
+    public ResponseEntity<Void> toggleStar (@PathVariable String contactId) {
+        contactService.toggleStar(contactId);
+        return ResponseEntity.ok().build();
+    }
+/*
     @GetMapping("/search/{userId}")
     public ResponseEntity<Page<ContactDto>> searchContacts (@PathVariable String userId, @RequestParam String query, Pageable pageable) {
         Page<ContactDto> contacts = contactService.searchContacts(userId, query, pageable);
@@ -67,13 +77,6 @@ public class ContactController {
         Page<ContactDto> contacts = contactService.sortContacts(userId, sortBy, order, pageable);
         return ResponseEntity.ok(contacts);
     }
-
-
-
-    @PutMapping("/{contactId}/star")
-    public ResponseEntity<Void> toggleStar (@PathVariable String contactId) {
-        contactService.toggleStar(contactId);
-        return ResponseEntity.ok().build();
-    }
+*/
 
 }
