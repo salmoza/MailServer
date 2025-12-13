@@ -9,8 +9,7 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-contacts',
   standalone: true,
   imports: [CommonModule, RouterLink , FormsModule , DatePipe],
-  template: `
-    <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-10 py-3 bg-white sticky top-0 z-10">
+  template: `<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-10 py-3 bg-white sticky top-0 z-10">
   <div class="flex items-center gap-8">
      <div class="flex items-center gap-4 text-slate-800">
         <h2 class="text-slate-800 text-lg font-bold">EmailApp</h2>
@@ -48,13 +47,13 @@ import { FormsModule } from '@angular/forms';
                 <span class="text-xs font-bold text-slate-500 mr-2">Sort By:</span>
                 <select [ngModel]="currentSortBy" (ngModelChange)="onSortChange($event)" class="bg-transparent border-none text-sm font-semibold text-slate-700 focus:ring-0 cursor-pointer h-full outline-none">
                     <option value="name">Name</option>
+                    <option value="email">Email</option>
                     <option value="phoneNumber">Phone</option>
                     <option value="createdAt">Date Created</option>
                     <option value="updatedAt">Last Updated</option>
                     <option value="starred">Starred</option>
                     <option value="notes">Notes</option>
                 </select>
-                
                 <button (click)="toggleSortOrder()" class="ml-2 p-1 rounded hover:bg-slate-100 text-slate-600 flex items-center" title="Toggle Order">
                     <span class="material-symbols-outlined text-lg">
                         {{ currentOrder === 'asc' ? 'arrow_upward' : 'arrow_downward' }}
@@ -95,10 +94,18 @@ import { FormsModule } from '@angular/forms';
                  </tr>
               </thead>
               <tbody>
-                 <tr *ngFor="let contact of contacts" class="border-t border-t-slate-200 hover:bg-slate-50">
+                 <tr *ngFor="let contact of contacts" 
+                     (click)="openContactModal(contact)"
+                     class="border-t border-t-slate-200 hover:bg-slate-50 cursor-pointer transition">
                     
                     <td class="h-[72px] px-4 py-2">
-                        <input type="checkbox" [checked]="isSelected(contact.contactId)" (change)="toggleSelection(contact.contactId)" class="size-4 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]">
+                        <input 
+                            type="checkbox" 
+                            [checked]="isSelected(contact.contactId)" 
+                            (change)="toggleSelection(contact.contactId, $event)"
+                            (click)="$event.stopPropagation()"
+                            class="size-4 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]"
+                        >
                     </td>
 
                     <td class="h-[72px] px-4 py-2 w-[30%] text-slate-800 text-sm font-normal leading-normal">
@@ -136,11 +143,11 @@ import { FormsModule } from '@angular/forms';
                     </td>
 
                     <td class="h-[72px] px-4 py-2 w-[15%] text-sm font-bold leading-normal tracking-[0.015em]">
-                       <div class="flex items-center gap-2">
+                       <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
                           <button [routerLink]="['/contacts/edit', contact.contactId]" class="flex items-center justify-center size-9 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-[#137fec]">
                              <span class="material-symbols-outlined text-xl">edit</span>
                           </button>
-                          <button (click)="onDelete(contact)" class="flex items-center justify-center size-9 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-red-500">
+                          <button (click)="onDelete(contact, $event)" class="flex items-center justify-center size-9 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-red-500">
                              <span class="material-symbols-outlined text-xl">delete</span>
                           </button>
                        </div>
@@ -151,6 +158,77 @@ import { FormsModule } from '@angular/forms';
         </div>
      </div>
   </div>
+
+  <div *ngIf="selectedContact" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm fade-in" (click)="closeContactModal()">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden" (click)="$event.stopPropagation()">
+          
+          <div class="bg-[#f6f7f8] px-6 py-4 flex justify-between items-start border-b border-slate-100">
+              <div class="flex gap-4 items-center">
+                  <div class="flex size-14 items-center justify-center rounded-full bg-[#137fec] text-white text-2xl font-bold">
+                      {{ selectedContact.name.charAt(0) | uppercase }}
+                  </div>
+                  <div>
+                      <h3 class="text-xl font-bold text-slate-900 leading-tight">{{ selectedContact.name }}</h3>
+                      <div class="flex items-center gap-1 text-sm mt-1" [ngClass]="selectedContact.starred ? 'text-yellow-600' : 'text-slate-500'">
+                          <span class="material-symbols-outlined text-[18px]">{{ selectedContact.starred ? 'star' : 'star_border' }}</span>
+                          <span>{{ selectedContact.starred ? 'Starred Contact' : 'Not Starred' }}</span>
+                      </div>
+                  </div>
+              </div>
+              <button (click)="closeContactModal()" class="text-slate-400 hover:text-slate-600">
+                  <span class="material-symbols-outlined text-2xl">close</span>
+              </button>
+          </div>
+
+          <div class="p-6 flex flex-col gap-6 max-h-[70vh] overflow-y-auto">
+              
+              <div class="space-y-4">
+                  <div class="flex gap-3">
+                      <span class="material-symbols-outlined text-slate-400 mt-0.5">call</span>
+                      <div>
+                          <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Phone Number</p>
+                          <p class="text-slate-900 font-medium">{{ selectedContact.phoneNumber || 'Not provided' }}</p>
+                      </div>
+                  </div>
+
+                  <div class="flex gap-3">
+                      <span class="material-symbols-outlined text-slate-400 mt-0.5">mail</span>
+                      <div class="w-full">
+                          <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Email Addresses</p>
+                          <div *ngIf="selectedContact.emailAddresses && selectedContact.emailAddresses.length > 0; else noEmail">
+                              <div *ngFor="let email of selectedContact.emailAddresses" class="text-slate-900 font-medium py-0.5 border-b border-slate-50 last:border-0">
+                                  {{ email }}
+                              </div>
+                          </div>
+                          <ng-template #noEmail>
+                              <p class="text-slate-400 italic">No emails</p>
+                          </ng-template>
+                      </div>
+                  </div>
+
+                  <div class="flex gap-3">
+                      <span class="material-symbols-outlined text-slate-400 mt-0.5">notes</span>
+                      <div>
+                          <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Notes</p>
+                          <p class="text-slate-700 whitespace-pre-wrap leading-relaxed">{{ selectedContact.notes || 'No notes added.' }}</p>
+                      </div>
+                  </div>
+              </div>
+
+              
+          </div>
+
+          <div class="bg-slate-50 px-6 py-3 flex justify-end gap-2 border-t border-slate-100">
+              <button [routerLink]="['/contacts/edit', selectedContact.contactId]" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition shadow-sm">
+                  Edit
+              </button>
+              <button (click)="closeContactModal()" class="px-4 py-2 bg-[#137fec] text-white rounded-lg text-sm font-bold hover:bg-[#116dcb] transition shadow-sm">
+                  Close
+              </button>
+          </div>
+      </div>
+  </div>
+
 </main>
 `,
   styles: [`
@@ -209,11 +287,25 @@ export class Contacts implements OnInit {
   currentSortBy: string = 'name'; 
   currentOrder: string = 'asc';   
 
+  
+  selectedContact: ContactDto | null = null;
+
   constructor(private contactService: ContactService) {}
 
   ngOnInit() {
     this.loadContacts();
   }
+
+  
+  openContactModal(contact: ContactDto) {
+    this.selectedContact = contact;
+  }
+
+  closeContactModal() {
+    this.selectedContact = null;
+  }
+
+  
 
   loadContacts() {
     this.contactService.getContacts(this.searchQuery, this.currentSortBy, this.currentOrder)
@@ -230,7 +322,6 @@ export class Contacts implements OnInit {
     this.loadContacts();
   }
 
-  
   resetView() {
     this.searchQuery = '';
     this.currentSortBy = 'name';
@@ -238,19 +329,20 @@ export class Contacts implements OnInit {
     this.loadContacts();
   }
 
-  
   onSortChange(sortBy: string) {
     this.currentSortBy = sortBy;
+    if(sortBy === 'createdAt' || sortBy === 'updatedAt' || sortBy === 'starred') {
+        this.currentOrder = 'desc'; 
+    } else {
+        this.currentOrder = 'asc';
+    }
     this.loadContacts();
   }
 
-  
   toggleSortOrder() {
     this.currentOrder = this.currentOrder === 'asc' ? 'desc' : 'asc';
     this.loadContacts();
   }
-
- 
 
   toggleStar(contact: ContactDto, event: Event) {
     event.stopPropagation(); 
@@ -266,7 +358,8 @@ export class Contacts implements OnInit {
     });
   }
 
-  toggleSelection(id: string | undefined) {
+  toggleSelection(id: string | undefined, event: Event) {
+    event.stopPropagation(); 
     if(!id) return;
     if (this.selectedIds.has(id)) {
       this.selectedIds.delete(id);
@@ -303,12 +396,17 @@ export class Contacts implements OnInit {
     }
   }
 
-  onDelete(contact: ContactDto) {
+  onDelete(contact: ContactDto, event: Event) {
+    event.stopPropagation();
     if (!contact.contactId) return;
     if(confirm('Are you sure you want to delete ' + contact.name + '?')) {
       this.contactService.deleteContact(contact.contactId).subscribe({
         next: () => {
            this.contacts = this.contacts.filter(c => c.contactId !== contact.contactId);
+           
+           if(this.selectedContact?.contactId === contact.contactId) {
+             this.closeContactModal();
+           }
         },
         error: () => alert('Failed to delete contact')
       });
