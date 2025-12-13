@@ -11,6 +11,9 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, RouterLink , FormsModule , DatePipe],
   template: `<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-10 py-3 bg-white sticky top-0 z-10">
   <div class="flex items-center gap-8">
+  <a [routerLink]="['/inbox']" class="flex items-center justify-center size-10 rounded-full hover:bg-slate-100 text-slate-600 transition cursor-pointer" title="Back to Inbox">
+        <span class="material-symbols-outlined text-xl">arrow_back</span>
+     </a>
      <div class="flex items-center gap-4 text-slate-800">
         <h2 class="text-slate-800 text-lg font-bold">EmailApp</h2>
      </div>
