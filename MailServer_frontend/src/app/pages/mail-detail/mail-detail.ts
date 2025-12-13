@@ -450,6 +450,9 @@ export class MailDetail implements OnInit{
 
   error: string | null = null;
   ngOnInit() {
+    console.log("FROM ID:", this.MailDetails2.getFromId());
+    console.log("MAIL ID:", this.MailDetails2.getMailData()?.mailId);
+
     this.getCustomFolders()
     const id = this.MailDetails2.getMailData()?.mailId
     this.http.get<Datafile>(`http://localhost:8080/mail/${this.MailDetails2.getFromId()}/details/${id}`).subscribe({

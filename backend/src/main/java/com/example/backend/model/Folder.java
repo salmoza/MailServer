@@ -1,15 +1,13 @@
-package com.example.backend.entities;
+package com.example.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.PriorityQueue;
 import java.util.Set;
 
 

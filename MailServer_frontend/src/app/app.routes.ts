@@ -22,7 +22,7 @@ export const routes: Routes = [
   {path:'contacts',component:Contacts, canActivate:[authGuard]},
   {path:'drafts',component:Drafts, canActivate:[authGuard]},
   {path:'inbox',component:Inbox, canActivate:[authGuard]},
-  {path:'Filters',component:Filters, canActivate:[authGuard]},
+  {path:'filters',component:Filters, canActivate:[authGuard]},
   {path:'mail',component:MailDetail, canActivate:[authGuard]},
   {path:'sent',component:Sent, canActivate:[authGuard]},
   {path:'trash',component:Trash, canActivate:[authGuard]},

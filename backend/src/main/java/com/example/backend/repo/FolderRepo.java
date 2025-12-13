@@ -1,6 +1,6 @@
 package com.example.backend.repo;
 
-import com.example.backend.entities.Folder;
+import com.example.backend.model.Folder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +16,7 @@ public interface FolderRepo extends JpaRepository<Folder, String> {
     Optional<Folder> findByFolderId (String folderId) ;
     List<Folder> findByUserUserId(String userId);
     Folder findByFolderName (String folderNmae);
+    Folder getByFolderId (String folderId);
 
     @Query("SELECT f FROM Folder f WHERE f.user.userId = :userId AND f.folderName NOT IN :defaultFolders")
     List<Folder> findCustomFolders(

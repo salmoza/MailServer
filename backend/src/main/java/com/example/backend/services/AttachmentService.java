@@ -1,8 +1,8 @@
 package com.example.backend.services;
 
 import com.example.backend.dtos.AttachmentDto;
-import com.example.backend.entities.Attachment;
-import com.example.backend.entities.Mail;
+import com.example.backend.model.Attachment;
+import com.example.backend.model.Mail;
 import com.example.backend.factories.AttachmentFactory;
 import com.example.backend.repo.AttachmentsRepo;
 import com.example.backend.repo.MailRepo;

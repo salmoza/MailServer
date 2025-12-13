@@ -4,14 +4,10 @@ import com.example.backend.dtos.UserSigninDTO;
 import com.example.backend.dtos.UserSignupDTO;
 
 import com.example.backend.dtos.UserDto;
-import com.example.backend.dtos.UserSigninDTO;
-import com.example.backend.dtos.UserSignupDTO;
-import com.example.backend.entities.User;
 import com.example.backend.services.userService.RequestFactory;
 import com.example.backend.services.userService.UserService;
 import com.example.backend.services.userService.signin.SignInRequest;
 import com.example.backend.services.userService.signup.SignUpRequest;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

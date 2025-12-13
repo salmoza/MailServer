@@ -2,18 +2,12 @@ package com.example.backend.services.mailService;//package com.example.backend.s
 
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
-import com.example.backend.entities.*;
+import com.example.backend.model.*;
 import com.example.backend.factories.MailFactory;
-import com.example.backend.repo.FolderRepo;
-import com.example.backend.repo.MailRepo;
-import com.example.backend.repo.MailSnapshotRepo;
-import com.example.backend.repo.UserRepo;
+import com.example.backend.repo.*;
 import com.example.backend.services.AttachmentService;
 import com.example.backend.services.FolderService;
-import com.example.backend.services.filter.AndCriteria;
-import com.example.backend.services.filter.MailCriteria;
-import com.example.backend.services.filter.SenderCriteria;
-import com.example.backend.services.filter.SubjectCriteria;
+import com.example.backend.services.filter.*;
 import com.example.backend.services.mailService.strategy.MailSorter;
 import com.example.backend.services.mailService.strategy.MailSortingStrategy;
 import com.example.backend.services.mailService.strategy.SortByDate;
@@ -24,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,6 +46,10 @@ public class MailService {
 
     @Autowired
     private AttachmentService attachmentService;
+
+    @Autowired
+    private MailFilterRepo filterRepo;
+
     public List<String> createNewMail(MailDto dto) {
 
         User senderUser = userRepo.findByEmail(dto.getSender());
@@ -179,29 +176,52 @@ public class MailService {
 
     }
 
-    public List<MailListDto> filterEmails(String folderId, String subject, String sender) {
+//    public List<MailListDto> filterEmails(String folderId, String subject, String sender) {
+//
+//        List<Mail> emails = mailRepo.getMailsByFolderId(folderId);
+//
+//        MailCriteria criteria = null;
+//
+//        if (subject != null) {
+//            criteria = (criteria == null)
+//                    ? new SubjectCriteria(subject)
+//                    : new AndCriteria(criteria, new SubjectCriteria(subject));
+//        }
+//
+//        if (sender != null) {
+//            criteria = (criteria == null)
+//                    ? new SenderCriteria(sender)
+//                    : new AndCriteria(criteria, new SenderCriteria(sender));
+//        }
+//
+//        if (criteria == null)
+//            return emails.stream().map(mailFactory::toListDto).toList();
+//
+//        return criteria.meetCriteria(emails).stream().map(mailFactory::toListDto).toList();
+//    }
 
-        List<Mail> emails = mailRepo.getMailsByFolderId(folderId);
+    public void applyFilters(Mail mail, String userId) {
 
-        MailCriteria criteria = null;
+        List<MailFilter> filters = filterRepo.findByUserUserId(userId);
 
-        if (subject != null) {
-            criteria = (criteria == null)
-                    ? new SubjectCriteria(subject)
-                    : new AndCriteria(criteria, new SubjectCriteria(subject));
+        for (MailFilter filter : filters) {
+
+            MailCriteria criteria = CriteriaFactory.from(filter);
+
+            boolean matches = !criteria.meetCriteria(List.of(mail)).isEmpty();
+
+            if (matches && mail.getFolders().size() == 1) {
+                this.moveMails(
+                        mail.getFolders().get(0).getFolderId(),
+                        filter.getTargetFolder(),
+                        mail.getMailId().lines().toList()
+                );
+                break;
+            }
         }
-
-        if (sender != null) {
-            criteria = (criteria == null)
-                    ? new SenderCriteria(sender)
-                    : new AndCriteria(criteria, new SenderCriteria(sender));
-        }
-
-        if (criteria == null)
-            return emails.stream().map(mailFactory::toListDto).toList();
-
-        return criteria.meetCriteria(emails).stream().map(mailFactory::toListDto).toList();
     }
+
+
 
     public List<MailListDto> searchEmails(String folderId, String keyword, int page) {
         return paginateMails(mailRepo.getMailsByFolderId(folderId).stream()
@@ -237,6 +257,16 @@ public class MailService {
     public List<MailListDto> sortMails(String folderId, String sortType, int page) {
 
         List<Mail> mails = mailRepo.getMailsByFolderId(folderId);
+        Folder folder = folderRepo.getByFolderId(folderId);
+        String userId = folder.getUser().getUserId();
+        List<Mail> allMails = mailRepo.getMailByUserId(userId);
+        if(!Objects.equals(folder.getFolderName(), "trash")
+        && !Objects.equals(folder.getFolderName(), "drafts")
+        && !Objects.equals(folder.getFolderName(), "sent")) {
+            for (Mail mail : allMails) {
+                applyFilters(mail, userId);
+            }
+        }
         System.out.println(mails);
 
         MailSortingStrategy strategy;

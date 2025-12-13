@@ -2,7 +2,7 @@ package com.example.backend.controllers;
 
 
 import com.example.backend.dtos.FolderDto;
-import com.example.backend.entities.Folder;
+import com.example.backend.model.Folder;
 import com.example.backend.repo.FolderRepo;
 import com.example.backend.services.FolderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +23,6 @@ public class FolderController {
     public List<Folder> getFolders(@PathVariable String userId) {
         return folderService.getFolders(userId);
     }
-
-//    @DeleteMapping("/{userId}")
-//    public void deleteFolders(){
-//        folderRepo.deleteAll();
-//    }
 
     @DeleteMapping("/{folderId}/{userId}")
     public void deleteFolder(@PathVariable String folderId, @PathVariable String userId){

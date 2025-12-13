@@ -1,17 +1,13 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dtos.ContactDto;
-import com.example.backend.entities.Contact;
 import com.example.backend.services.ContactService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200")

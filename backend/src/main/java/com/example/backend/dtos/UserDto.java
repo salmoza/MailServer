@@ -1,6 +1,6 @@
 package com.example.backend.dtos;
 
-import com.example.backend.entities.Folder;
+import com.example.backend.model.Folder;
 import lombok.Getter;
 import lombok.Setter;
 

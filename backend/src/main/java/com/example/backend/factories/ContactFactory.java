@@ -1,8 +1,8 @@
 package com.example.backend.factories;
 
 import com.example.backend.dtos.ContactDto;
-import com.example.backend.entities.Contact;
-import com.example.backend.entities.User;
+import com.example.backend.model.Contact;
+import com.example.backend.model.User;
 import org.springframework.stereotype.Service;
 
 @Service

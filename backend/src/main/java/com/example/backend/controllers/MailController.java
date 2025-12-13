@@ -3,7 +3,6 @@ package com.example.backend.controllers;
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
 import com.example.backend.dtos.MoveMaildto;
-import com.example.backend.entities.Mail;
 import com.example.backend.factories.MailFactory;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.services.mailService.MailService;
@@ -11,9 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/mail")
@@ -60,18 +58,18 @@ public class MailController {
 
     }
 
-    @GetMapping("/filter")
-    public List<MailListDto> filter(
-            @RequestParam String folderId,
-            @RequestParam(required = false) String subject,
-            @RequestParam(required = false) String sender) {
-
-        return mailService.filterEmails(folderId, subject, sender);
-    }
+//    @GetMapping("/filter")
+//    public List<MailListDto> filter(
+//            @RequestParam String folderId,
+//            @RequestParam(required = false) String subject,
+//            @RequestParam(required = false) String sender) {
+//
+//        return mailService.filterEmails(folderId, subject, sender);
+//    }
 
 
     @GetMapping("/getAllMails")
-    public List<MailListDto> getAllMails(@RequestParam String folderId, @RequestParam int page) {
+    public List<MailListDto> getAllMails(@RequestParam int page, @RequestParam String folderId) {
         return mailService.sortMails(folderId, "date", page);
 
 //        return mailRepo.findAll() ;
@@ -95,6 +93,7 @@ public class MailController {
 
     @GetMapping("/sort")
     public List<MailListDto> sort(
+            @RequestParam String userId,
             @RequestParam String folderId,
             @RequestParam String sortBy,
             @RequestParam int page) {

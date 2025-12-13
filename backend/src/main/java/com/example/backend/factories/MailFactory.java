@@ -3,7 +3,7 @@ package com.example.backend.factories;
 import com.example.backend.dtos.AttachmentDto;
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
-import com.example.backend.entities.*;
+import com.example.backend.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

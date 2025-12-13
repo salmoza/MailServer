@@ -1,6 +1,6 @@
 package com.example.backend.repo;
 
-import com.example.backend.entities.Attachment;
+import com.example.backend.model.Attachment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

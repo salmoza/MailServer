@@ -1,7 +1,7 @@
 package com.example.backend.services;
 
 import com.example.backend.dtos.MailDto;
-import com.example.backend.entities.*;
+import com.example.backend.model.*;
 import com.example.backend.factories.MailFactory;
 import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;

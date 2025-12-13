@@ -1,7 +1,7 @@
 package com.example.backend.factories;
 
 import com.example.backend.dtos.AttachmentDto;
-import com.example.backend.entities.Attachment;
+import com.example.backend.model.Attachment;
 import org.springframework.stereotype.Component;
 
 @Component

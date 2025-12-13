@@ -1,8 +1,8 @@
 package com.example.backend.services;
 
-import com.example.backend.entities.Folder;
-import com.example.backend.entities.Mail;
-import com.example.backend.entities.User;
+import com.example.backend.model.Folder;
+import com.example.backend.model.Mail;
+import com.example.backend.model.User;
 import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.UserRepo;

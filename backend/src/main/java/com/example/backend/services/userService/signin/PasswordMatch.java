@@ -1,6 +1,6 @@
 package com.example.backend.services.userService.signin;
 
-import com.example.backend.entities.User;
+import com.example.backend.model.User;
 import com.example.backend.repo.UserRepo;
 import com.example.backend.services.userService.AuthHandler;
 import com.example.backend.services.userService.Request;

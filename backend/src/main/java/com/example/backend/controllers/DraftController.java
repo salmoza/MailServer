@@ -1,8 +1,8 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dtos.MailDto;
-import com.example.backend.entities.Mail;
-import com.example.backend.entities.MailSnapshot;
+import com.example.backend.model.Mail;
+import com.example.backend.model.MailSnapshot;
 import com.example.backend.services.DraftService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/draft")
 public class DraftController {
     @Autowired

@@ -1,4 +1,4 @@
-package com.example.backend.entities;
+package com.example.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -41,7 +41,7 @@ public class Mail {
     @ManyToMany(mappedBy = "mails", cascade = CascadeType.ALL)
     @JsonIgnore
     @Builder.Default
-    private Set<Folder> folders = new HashSet<>() ;
+    private List<Folder> folders = new ArrayList<>();
 
      // public String state;
 

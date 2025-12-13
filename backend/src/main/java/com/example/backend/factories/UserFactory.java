@@ -1,7 +1,7 @@
 package com.example.backend.factories;
 
 import com.example.backend.dtos.UserDto;
-import com.example.backend.entities.User;
+import com.example.backend.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

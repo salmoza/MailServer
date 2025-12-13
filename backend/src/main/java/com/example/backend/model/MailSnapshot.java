@@ -1,6 +1,5 @@
-package com.example.backend.entities;
+package com.example.backend.model;
 
-import com.example.backend.entities.Mail;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;

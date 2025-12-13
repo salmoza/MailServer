@@ -1,7 +1,7 @@
 package com.example.backend.services.filter;
 
 
-import com.example.backend.entities.Mail;
+import com.example.backend.model.Mail;
 
 import java.util.List;
 import java.util.stream.Collectors;

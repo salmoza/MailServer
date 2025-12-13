@@ -1,4 +1,4 @@
-package com.example.backend.entities;
+package com.example.backend.model;
 
 public enum MailStatus {
     DRAFT,

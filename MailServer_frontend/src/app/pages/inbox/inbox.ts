@@ -93,6 +93,14 @@ import {FormsModule} from '@angular/forms';
                   Contacts
                 </p>
               </a>
+              <a [routerLink]="['/filters']"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+              >
+                <span class="material-symbols-outlined text-slate-600">filter_alt</span>
+                <p class="text-slate-600 text-sm font-medium leading-normal">
+                  Filters
+                </p>
+              </a>
             </div>
             <!-- Custom Folders -->
             <div class="flex flex-col gap-1">
