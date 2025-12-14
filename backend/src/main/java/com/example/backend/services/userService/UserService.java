@@ -7,7 +7,7 @@ import com.example.backend.dtos.UserDto;
 //import com.example.backend.dtos.UserSigninDTO;
 
 import com.example.backend.model.User;
-import com.example.backend.factories.UserFactory;
+import com.example.backend.mappers.UserFactory;
 import com.example.backend.repo.UserRepo;
 import com.example.backend.services.FolderService;
 import com.example.backend.services.userService.signin.*;

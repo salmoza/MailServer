@@ -1,4 +1,4 @@
-package com.example.backend.factories;
+package com.example.backend.mappers;
 
 import com.example.backend.dtos.AttachmentDto;
 import com.example.backend.model.Attachment;

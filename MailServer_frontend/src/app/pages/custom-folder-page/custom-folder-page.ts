@@ -7,11 +7,12 @@ import {CustomFolderData, Datafile} from '../../Dtos/datafile';
 import {MailShuttleService} from '../../Dtos/MailDetails';
 import {MailDetail} from '../mail-detail/mail-detail';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {SearchBarComponent} from '../../components/search-bar/search-bar';
 
 @Component({
   selector: 'app-custom-folder-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent],
   template: `
     <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -82,6 +83,24 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
                   Trash
                 </p>
               </a>
+              <a [routerLink]="['/contacts']"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+              >
+                <span class="material-symbols-outlined text-slate-600"
+                  >contacts</span
+                >
+                <p class="text-slate-600 text-sm font-medium leading-normal">
+                  Contacts
+                </p>
+              </a>
+              <a [routerLink]="['/filters']"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+              >
+                <span class="material-symbols-outlined text-slate-600">filter_alt</span>
+                <p class="text-slate-600 text-sm font-medium leading-normal">
+                  Filters
+                </p>
+              </a>
             </div>
             <div class="flex flex-col gap-1">
               <div class="flex items-center justify-between px-3 py-2">
@@ -131,6 +150,8 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
       </aside>
       <!-- Main Content -->
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <!-- Search Bar -->
+        <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
         <!-- Toolbar -->
         <div
           class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
@@ -611,5 +632,9 @@ export class CustomFolderPage implements OnInit{
         console.log("failed to move");
       }
     })
+  }
+  handleSearch(criteria: any) {
+    console.log('Search criteria:', criteria);
+    // TODO: Implement search functionality
   }
 }

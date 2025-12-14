@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import { HttpClient, HttpClientModule, HttpParams } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { FolderStateService } from '../../Dtos/FolderStateService';
 import { CustomFolderData } from '../../Dtos/datafile';
+import {MailShuttleService} from '../../Dtos/MailDetails';
 
 interface MailFilter {
   filterId?: string;
@@ -76,6 +77,29 @@ interface MailFilter {
                 <span class="material-symbols-outlined text-slate-800 fill">filter_alt</span>
                 <p class="text-slate-800 text-sm font-medium leading-normal">Filters</p>
               </a>
+            </div>
+            <!-- Custom Folders -->
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center justify-between px-3 py-2">
+                <h2
+                  class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
+                >
+                  Custom Folders
+                </h2>
+                <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp=true">
+                  <span class="material-symbols-outlined text-base">add</span>
+                </button>
+              </div>
+              @for(custom of customFolders; track custom.folderId) {
+                <a (click)="goToCustomFolder(custom.folderId)"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 cursor-pointer"
+                >
+                  <span class="material-symbols-outlined text-slate-600">folder</span>
+                  <p class="text-slate-600 text-sm font-medium leading-normal">
+                    {{custom.folderName}}
+                  </p>
+                </a>
+              }
             </div>
           </div>
         </div>
@@ -248,6 +272,7 @@ interface MailFilter {
   `],
 })
 export class Filters implements OnInit {
+  
   filters: MailFilter[] = [];
   customFolders: CustomFolderData[] = [];
   newFilter: MailFilter = {
@@ -261,10 +286,11 @@ export class Filters implements OnInit {
 
   private apiUrl = 'http://localhost:8080/api/filters';
 
-  constructor(
+  constructor(private MailDetails:MailShuttleService, private router : Router,
     private http: HttpClient,
     protected folderStateService: FolderStateService
   ) {}
+  CustomFolderPopUp:boolean = false;
 
   ngOnInit() {
     this.newFilter.userId = this.folderStateService.userData().userId;
@@ -338,6 +364,11 @@ export class Filters implements OnInit {
     });
   }
 
+  goToCustomFolder(Id:string){
+    this.MailDetails.setCustom(Id);
+    this.router.navigate([`/Custom`]);
+  }
+
   editFilter(filter: MailFilter) {
     this.editingFilter = filter;
     this.newFilter = { ...filter };
@@ -403,5 +434,9 @@ export class Filters implements OnInit {
   getFolderName(folderId: string): string {
     const folder = this.customFolders.find(f => f.folderId === folderId);
     return folder ? folder.folderName : folderId;
+  }
+  handleSearch(criteria: any) {
+    console.log('Search criteria:', criteria);
+    // TODO: Implement search functionality
   }
 }
