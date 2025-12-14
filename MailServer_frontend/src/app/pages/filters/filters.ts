@@ -107,6 +107,7 @@ interface MailFilter {
                     class="form-select w-full rounded-lg text-slate-800 border-slate-300 bg-[#f6f7f8] focus:border-[#137fec] focus:ring-[#137fec] h-12">
                     <option value="subject">Subject</option>
                     <option value="sender">Sender</option>
+                    <option value="body">Body</option>
                   </select>
                 </label>
                 <label class="flex flex-col w-full">

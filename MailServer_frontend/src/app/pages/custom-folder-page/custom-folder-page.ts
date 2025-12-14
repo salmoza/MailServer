@@ -507,6 +507,7 @@ export class CustomFolderPage implements OnInit{
   }
   goToMailDetails(details:Datafile){
     this.MailDetails.setMailData(details);
+    this.MailDetails.setFromId(this.MailDetails.getCustomId());
     console.log(details)
     this.router.navigate([`/mail`]);
   }

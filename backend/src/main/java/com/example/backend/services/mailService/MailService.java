@@ -108,6 +108,7 @@ public class MailService {
             );
 
             folderService.addMail(receiverUser.getInboxFolderId(), receiverCopy);
+            applyFilters(receiverCopy, receiverUser.getUserId());
 
             ids.add(receiverCopy.getMailId());
         }
@@ -201,6 +202,7 @@ public class MailService {
 //    }
 
     public void applyFilters(Mail mail, String userId) {
+        System.out.println("in applyFilters");
 
         List<MailFilter> filters = filterRepo.findByUserUserId(userId);
 
@@ -257,16 +259,16 @@ public class MailService {
     public List<MailListDto> sortMails(String folderId, String sortType, int page) {
 
         List<Mail> mails = mailRepo.getMailsByFolderId(folderId);
-        Folder folder = folderRepo.getByFolderId(folderId);
-        String userId = folder.getUser().getUserId();
-        List<Mail> allMails = mailRepo.getMailByUserId(userId);
-        if(!Objects.equals(folder.getFolderName(), "trash")
-        && !Objects.equals(folder.getFolderName(), "drafts")
-        && !Objects.equals(folder.getFolderName(), "sent")) {
-            for (Mail mail : allMails) {
-                applyFilters(mail, userId);
-            }
-        }
+//        Folder folder = folderRepo.getByFolderId(folderId);
+//        String userId = folder.getUser().getUserId();
+//        List<Mail> allMails = mailRepo.getMailByUserId(userId);
+//        if(!Objects.equals(folder.getFolderName(), "trash")
+//        && !Objects.equals(folder.getFolderName(), "drafts")
+//        && !Objects.equals(folder.getFolderName(), "sent")) {
+//            for (Mail mail : allMails) {
+//                applyFilters(mail, userId);
+//            }
+//        }
         System.out.println(mails);
 
         MailSortingStrategy strategy;

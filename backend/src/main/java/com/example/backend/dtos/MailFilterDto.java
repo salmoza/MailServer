@@ -14,6 +14,6 @@ public class MailFilterDto {
     private String filterName;
     private String userId;
     private String field;
-    private String value;
+    private String filterValue;
     private String targetFolder;
 }

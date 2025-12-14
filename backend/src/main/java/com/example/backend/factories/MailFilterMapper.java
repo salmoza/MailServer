@@ -23,7 +23,7 @@ public class MailFilterMapper {
         dto.setFilterName(filter.getFilterName());
         dto.setUserId(filter.getUser().getUserId());
         dto.setField(filter.getField());
-        dto.setValue(filter.getFilterValue());
+        dto.setFilterValue(filter.getFilterValue());
         dto.setTargetFolder(filter.getTargetFolder());
 
         return dto;
@@ -41,7 +41,7 @@ public class MailFilterMapper {
         filter.setFilterId(dto.getFilterId());
         filter.setFilterName(dto.getFilterName());
         filter.setField(dto.getField());
-        filter.setFilterValue(dto.getValue());
+        filter.setFilterValue(dto.getFilterValue());
         filter.setTargetFolder(dto.getTargetFolder());
 
         // Fetch and set the User object
@@ -67,8 +67,8 @@ public class MailFilterMapper {
             filter.setField(dto.getField());
         }
 
-        if (dto.getValue() != null) {
-            filter.setFilterValue(dto.getValue());
+        if (dto.getFilterValue() != null) {
+            filter.setFilterValue(dto.getFilterValue());
         }
 
         if (dto.getTargetFolder() != null) {

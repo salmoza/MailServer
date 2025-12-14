@@ -484,6 +484,7 @@ export class Trash implements OnInit{
   }
   goToMailDetails(details:Datafile){
     this.MailDetails.setMailData(details);
+    this.MailDetails.setFromId(this.folderStateService.userData().trashFolderId);
     console.log(details)
     this.router.navigate([`/mail`]);
   }
