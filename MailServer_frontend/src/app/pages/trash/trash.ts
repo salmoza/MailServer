@@ -447,9 +447,10 @@ export class Trash implements OnInit{
     this.getTrash(this.page);
   }
   getCustomFolders(){
-    const url = "http://localhost:8080/folders/custom";
+    const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
-    param = param.set("userId", this.folderStateService.userData().userId);
+    param = param.set("userId", this.folderStateService.userData().userId)
+    .set("type", "custom");
     this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
       next: data => {
         this.CustomFolders = data;
@@ -471,7 +472,7 @@ export class Trash implements OnInit{
     let param = new HttpParams
     param = param.set('page', page);
     param = param.set("folderId",this.folderStateService.userData().trashFolderId);
-    this.http.get<Datafile[]>(`http://localhost:8080/mail/getAllMails`,{params:param}).subscribe({
+    this.http.get<Datafile[]>(`http://localhost:8080/api/mails`,{params:param}).subscribe({
       next:(respones) => {
         this.TrashData=respones;
         console.log(respones);
@@ -523,7 +524,7 @@ export class Trash implements OnInit{
   delete(){
     const userData: UserData = this.folderStateService.userData();
     const TrashId = userData.trashFolderId;
-    const url = `http://localhost:8080/mail/deleteMails/${TrashId}`
+    const url = `http://localhost:8080/api/mails/${TrashId}`
     if(this.Emails.length == 0){
       return
     }
@@ -550,7 +551,7 @@ export class Trash implements OnInit{
 
   move(moveMailToFolderId:string){
     let mailids:string[]=[];
-    const url = `http://localhost:8080/mail/move/${moveMailToFolderId}/${this.folderStateService.userData().trashFolderId}`;
+    const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.folderStateService.userData().trashFolderId}`;
     for(let i:number=0; i<this.Emails.length;i++){
       mailids.push(this.Emails[i].mailId);
       const emailIndex = this.TrashData.findIndex(e => e.mailId === this.Emails[i].mailId);
@@ -559,7 +560,7 @@ export class Trash implements OnInit{
     const payload={
       ids:mailids
     }
-    this.http.post(url, payload).subscribe({
+    this.http.patch(url, payload).subscribe({
       next:(respones) => {
         const movedIdsSet = new Set(mailids);
 
@@ -577,7 +578,7 @@ export class Trash implements OnInit{
     this.router.navigate([`/Custom`]);
   }
   CreateCustomFolder(){
-    const url = "http://localhost:8080/folders/createFolder"
+    const url = "http://localhost:8080/api/folders"
     const payload={
       folderName:this.foldername,
       folderId:this.folderStateService.userData().inboxFolderId,

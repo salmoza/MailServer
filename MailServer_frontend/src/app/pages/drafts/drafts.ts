@@ -550,7 +550,7 @@ export class Drafts implements OnInit {
     this.getCustomFolders();
   }
   getDraftData():void {
-    const url = `http://localhost:8080/draft/get/${this.folderStateService.userData().userId}`;
+    const url = `http://localhost:8080/api/drafts/${this.folderStateService.userData().userId}`;
     this.http.get<Datafile[]>(url).subscribe({
       next:(respones) => {
         console.log(respones);
@@ -562,9 +562,10 @@ export class Drafts implements OnInit {
     })
   }
   getCustomFolders(){
-    const url = "http://localhost:8080/folders/custom";
+    const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
-    param = param.set("userId", this.folderStateService.userData().userId);
+    param = param.set("userId", this.folderStateService.userData().userId)
+    .set("type", "custom");
     this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
       next: data => {
         this.CustomFolders = data;
@@ -583,7 +584,7 @@ export class Drafts implements OnInit {
   delete(){
     const userData: UserData = this.folderStateService.userData();
     const inboxId = userData.draftsFolderId;
-    const url = `http://localhost:8080/mail/deleteMails/${inboxId}`
+    const url = `http://localhost:8080/api/mails/${inboxId}`
     if(this.Emails.length == 0){
       return
     }
@@ -641,7 +642,7 @@ export class Drafts implements OnInit {
   deleteMail(id:string){
     const userData: UserData = this.folderStateService.userData();
     const inboxId = userData.draftsFolderId;
-    const url = `http://localhost:8080/mail/deleteMails/${inboxId}`
+    const url = `http://localhost:8080/api/mails/${inboxId}`
 
     let params = new HttpParams();
     params = params.append('ids', id);
@@ -757,7 +758,7 @@ export class Drafts implements OnInit {
       sender: this.folderStateService.userData().email,
     };
     return lastValueFrom(
-      this.http.post<string[]>("http://localhost:8080/mail/compose", payload)
+      this.http.post<string[]>("http://localhost:8080/api/mails", payload)
     );
   }
   private uploadAttachments(mailId: string[]) {
@@ -767,7 +768,7 @@ export class Drafts implements OnInit {
       formData.append('file', att.fileData, att.name);
       mailId.forEach(id => formData.append('mailIds', id));
       console.log(formData);
-      return this.http.post("http://localhost:8080/api/attachment/upload", formData,{responseType:'text'}).toPromise();
+      return this.http.post("http://localhost:8080/api/attachments", formData,{responseType:'text'}).toPromise();
     });
     return Promise.all(uploadPromises);
   }
@@ -789,7 +790,7 @@ export class Drafts implements OnInit {
       sender: this.folderStateService.userData().email,
     };
     return lastValueFrom(
-      this.http.post("http://localhost:8080/draft/save", payload,{responseType:"text"})
+      this.http.post("http://localhost:8080/api/drafts", payload,{responseType:"text"})
     );
   }
   private async uploadAndSaveDraft() {
@@ -809,7 +810,7 @@ export class Drafts implements OnInit {
       formData.append('file', att.fileData, att.name);
       formData.append('Ids', mailId);
       console.log(formData);
-      return this.http.post("http://localhost:8080/api/attachment/upload", formData).toPromise();
+      return this.http.post("http://localhost:8080/api/attachments", formData).toPromise();
     });
     return Promise.all(uploadPromises);
   }

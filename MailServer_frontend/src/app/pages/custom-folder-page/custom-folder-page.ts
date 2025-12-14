@@ -469,9 +469,10 @@ export class CustomFolderPage implements OnInit{
     this.getCustom(this.page);
   }
   getCustomFolders(){
-    const url = "http://localhost:8080/folders/custom";
+    const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
-    param = param.set("userId", this.folderStateService.userData().userId);
+    param = param.set("userId", this.folderStateService.userData().userId)
+    .set("type", "custom");
     this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
       next: data => {
         this.CustomFolders = data;
@@ -494,7 +495,7 @@ export class CustomFolderPage implements OnInit{
     const id = this.MailDetails.getCustomId();
     param = param.set('page', page);
     param = param.set("folderId",id);
-    this.http.get<Datafile[]>(`http://localhost:8080/mail/getAllMails`,{params:param}).subscribe({
+    this.http.get<Datafile[]>(`http://localhost:8080/api/mails`,{params:param}).subscribe({
       next:(respones) => {
         this.InboxData=respones;
         console.log(respones);
@@ -549,7 +550,7 @@ export class CustomFolderPage implements OnInit{
   }
   delete(){
     const CustomId = this.MailDetails.getCustomId();
-    const url = `http://localhost:8080/mail/deleteMails/${CustomId}`
+    const url = `http://localhost:8080/api/mails/${CustomId}`
     if(this.Emails.length == 0){
       return
     }
@@ -574,7 +575,7 @@ export class CustomFolderPage implements OnInit{
     })
   }
   CreateCustomFolder(){
-    const url = "http://localhost:8080/folders/createFolder"
+    const url = "http://localhost:8080/api/folders"
     const payload={
       folderName:this.foldername,
       folderId:this.folderStateService.userData().inboxFolderId,
@@ -590,7 +591,7 @@ export class CustomFolderPage implements OnInit{
   }
   move(moveMailToFolderId:string){
     let mailids:string[]=[];
-    const url = `http://localhost:8080/mail/move/${moveMailToFolderId}/${this.MailDetails.getCustomId()}`;
+    const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.MailDetails.getCustomId()}`;
     for(let i:number=0; i<this.Emails.length;i++){
       mailids.push(this.Emails[i].mailId);
       const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
