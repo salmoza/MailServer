@@ -483,6 +483,7 @@ export class Sent implements OnInit{
   }
   goToMailDetails(details:Datafile){
     this.MailDetails.setMailData(details);
+    this.MailDetails.setFromId(this.folderStateService.userData().sentFolderId);
     console.log(details)
     this.router.navigate([`/mail`]);
   }
