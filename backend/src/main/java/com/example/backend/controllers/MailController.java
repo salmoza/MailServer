@@ -14,7 +14,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
-@RequestMapping("/mail")
+@RequestMapping("/api/mails")
 public class MailController {
     @Autowired
     MailService mailService ;
@@ -26,13 +26,13 @@ public class MailController {
     MailRepo mailRepo ;
 
 
-    @PostMapping("/compose")
+    @PostMapping
     public ResponseEntity<List<String>> compose (@RequestBody MailDto mailDto) {
         List<String> createdMailIds = mailService.createNewMail(mailDto);
         return ResponseEntity.ok(createdMailIds);
     }
 
-    @GetMapping("/{folderId}/details/{mailId}")
+    @GetMapping("/{folderId}/{mailId}")        // details
     public MailDto mailDetails (@PathVariable String folderId, @PathVariable String mailId) {
        return mailService.mailDetails(mailId, folderId);
     }
@@ -45,15 +45,15 @@ public class MailController {
 //    }
 
     // delete folder's mails
-    @DeleteMapping("/deleteMails/{folderId}")
+    @DeleteMapping("/{folderId}")    // deleteMails
     public ResponseEntity<?> deleteMails(@RequestParam List<String> ids , @PathVariable String folderId) {
             mailService.deleteMailById(ids , folderId);
 
         return ResponseEntity.ok("Deleted " + ids.size() + " mails");
     }
 
-    @PostMapping("/isRead/{mailId}")
-    public String changeIsRead (@PathVariable String mailId) {
+    @PatchMapping("/{mailId}/read-status")
+    public String markAsRead (@PathVariable String mailId) {
        return mailService.changeIsRead(mailId) ;
 
     }
@@ -68,7 +68,7 @@ public class MailController {
 //    }
 
 
-    @GetMapping("/getAllMails")
+    @GetMapping  // getAllMails
     public List<MailListDto> getAllMails(@RequestParam int page, @RequestParam String folderId) {
         return mailService.sortMails(folderId, "date", page);
 
@@ -83,7 +83,7 @@ public class MailController {
         return mailService.searchEmails(folderId, keyword, page);
     }
 
-    @PostMapping("/move/{toFolderId}/{fromFolderId}")
+    @PatchMapping("/{toFolderId}/{fromFolderId}")
     public ResponseEntity<?> move (@PathVariable String fromFolderId
             , @PathVariable String toFolderId
             ,@RequestBody MoveMaildto dto ) {
@@ -100,12 +100,12 @@ public class MailController {
         return mailService.sortMails(folderId, sortBy, page);
     }
 
-    @GetMapping("/mails")
+   /* @GetMapping
     public List<MailListDto> getAll (){
         return mailRepo.findAll().stream().map(mailFactory::toListDto).toList();
-    }    // for testing
+    }    // for testing */
 
-    @DeleteMapping("/deleteAllMails")
+    @DeleteMapping
     public ResponseEntity<String> deleteAll () {
         mailRepo.deleteAll();
         return ResponseEntity.ok("All mails deleted successfully!");

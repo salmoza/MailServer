@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
-@RequestMapping("/api/attachment")
+@RequestMapping("/api/attachments")
 public class AttachmentController {
 
     private final AttachmentService attachmentService;
@@ -24,7 +24,7 @@ public class AttachmentController {
     }
 
 
-    @PostMapping("/upload")
+    @PostMapping
     public ResponseEntity<String> addattachments(@RequestParam("file") MultipartFile file,
                                                         @RequestParam("mailIds") List<String> mailId){
         if(file.isEmpty()){

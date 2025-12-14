@@ -12,33 +12,33 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
-@RequestMapping("/draft")
+@RequestMapping("/api/drafts")
 public class DraftController {
     @Autowired
     DraftService draftService;
 
 
-    @PostMapping("/save")
+    @PostMapping
     public ResponseEntity<String> saveDraft(@RequestBody MailDto mailDto) {
         return ResponseEntity.ok(draftService.saveDraft(mailDto).getMailId());
     }
 
-    @GetMapping("/get/{userId}")
+    @GetMapping("/{userId}")
     public ResponseEntity<List<Mail>> getDrafts(@PathVariable String userId) {
         return ResponseEntity.ok(draftService.getDrafts(userId));
     }
 
-    @PutMapping("/update/{mailId}")
+    @PutMapping("/{mailId}")
     public ResponseEntity<Mail> updateDraft(@PathVariable String mailId, @RequestBody MailDto dto) {
         return ResponseEntity.ok(draftService.updateDraft(mailId, dto));
     }
 
-    @GetMapping("/snapshots/{mailId}")
+    @GetMapping("/{mailId}/snapshots")
     public ResponseEntity<List<MailSnapshot>> getSnapshots(@PathVariable String mailId) {
         return ResponseEntity.ok(draftService.getSnapshots(mailId));
     }
 
-    @PostMapping("/send/{mailId}")
+    @PostMapping("/{mailId}/send")
     public ResponseEntity<?> sendDraft(@PathVariable String mailId) {
         draftService.sendDraft(mailId);
         return ResponseEntity.ok("Draft sent successfully");

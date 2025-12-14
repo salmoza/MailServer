@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
-@RequestMapping("/folders")
+@RequestMapping("/api/folders")
 public class FolderController {
     @Autowired
     private FolderRepo folderRepo;
@@ -29,18 +29,18 @@ public class FolderController {
         folderService.deleteFolder(userId, folderId);
     }
 
-    @PostMapping("/createFolder")
+    @PostMapping
     public Folder createFolder(@RequestBody FolderDto folderDto){
         System.out.println("createFolder");
         return folderService.createFolder(folderDto.userId, folderDto.folderName);
     }
 
-    @PutMapping("/{folderId}/rename")
+    @PutMapping("/{folderId}")  // rename
     public Folder renameFolder(@PathVariable String folderId, @RequestParam String newName) {
         return folderService.renameFolder(folderId, newName);
     }
 
-    @GetMapping("/custom")
+    @GetMapping(params = "type=custom")
     public List<Folder> getCustomFolders(@RequestParam String userId) {
         return folderService.getCustomFolders(userId);
     }
