@@ -455,7 +455,7 @@ export class MailDetail implements OnInit{
 
     this.getCustomFolders()
     const id = this.MailDetails2.getMailData()?.mailId
-    this.http.get<Datafile>(`http://localhost:8080/mail/${this.MailDetails2.getFromId()}/details/${id}`).subscribe({
+    this.http.get<Datafile>(`http://localhost:8080/api/mails/${this.MailDetails2.getFromId()}/${id}`).subscribe({
       next: (res) => {
         console.log(res);
         this.mail = res;
@@ -466,9 +466,10 @@ export class MailDetail implements OnInit{
     })
   }
   getCustomFolders(){
-    const url = "http://localhost:8080/folders/custom";
+    const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
-    param = param.set("userId", this.folderStateService.userData().userId);
+    param = param.set("userId", this.folderStateService.userData().userId)
+    .set("type", "custom");
     this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
       next: data => {
         this.CustomFolders = data;
@@ -483,7 +484,7 @@ export class MailDetail implements OnInit{
   deleteMail(): void {
     if (!this.mailId) return;
     console.log(`Deleting mail ID: ${this.mailId}`);
-    const url = `http://localhost:8080/mail/deleteMails/${this.MailDetails2.getFromId()}`;
+    const url = `http://localhost:8080/api/mails/${this.MailDetails2.getFromId()}`;
 
   }
 
@@ -497,7 +498,7 @@ export class MailDetail implements OnInit{
     return `${attachmentApiUrl}/${attachmentId}/download`;
   }
   CreateCustomFolder(){
-    const url = "http://localhost:8080/folders/createFolder"
+    const url = "http://localhost:8080/api/folders"
     const payload={
       folderName:this.foldername,
       folderId:this.folderStateService.userData().inboxFolderId,
@@ -512,11 +513,11 @@ export class MailDetail implements OnInit{
     })
   }
   move(moveMailToFolderId:string){
-    const url = `http://localhost:8080/mail/move/${moveMailToFolderId}/${this.MailDetails.getCustomId()}`;
+    const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.MailDetails.getCustomId()}`;
     const payload={
       ids:this.MailDetails2.getMailData()?.mailId
     }
-    this.http.post(url, payload).subscribe({
+    this.http.patch(url, payload).subscribe({
       next:(respones) => {
       },
       error:(respones) => {

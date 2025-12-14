@@ -299,9 +299,10 @@ export class Filters implements OnInit {
   }
 
   loadCustomFolders() {
-    const url = "http://localhost:8080/folders/custom";
+    const url = "http://localhost:8080/folders";
     let params = new HttpParams();
-    params = params.set("userId", this.folderStateService.userData().userId);
+    params = params.set("userId", this.folderStateService.userData().userId)
+    .set("type", "custom");
     
     this.http.get<CustomFolderData[]>(url, { params }).subscribe({
       next: (data) => {

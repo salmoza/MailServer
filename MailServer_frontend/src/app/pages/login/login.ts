@@ -235,7 +235,7 @@ export class Login {
               private FolderStates:FolderStateService) {}
 private hhtp = inject(HttpClient);
   issign_up: boolean = false;
-  url: string = 'http://localhost:8080/user/';
+  url: string = 'http://localhost:8080/api/auth/';
   username: string = '';
   password: string = '';
   email: string = '';

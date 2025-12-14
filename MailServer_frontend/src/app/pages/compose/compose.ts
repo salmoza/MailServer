@@ -388,7 +388,7 @@ export class Compose {
       sender: this.sender,
     };
     return lastValueFrom(
-      this.http.post<string[]>("http://localhost:8080/mail/compose", payload)
+      this.http.post<string[]>("http://localhost:8080/api/mails", payload)
     );
   }
 
@@ -399,7 +399,7 @@ export class Compose {
       formData.append('file', att.fileData, att.name);
       mailId.forEach(id => formData.append('mailIds', id));
       console.log(formData);
-      return this.http.post("http://localhost:8080/api/attachment/upload", formData,{responseType:'text'}).toPromise();
+      return this.http.post("http://localhost:8080/api/attachments", formData,{responseType:'text'}).toPromise();
     });
     return Promise.all(uploadPromises);
   }
@@ -443,7 +443,7 @@ export class Compose {
       sender: this.sender,
     };
     return lastValueFrom(
-      this.http.post("http://localhost:8080/draft/save", payload,{responseType:"text"})
+      this.http.post("http://localhost:8080/api/drafts", payload,{responseType:"text"})
     );
   }
   private async uploadAndSaveDraft() {
@@ -463,7 +463,7 @@ export class Compose {
       formData.append('file', att.fileData, att.name);
       formData.append('Ids', mailId);
       console.log(formData);
-      return this.http.post("http://localhost:8080/api/attachment/upload", formData).toPromise();
+      return this.http.post("http://localhost:8080/api/attachments", formData).toPromise();
     });
     return Promise.all(uploadPromises);
   }

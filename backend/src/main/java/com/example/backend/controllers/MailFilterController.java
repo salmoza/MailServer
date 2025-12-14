@@ -33,7 +33,7 @@ public class MailFilterController {
     }
 
     // GET single filter
-    @GetMapping("/filter/{filterId}")
+    @GetMapping("/{filterId}")
     public ResponseEntity<MailFilterDto> getFilter(@PathVariable String filterId) {
         MailFilter filter = filterService.getFilterById(filterId);
         return ResponseEntity.ok(filterMapper.toDTO(filter));

@@ -457,9 +457,10 @@ export class Sent implements OnInit{
     this.getSent(this.page);
   }
   getCustomFolders(){
-    const url = "http://localhost:8080/folders/custom";
+    const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
-    param = param.set("userId", this.folderStateService.userData().userId);
+    param = param.set("userId", this.folderStateService.userData().userId)
+    .set("type", "custom");
     this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
       next: data => {
         this.CustomFolders = data;
@@ -481,7 +482,7 @@ export class Sent implements OnInit{
     let param = new HttpParams
     param = param.set('page', page);
     param = param.set("folderId",this.folderStateService.userData().sentFolderId);
-    this.http.get<Datafile[]>(`http://localhost:8080/mail/getAllMails`,{params:param}).subscribe({
+    this.http.get<Datafile[]>(`http://localhost:8080/api/mails`,{params:param}).subscribe({
       next:(respones) => {
         this.SentData=respones;
         console.log(respones);
@@ -533,7 +534,7 @@ export class Sent implements OnInit{
   delete(){
     const userData: UserData = this.folderStateService.userData();
     const SentId = userData.sentFolderId;
-    const url = `http://localhost:8080/mail/deleteMails/${SentId}`
+    const url = `http://localhost:8080/api/mails/${SentId}`
     if(this.Emails.length == 0){
       return
     }
@@ -560,7 +561,7 @@ export class Sent implements OnInit{
 
   move(moveMailToFolderId:string){
     let mailids:string[]=[];
-    const url = `http://localhost:8080/mail/move/${moveMailToFolderId}/${this.folderStateService.userData().sentFolderId}`;
+    const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.folderStateService.userData().sentFolderId}`;
     for(let i:number=0; i<this.Emails.length;i++){
       mailids.push(this.Emails[i].mailId);
       const emailIndex = this.SentData.findIndex(e => e.mailId === this.Emails[i].mailId);
@@ -569,7 +570,7 @@ export class Sent implements OnInit{
     const payload={
       ids:mailids
     }
-    this.http.post(url, payload).subscribe({
+    this.http.patch(url, payload).subscribe({
       next:(respones) => {
         const movedIdsSet = new Set(mailids);
 
@@ -587,7 +588,7 @@ export class Sent implements OnInit{
     this.router.navigate([`/Custom`]);
   }
   CreateCustomFolder(){
-    const url = "http://localhost:8080/folders/createFolder"
+    const url = "http://localhost:8080/api/folders"
     const payload={
       folderName:this.foldername,
       folderId:this.folderStateService.userData().inboxFolderId,

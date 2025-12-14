@@ -9,7 +9,7 @@ import { FolderStateService } from '../Dtos/FolderStateService';
 })
 export class ContactService {
   
-  private apiUrl = 'http://localhost:8080/contact'; 
+  private apiUrl = 'http://localhost:8080/api/contacts'; 
 
   constructor(
     private http: HttpClient,
@@ -35,25 +35,25 @@ export class ContactService {
 
   createContact(contact: ContactDto): Observable<ContactDto> {
     const userId = this.getUserId();
-    return this.http.post<ContactDto>(`${this.apiUrl}/create/${userId}`, contact);
+    return this.http.post<ContactDto>(`${this.apiUrl}/${userId}`, contact);
   }
 
   editContact(contactId: string, contact: ContactDto): Observable<ContactDto> {
-    return this.http.put<ContactDto>(`${this.apiUrl}/edit/${contactId}`, contact);
+    return this.http.put<ContactDto>(`${this.apiUrl}/${contactId}`, contact);
   }
 
   deleteContact(contactId: string): Observable<string> {
-    return this.http.delete(`${this.apiUrl}/delete/${contactId}`, { responseType: 'text' });
+    return this.http.delete(`${this.apiUrl}/${contactId}`, { responseType: 'text' });
   }
 
   deleteMultipleContacts(contactIds: string[]): Observable<string> {
-    return this.http.delete(`${this.apiUrl}/deleteMultipleContacts`, { 
+    return this.http.delete(`${this.apiUrl}`, { 
       body: contactIds, 
       responseType: 'text' 
     });
   }
 
   toggleStar(contactId: string): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${contactId}/star`, {});
+    return this.http.patch<void>(`${this.apiUrl}/${contactId}`, {});
   }
 }
