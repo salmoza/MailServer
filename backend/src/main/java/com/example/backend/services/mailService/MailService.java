@@ -385,4 +385,18 @@ public class MailService {
 
         }
     }
+
+    public void deleteForever(List<String> ids) {
+        Mail mail = mailRepo.findByMailId(ids.get(0))
+                .orElseThrow(() -> new RuntimeException("Mail not found"));
+        Folder folder = mail.getFolders().get(0);
+
+        for (String i : ids) {
+          Mail deletedMail = mailRepo.findByMailId(i)
+                  .orElseThrow(() -> new RuntimeException("Mail not found"));
+          folder.deleteMail(deletedMail);
+          mailRepo.delete(deletedMail);
+        }
+        folderRepo.save(folder) ;
+    }
 }

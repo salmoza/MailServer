@@ -529,34 +529,32 @@ export class Trash implements OnInit{
       return false;
     }
   }
-  delete(){
-    const userData: UserData = this.folderStateService.userData();
-    const TrashId = userData.trashFolderId;
-    const url = `http://localhost:8080/api/mails/${TrashId}`
-    if(this.Emails.length == 0){
-      return
-    }
-    let ids:string[]=[];
-    for(let i:number=0; i<this.Emails.length;i++){
-      ids.push(this.Emails[i].mailId);
+  delete() {
+    if (this.Emails.length == 0) return;
+    
+    
+    const ids = this.Emails.map(email => email.mailId);
 
-      const emailIndex = this.TrashData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.TrashData[emailIndex],false)
-    }
-    let params = new HttpParams();
-    ids.forEach((id) => {
-      params = params.append('ids', id);
+    
+    const url = `http://localhost:8080/api/mails`; 
+
+    
+    ids.forEach(id => {
+      const emailIndex = this.TrashData.findIndex(e => e.mailId === id);
+      if(emailIndex > -1) this.toggleEmailsSelected(this.TrashData[emailIndex], false);
     });
-    this.http.delete(url, {params:params}).subscribe({
-      next:(respones) => {
-        
+
+    
+    this.http.request('delete', url, { body: ids, responseType: 'text' }).subscribe({
+      next: (response) => {
         const deletedIdsSet = new Set(ids);
         this.TrashData = this.TrashData.filter(email => !deletedIdsSet.has(email.mailId));
         this.Emails = [];
-        console.log(respones);
+        console.log("Deleted Forever from Trash");
       },
-      error:(respones) => {
-        console.log(respones);
+      error: (err) => {
+        console.error(err);
+        alert("Failed to delete forever");
       }
     })
   }
