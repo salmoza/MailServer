@@ -194,7 +194,7 @@ import {FormsModule} from '@angular/forms';
                   <span class="font-medium">To:</span>
                   @for (mail of mail?.receivers; track $index){
                   <span>
-                  {{mail}}
+                  {{mail}},
                     </span>
                 }
                 </p>
@@ -216,9 +216,6 @@ import {FormsModule} from '@angular/forms';
             </div>
             <!-- Attachments -->
             <div class="mt-8 pt-6 border-t border-gray-200">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                {{ mail?.attachments?.length }}
-              </h3>
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Attachment Card 1 -->
                 @for (item of mail?.attachments; track $index) {
@@ -231,7 +228,7 @@ import {FormsModule} from '@angular/forms';
                     </div>
                     <div class="flex-1">
                       <p class="text-sm font-medium text-gray-900 truncate">
-                        {{ item.fileName }}{{ item.fileType }}
+                        {{ item.filetype }}
                       </p>
                       <p class="text-xs text-gray-500">{{ item.fileSize }}</p>
                     </div>

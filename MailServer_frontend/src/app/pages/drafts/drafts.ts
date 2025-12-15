@@ -55,7 +55,7 @@ import {lastValueFrom} from 'rxjs';
                 >
                 <p class="text-sm font-medium leading-normal">Inbox</p>
               </a>
-              <a [routerLink]="['/compose']"
+              <a [routerLink]="['/sent']"
                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100"
               >
                 <span class="material-symbols-outlined text-gray-800">send</span>
@@ -141,13 +141,13 @@ import {lastValueFrom} from 'rxjs';
                     (click)="addallemails(checkbox.checked)"
                   />
                   <button (click)="delete()"
-                    class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg disabled:opacity-50"
-                    disabled=""
+                          class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                          [disabled]="Emails.length === 0"
                   >
                     <span class="material-symbols-outlined">delete</span>
                   </button>
                   <button (click)="getDraftData()"
-                    class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                    class="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg cursor-pointer"
                   >
                     <span class="material-symbols-outlined">refresh</span>
                   </button>
@@ -180,20 +180,27 @@ import {lastValueFrom} from 'rxjs';
                     <tbody>
                     @for(item of DraftData ; track $index) {
                     <tr
-                      class="border-b border-gray-200 hover:bg-gray-50 group"
+                      class="border-b bg-blend-color  group items-center "
                     >
                       <td class="h-[72px] px-4 py-2">
                         <input
                           class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
                           type="checkbox"
                           #checkbox
+                          (change)="toggleEmailsSelected(item,checkbox.checked)"
                           [checked]="checked(item.mailId)"
                         />
                       </td>
                       <td
                         class="h-[72px] px-4 py-2 text-gray-900 text-sm font-normal leading-normal"
                       >
-                        {{item.receivers}}
+                        <div style="display: flex ; flex-direction: column; gap:2px;width: 100%">
+                        @for(email of item.receiverEmails; track $index) {
+                          <span style="; border-radius: 10px; display: flex;padding: 5px">
+                        {{email}}
+                          </span>
+                        }
+                        </div>
                       </td>
                       <td
                         class="h-[72px] px-4 py-2 text-gray-500 text-sm font-normal leading-normal"
@@ -205,12 +212,14 @@ import {lastValueFrom} from 'rxjs';
                           class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <button (click)="openEdit(item.mailId)"
-                            class="p-2 text-gray-600 hover:border-b-blue-950"
+                                  class="p-2 flex items-center text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-4xl transition-transform duration-100 hover:scale-105"
+                                  title="Edit Draft"
                           >
                             <span class="material-symbols-outlined text-xl">edit</span>
                           </button>
                           <button (click)="deleteMail(item.mailId)"
-                            class="p-2 text-gray-600 hover:text-gray-900"
+                                  class="p-2 flex items-center text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-4xl transition-transform duration-100 hover:scale-105"
+                                  title="delete Draft"
                           >
                             <span class="material-symbols-outlined text-xl">delete</span>
                           </button>
@@ -239,7 +248,7 @@ import {lastValueFrom} from 'rxjs';
             >
               <h3 class="text-lg font-semibold text-gray-800 ">New Message</h3>
               <button
-                class="p-2 text-gray-500 rounded-full hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-700 dark:text-gray-400 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0D6EFD]"
+                class="cursor-pointer flex items-center p-2 text-gray-500 rounded-full hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0D6EFD]"
                 (click)="isopen=false">
                 <span class="material-symbols-outlined text-xl">close</span>
               </button>
@@ -269,10 +278,6 @@ import {lastValueFrom} from 'rxjs';
                     (keydown.enter)="addRecipient($event)"
                     (keydown.tab)="addRecipient($event)"
                   />
-                  <div class="flex items-center space-x-2">
-                    <button class="text-sm font-medium text-[#0D6EFD] hover:underline">Cc</button>
-                    <button class="text-sm font-medium text-[#0D6EFD] hover:underline">Bcc</button>
-                  </div>
                 </div>
               </div>
               <!-- Subject Field -->
@@ -291,43 +296,7 @@ import {lastValueFrom} from 'rxjs';
               </div>
               <!-- Rich Text Editor -->
               <div>
-                <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                  <div
-                    class="flex items-center p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-100 "
-                  >
-                    <button
-                      class="p-2 text-gray-600  rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-                    >
-                      <span class="material-symbols-outlined text-xl">format_bold</span>
-                    </button>
-                    <button
-                      class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-                    >
-                      <span class="material-symbols-outlined text-xl">format_italic</span>
-                    </button>
-                    <button
-                      class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-                    >
-                      <span class="material-symbols-outlined text-xl">format_underlined</span>
-                    </button>
-                    <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
-                    <button
-                      class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-                    >
-                      <span class="material-symbols-outlined text-xl">format_list_bulleted</span>
-                    </button>
-                    <button
-                      class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-                    >
-                      <span class="material-symbols-outlined text-xl">format_list_numbered</span>
-                    </button>
-                    <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
-                    <button
-                      class="p-2 text-gray-600 rounded hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-                    >
-                      <span class="material-symbols-outlined text-xl">link</span>
-                    </button>
-                  </div>
+                <div class="bord border-gray-600 border-2 rounded-2xl ">
                   <textarea
                     class="form-textarea w-full h-48 p-3 border-none resize-y focus:ring-0 text-black bg-white  placeholder:text-gray-400 dark:placeholder:text-gray-500"
                     placeholder="Compose your message..."
@@ -356,34 +325,34 @@ import {lastValueFrom} from 'rxjs';
                       >
                       <span class="text-xs text-gray-500 dark:text-gray-400">{{item.sizeMB}}</span>
                     </div>
-                    <button (click)="removeAttachment(item.id)"
-                            class="p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-red-700"
+                    <button (click)="removeNewAttachment(item.id)"
+                            class="cursor-pointer p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-400 dark:text-gray-400 dark:hover:bg-red-700"
                     >
                       <span class="material-symbols-outlined text-lg">close</span>
                     </button>
                   </div>
                 </div>
               }
+              <div class="space-y-2">
               @for(item of oldattachments;track item){
-                <div class="space-y-2">
                   <div
-                    class="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
+                    class="flex items-center justify-between p-3 bg-gray-100 rounded-lg border border-gray-300"
                   >
                     <div class="flex items-center space-x-2">
                       <span class="material-symbols-outlined text-gray-500">{{item.fileName}}</span>
                       <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >{{item.fileType}}</span
+                      >{{item.filetype}}</span
                       >
                       <span class="text-xs text-gray-500 dark:text-gray-400">{{item.fileSize}}</span>
                     </div>
-                    <button (click)="removeAttachment(item.attachmentId)"
-                            class="p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-red-700"
+                    <button (click)="removeoldAttachment(item.attachmentId)"
+                            class="cursor-pointer p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-red-700"
                     >
                       <span class="material-symbols-outlined text-lg">close</span>
                     </button>
                   </div>
-                </div>
               }
+              </div>
             </div>
             <!-- Footer / Action Bar -->
             <footer
@@ -392,20 +361,15 @@ import {lastValueFrom} from 'rxjs';
               <div class="flex items-center space-x-2 mb-4 sm:mb-0">
                 <!-- Send Button -->
                 <!-- FIX: Use hex code for primary color -->
-                <button (click)="sendCompose()"
-                        class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0D6EFD] rounded-lg shadow-sm hover:bg-[#0D6EFD]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD]"
+                <button (click)="SentDraft()"
+                        class="cursor-pointer flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0D6EFD] rounded-lg shadow-sm hover:bg-[#0D6EFD]/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD]"
                 >
                   <span>Send</span>
                 </button>
                 <button (click)="SaveDraft()"
-                        class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD] dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
+                        class="cursor-pointer px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD]   "
                 >
                   Save Draft
-                </button>
-                <button
-                  class="p-2 text-gray-600 rounded-full hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-                >
-                  <span class="material-symbols-outlined">attach_file</span>
                 </button>
               </div>
               <div class="flex items-center space-x-2">
@@ -414,30 +378,51 @@ import {lastValueFrom} from 'rxjs';
                   <!-- Priority Buttons -->
                   <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
                     <button (click)="priority=4"
-                            class="px-2 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-l-md border-r border-gray-300 dark:border-gray-600"
+                            class="px-2 py-1 text-sm cursor-pointer   text-gray-800 dark:text-gray-200 rounded-l-md border-r border-gray-300 dark:border-gray-600"
+                            [class.bg-gray-500]="priority === 4"
+                            [class.text-white]="priority === 4"
+                            [class.color-white]="priority === 4"
+                            [class.font-bold]="priority === 4"
+                            [class.bg-gray-50]="priority !== 4"
+                            [class.text-gray-600]="priority !== 4"
+                            [class.hover:bg-gray-200]="priority !== 4"
                     >
                       4
                     </button>
-                    <button (click)="priority=3" class="px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                    <button (click)="priority=3" class="px-2 py-1 cursor-pointer text-sm hover:bg-gray-100 dark:hover:bg-blue-100"
+                            [class.bg-blue-100]="priority === 3"
+                            [class.text-blue-800]="priority === 3"
+                            [class.font-bold]="priority === 3"
+                            [class.bg-gray-50]="priority !== 3"
+                            [class.text-gray-600]="priority !== 3"
+                            [class.hover:bg-gray-200]="priority !== 3"
+                    >
                       3
                     </button>
                     <button (click)="priority=2"
-                            class="px-2 py-1 text-sm text-yellow-600 hover:bg-yellow-100 dark:hover:bg-yellow-900/50"
+                            class="px-2 py-1 text-sm text-yellow-600 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/50"
+                            [class.bg-yellow-300]="priority === 2"
+                            [class.text-yellow-800]="priority === 2"
+                            [class.font-bold]="priority === 2"
+                            [class.bg-gray-50]="priority !== 2"
+                            [class.text-yellow-600]="priority !== 2"
+                            [class.hover:bg-yellow-50]="priority !== 2"
                     >
                       2
                     </button>
                     <button (click)="priority=1"
-                            class="px-2 py-1 text-sm text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-r-md border-l border-gray-300 dark:border-gray-600"
+                            class="px-2 py-1 text-sm text-red-600 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/50 rounded-r-md border-l border-gray-300 dark:border-gray-600 "
+                            [class.bg-red-100]="priority === 1"
+                            [class.text-red-800]="priority === 1"
+                            [class.font-bold]="priority === 1"
+                            [class.bg-gray-50]="priority !== 1"
+                            [class.text-red-600]="priority !== 1"
+                            [class.hover:bg-red-50]="priority !== 1"
                     >
                       1
                     </button>
                   </div>
                 </div>
-                <button
-                  class="p-2 text-gray-600 rounded-full hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
-                >
-                  <span class="material-symbols-outlined">delete</span>
-                </button>
               </div>
             </footer>
           </div>
@@ -453,20 +438,31 @@ import {lastValueFrom} from 'rxjs';
 
     /* 2. Base styles */
     :host {
-      /* Apply font to the host element */
       font-family: 'Inter', sans-serif;
-      /* FIX: Ensure host takes full height and background */
       min-height: 100vh;
       display: block;
-      /* FIX: Explicitly enforce light background */
       background-color: #f6f7f8;
 
+    }
+    .bord{
+      margin:5px;
+      padding:5px;
+    }
+    .bord text{
+      border-radius: 20px;
+    }
+    button{
+      transition: all 0.3s ease-in-out;
+    }
+    button.active {
+      transform: scale(0.95);
     }
     .popup{
       opacity: 0;
       width: 100%;
       height: 100%;
       position: fixed;
+      background-color: #cccc;
       top: 0;
       left: 0;
       display: flex;
@@ -474,6 +470,7 @@ import {lastValueFrom} from 'rxjs';
       align-items: center;
       visibility: hidden;
       transition: all 0.1s ease-in;
+      z-index: 10000;
     }
     .popup.active {
       visibility: visible;
@@ -489,6 +486,7 @@ import {lastValueFrom} from 'rxjs';
       border-color: transparent !important;
       outline: none !important;
       --tw-ring-color: transparent !important;
+      border-radius: 20px;
     }
 
     /* FIX: Re-enforcing primary color styles */
@@ -532,6 +530,7 @@ export class Drafts implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   constructor(private http:HttpClient,protected folderStateService: FolderStateService,private route:Router,private Shuffler:MailShuttleService) {
   }
+  DraftId:string='';
   currentEmailInput:string='';
   isopen:boolean = false;
   recipients:string[]=[];
@@ -662,17 +661,22 @@ export class Drafts implements OnInit {
     })
   }
   openEdit(id:string){
+    this.attachments=[];
+    this.oldattachments=[];
+    this.currentEmailInput='';
     let mail:Datafile;
     let emailIndex = this.DraftData.findIndex(e => e.mailId === id);
+    this.DraftId = this.DraftData[emailIndex].mailId;
     if (emailIndex != -1) {
       mail = this.DraftData[emailIndex];
-      this.recipients=mail.receivers || [];
+      this.recipients=mail.receiverEmails || [];
       this.subject=mail.subject;
       this.body=mail.body;
       this.priority=mail.priority;
-      this.oldattachments = mail.attachments;
+      this.oldattachments = mail.attachmentMetadata;
       this.maildId=mail.mailId;
       this.isopen=true;
+      this.attachments=[];
     }
     else{
       alert("failed to open edit email");
@@ -726,79 +730,88 @@ export class Drafts implements OnInit {
     const MB = KB / 1024;
     return `${MB.toFixed(2)} MB`;
   }
-  removeAttachment(attId: string) {
+  removeNewAttachment(attId: string) {
     this.attachments = this.attachments.filter(att => att.id !== attId);
   }
-  sendCompose() {
+  SentDraft() {
     if (this.attachments.length > 0) {
       this.uploadAndSend();
       this.isopen=false;
     } else {
-      this.createMailBase();
+      this.Sent();
       this.isopen=false;
     }
 
   }
   private async uploadAndSend() {
     try {
-      const mailIds: string[] = await this.createMailBase();
+      await this.UpdateDraftBase();
+      const mailIds = this.DraftId;
       console.log(mailIds);
       await this.delay(500);
       await this.uploadAttachments(mailIds);
+      await this.Sent();
+      let emailIndex = this.DraftData.findIndex(e => e.mailId === this.DraftId);
+      if(emailIndex > -1) {
+      this.DraftData.splice(emailIndex, 1);
+      this.DraftData = [...this.DraftData];
+      }
     } catch (error) {
       console.log(error);
     }
   }
-  private createMailBase(): Promise<string[]> {
-    const payload = {
-      subject: this.subject,
-      body: this.body,
-      priority: this.priority,
-      receivers: this.recipients,
-      sender: this.folderStateService.userData().email,
-    };
+  private Sent(): Promise<string> {
+
     return lastValueFrom(
-      this.http.post<string[]>("http://localhost:8080/api/mails", payload)
+      this.http.post<string>(`http://localhost:8080/api/drafts/${this.DraftId}/send`,null)
     );
+    let emailIndex = this.DraftData.findIndex(e => e.mailId === this.DraftId);
+    if(emailIndex > -1) {
+      this.DraftData.splice(emailIndex, 1);
+      this.DraftData = [...this.DraftData];
+    }
   }
-  private uploadAttachments(mailId: string[]) {
+  private uploadAttachments(mailId: string) {
 
     const uploadPromises = this.attachments.map(att => {
       const formData = new FormData();
       formData.append('file', att.fileData, att.name);
-      mailId.forEach(id => formData.append('mailIds', id));
+      formData.append('mailIds', mailId);
       console.log(formData);
       return this.http.post("http://localhost:8080/api/attachments", formData,{responseType:'text'}).toPromise();
     });
     return Promise.all(uploadPromises);
   }
+
+
   SaveDraft() {
     if (this.attachments.length > 0) {
       this.uploadAndSaveDraft();
-      this.route.navigate(['/drafts']);
     } else {
-      this.createDraftBase();
-      this.route.navigate(['/drafts']);
+      this.UpdateDraftBase();
     }
+    this.isopen=false;
   }
-  private createDraftBase(): Promise<string> {
+
+  private UpdateDraftBase(): Promise<string> {
     const payload = {
       subject: this.subject,
       body: this.body,
       priority: this.priority,
       receivers: this.recipients,
       sender: this.folderStateService.userData().email,
+      attachments:this.oldattachments,
     };
     return lastValueFrom(
-      this.http.post("http://localhost:8080/api/drafts", payload,{responseType:"text"})
+      this.http.put(`http://localhost:8080/api/drafts/${this.DraftId}`, payload,{responseType:"text"})
     );
   }
+
   private async uploadAndSaveDraft() {
     try {
-      const mailIds: string = await this.createDraftBase();
-      console.log(mailIds);
-      await this.delay(500);
-      await this.DraftUploadAtt(mailIds);
+
+      await this.UpdateDraftBase();
+      await this.DraftUploadAtt(this.DraftId);
     } catch (error) {
       console.log(error);
     }
@@ -808,7 +821,7 @@ export class Drafts implements OnInit {
     const uploadPromises = this.attachments.map(att => {
       const formData = new FormData();
       formData.append('file', att.fileData, att.name);
-      formData.append('Ids', mailId);
+      formData.append('mailIds', mailId);
       console.log(formData);
       return this.http.post("http://localhost:8080/api/attachments", formData).toPromise();
     });
@@ -816,6 +829,38 @@ export class Drafts implements OnInit {
   }
   private delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  removeoldAttachment(id: string) {
+    const url = `http://localhost:8080/api/attachments/delete/${id}`;
+    const previousAtt = [...this.oldattachments];
+    this.oldattachments = this.oldattachments.filter(att => att.attachmentId !== id);
+    this.http.delete(url, {responseType:'text'}).subscribe({
+      next: (response) => {
+        console.log("att deleted");
+        this.updateDraftDataCache(this.DraftId,this.oldattachments)
+      },
+      error: (error) => {
+        console.log(error);
+        alert("failed to remove attachment");
+        this.oldattachments = previousAtt;
+      }
+    });
+  }
+  private updateDraftDataCache(mailId: string, updatedAttachments: attachment[]) {
+    const draftIndex = this.DraftData.findIndex(d => d.mailId === mailId);
+    if (draftIndex > -1) {
+      // 1. Clone the draft object
+      const updatedDraft = { ...this.DraftData[draftIndex] };
+
+      // 2. Update its metadata list
+      updatedDraft.attachmentMetadata = updatedAttachments;
+
+      // 3. Put it back in the master array
+      this.DraftData[draftIndex] = updatedDraft;
+
+      // 4. Trigger change detection
+      this.DraftData = [...this.DraftData];
+    }
   }
   protected readonly MailDetail = MailDetail;
   protected readonly MailShuttleService = MailShuttleService;

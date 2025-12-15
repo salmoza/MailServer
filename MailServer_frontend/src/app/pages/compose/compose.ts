@@ -199,7 +199,7 @@ export interface att{
                 >
                   4
                 </button>
-                <button (click)="priority=3" 
+                <button (click)="priority=3"
                   [class]="priority === 3 ? 'px-2 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200' : 'px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-gray-600'"
                 >
                   3
@@ -461,7 +461,7 @@ export class Compose {
     const uploadPromises = this.attachments.map(att => {
       const formData = new FormData();
       formData.append('file', att.fileData, att.name);
-      formData.append('Ids', mailId);
+      formData.append('mailIds', mailId);
       console.log(formData);
       return this.http.post("http://localhost:8080/api/attachments", formData).toPromise();
     });
