@@ -21,345 +21,204 @@ interface MailSearchRequestDto {
   standalone: true,
   imports: [CommonModule, RouterLink, HttpClientModule, FormsModule, SearchBarComponent, HeaderComponent],
   template: `
-    <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
-    <!-- Main Container: Enforced light background -->
     <div class="flex h-screen w-full">
-      <!-- SideNavBar -->
-      <aside
-        class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0"
-      >
+      <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
         <div class="flex h-full flex-col justify-between">
           <div class="flex flex-col gap-6">
             <div class="flex items-center gap-3 px-3">
-
-              <h1 class="text-slate-800 text-base font-medium leading-normal">
-                {{folderStateService.userData().username}}
-              </h1>
+              <h1 class="text-slate-800 text-base font-medium leading-normal">{{folderStateService.userData().username}}</h1>
             </div>
-            <button [routerLink]="['/compose']"
-              class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
-            >
+            <button [routerLink]="['/compose']" class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
               <span class="truncate">Compose</span>
             </button>
             <div class="flex flex-col gap-1">
-              <!-- Active Inbox Link -->
-              <a [routerLink]="['/inbox']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20"
-              >
-                <!-- Removed dark:text-slate-200 -->
-                <span class="material-symbols-outlined text-slate-800 fill"
-                  >inbox</span
-                >
-                <p class="text-slate-800 text-sm font-medium leading-normal">
-                  Inbox
-                </p>
-                <!-- <span
-                  class="ml-auto text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5"
-                  >3</span
-                > -->
+              <a [routerLink]="['/inbox']" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20">
+                <span class="material-symbols-outlined text-slate-800 fill">inbox</span>
+                <p class="text-slate-800 text-sm font-medium leading-normal">Inbox</p>
               </a>
-              <a [routerLink]="['/sent']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <!-- Removed dark:text-slate-400 -->
-                <span class="material-symbols-outlined text-slate-600"
-                  >send</span
-                >
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Sent
-                </p>
+              <a [routerLink]="['/sent']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
+                <span class="material-symbols-outlined text-slate-600">send</span>
+                <p class="text-slate-600 text-sm font-medium leading-normal">Sent</p>
               </a>
-              <a [routerLink]="['/drafts']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600"
-                  >draft</span
-                >
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Drafts
-                </p>
+              <a [routerLink]="['/drafts']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
+                <span class="material-symbols-outlined text-slate-600">draft</span>
+                <p class="text-slate-600 text-sm font-medium leading-normal">Drafts</p>
               </a>
-              <a [routerLink]="['/trash']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600"
-                  >delete</span
-                >
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Trash
-                </p>
+              <a [routerLink]="['/trash']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
+                <span class="material-symbols-outlined text-slate-600">delete</span>
+                <p class="text-slate-600 text-sm font-medium leading-normal">Trash</p>
               </a>
-              <a [routerLink]="['/contacts']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600"
-                  >contacts</span
-                >
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Contacts
-                </p>
+              <a [routerLink]="['/contacts']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
+                <span class="material-symbols-outlined text-slate-600">contacts</span>
+                <p class="text-slate-600 text-sm font-medium leading-normal">Contacts</p>
               </a>
-              <a [routerLink]="['/filters']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
+              <a [routerLink]="['/filters']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
                 <span class="material-symbols-outlined text-slate-600">filter_alt</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Filters
-                </p>
+                <p class="text-slate-600 text-sm font-medium leading-normal">Filters</p>
               </a>
             </div>
-            <!-- Custom Folders -->
             <div class="flex flex-col gap-1">
               <div class="flex items-center justify-between px-3 py-2">
-                <h2
-                  class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                >
-                  Custom Folders
-                </h2>
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Custom Folders</h2>
                 <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp=true">
                   <span class="material-symbols-outlined text-base">add</span>
                 </button>
               </div>
               @for(custom of CustomFolders; track $index) {
-                <a (click)="goToCustomFolder(custom.folderId)"
-                   class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-                >
-                <span class="material-symbols-outlined text-slate-600"
-                >folder</span
-                >
-                  <p class="text-slate-600 text-sm font-medium leading-normal">
-                    {{custom.folderName}}
-                  </p>
+                <a (click)="goToCustomFolder(custom.folderId)" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
+                  <span class="material-symbols-outlined text-slate-600">folder</span>
+                  <p class="text-slate-600 text-sm font-medium leading-normal">{{custom.folderName}}</p>
                 </a>
               }
             </div>
           </div>
         </div>
       </aside>
-      <!-- Main Content -->
+
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <!-- Top bar: Search + Avatar -->
         <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
-          <!-- Search bar stretches -->
           <div class="flex-1 mr-4">
-          <app-search-bar 
-            (onSearch)="handleSearch($event)"
-            (onClear)="handleClearSearch()">
-          </app-search-bar>
+            <app-search-bar (onSearch)="handleSearch($event)" (onClear)="handleClearSearch()"></app-search-bar>
           </div>
-          
-          <!-- Avatar dropdown -->
           <app-header></app-header>
         </div>
 
-        <!-- Rest of inbox content below -->
-        <div class="px-6 py-4">
-          <!-- email list / table here -->
-        </div>
-
-        <!-- Toolbar -->
-        <div
-          class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
-        >
+        <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
           <div class="flex gap-2">
-            <button (click)="delete()"
+            <button (click)="askDelete()"
               class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
-            >
+              [disabled]="Emails.length === 0">
               <span class="material-symbols-outlined">delete</span>
             </button>
+
             <button (click)="tomove = true"
               class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
-            >
+              [disabled]="Emails.length === 0">
               <span class="material-symbols-outlined">folder_open</span>
             </button>
-            <button (click)="refreshData()" 
-            class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
-            title="Reload Emails">
-      <span class="material-symbols-outlined">refresh</span>
-    </button>
+            <button (click)="refreshData()" class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer" title="Reload Emails">
+              <span class="material-symbols-outlined">refresh</span>
+            </button>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-sm font-medium text-slate-600"
-              >Priority Mode</span
-            >
+            <span class="text-sm font-medium text-slate-600">Priority Mode</span>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input 
-                class="sr-only peer" 
-                type="checkbox" 
-                [(ngModel)]="isPriorityMode"
-                (change)="togglePriorityMode($event)"
-              />
-              <div
-                class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"
-              ></div>
+              <input class="sr-only peer" type="checkbox" value="" />
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
             </label>
           </div>
         </div>
-        <!-- Email List Table -->
+
         <div class="flex-1 px-6 py-4 overflow-x-hidden">
-          <div
-            class="flex overflow-hidden rounded-lg border border-slate-200 bg-white"
-          >
+          <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
             <table class="w-full text-left">
               <thead class="bg-slate-50">
-              <tr>
-                <th class="px-4 py-3 w-12">
-                  <input
-                    class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                    type="checkbox"
-                    #checkbox
-                    (click)="addallemails(checkbox.checked)"
-                  />
-                </th>
-
-                <th class="py-3 pl-0 pr-4" colspan="5">
-                  <div class="flex items-center w-full">
-                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">
-                      Sender
+                <tr>
+                  <th class="px-4 py-3 w-12">
+                    <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+                      type="checkbox" #checkbox (click)="addallemails(checkbox.checked)" />
+                  </th>
+                  <th class="py-3 pl-0 pr-4" colspan="5">
+                    <div class="flex items-center w-full">
+                      <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">Sender</div>
+                      <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">Receiver</div>
+                      <div class="px-4 text-slate-800 w-1/3 text-sm font-medium">Subject</div>
+                      <div class="px-4 text-slate-800 w-1/12 text-sm font-medium">Priority</div>
+                      <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-right">Date</div>
                     </div>
-                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">
-                      Receiver
-                    </div>
-                    <div class="px-4 text-slate-800 w-1/3 text-sm font-medium">
-                      Subject
-                    </div>
-                    <div class="px-4 text-slate-800 w-1/12 text-sm font-medium">
-                      Priority
-                    </div>
-                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-right">
-                      Date
-                    </div>
-                  </div>
-                </th>
-              </tr>
+                  </th>
+                </tr>
               </thead>
-
               <tbody>
-      @for(item of InboxData; track $index){
-        <tr class="border-t border-t-slate-200 hover:bg-slate-50">
-          <td class="px-4 py-2">
-            <input
-              class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-              type="checkbox"
-              #checkbox
-              (change)="toggleEmailsSelected(item,checkbox.checked)"
-              [checked]="checked(item.mailId)"
-            />
-          </td>
-
-      <td class="py-0 pl-0 pr-4" colspan="5">
-        <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-          <!-- Sender -->
-          <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
-            {{ item.senderDisplayName }}
-          </div>
-
-          <!-- Receiver -->
-          <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
-            me
-          </div>
-
-
-          <!-- Subject -->
-          <div class="px-4 w-1/3">
-            <span
-              class="text-sm"
-            >
-              {{ item.subject }}
-            </span>
-
-            <span
-              class="text-sm ml-2"
-              [innerHTML]="getSanitizedPreview(item.body)"
-            ></span>
-          </div>
-
-          <!-- Priority -->
-          <div class="px-4 w-1/12">
-            <span 
-              class="text-xs font-semibold px-2 py-1 rounded"
-              [ngClass]="{
-                'bg-red-100 text-red-700': item.priority === 1,
-                'bg-orange-100 text-orange-700': item.priority === 2,
-                'bg-yellow-100 text-yellow-700': item.priority === 3,
-                'bg-blue-100 text-blue-700': item.priority === 4
-              }">
-              {{ getPriorityLabel(item.priority) }}
-            </span>
-          </div>
-
-          <!-- Date -->
-          <div
-            class="px-4 text-sm text-right w-1/6"
-          >
-            {{ item.date | date:'mediumDate' }}
-          </div>
-        </div>
-      </td>
-          </tr>
-        }
-      </tbody>
-
+                @for(item of InboxData; track $index){
+                  <tr class="border-t border-t-slate-200 hover:bg-slate-50">
+                    <td class="px-4 py-2">
+                      <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+                        type="checkbox" #checkbox (change)="toggleEmailsSelected(item,checkbox.checked)" [checked]="checked(item.mailId)" />
+                    </td>
+                    <td class="py-0 pl-0 pr-4" colspan="5">
+                      <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
+                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">{{ item.senderDisplayName }}</div>
+                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">me</div>
+                        <div class="px-4 w-1/3">
+                          <span class="text-sm">{{ item.subject }}</span>
+                          <span class="text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
+                        </div>
+                        <div class="px-4 w-1/12">
+                           <span class="text-xs font-semibold px-2 py-1 rounded"
+                             [ngClass]="{'bg-red-100 text-red-700': item.priority === 1, 'bg-orange-100 text-orange-700': item.priority === 2, 'bg-yellow-100 text-yellow-700': item.priority === 3, 'bg-blue-100 text-blue-700': item.priority === 4}">
+                             {{ getPriorityLabel(item.priority) }}
+                           </span>
+                        </div>
+                        <div class="px-4 text-sm text-right w-1/6">{{ item.date | date:'mediumDate' }}</div>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
             </table>
           </div>
         </div>
-        <!-- Pagination -->
-        <div
-          class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto"
-        >
-          <a (click)="updatePage(page-1)"
-            class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary"
-          >
+
+        <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto">
+          <a (click)="updatePage(page-1)" class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary">
             <span class="material-symbols-outlined text-lg">chevron_left</span>
           </a>
-          <a (click)="updatePage(0)"
-            class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary"
-            >1</a
-          >
-          <a (click)="updatePage(1)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >2</a
-          >
-          <a (click)="updatePage(2)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            ></a
-          >
-          <a (click)="updatePage(page+1)"
-            class="flex  size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer"
-          >
+          <a (click)="updatePage(0)" class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary">1</a>
+          <a (click)="updatePage(1)" class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100">2</a>
+          <a (click)="updatePage(page+1)" class="flex size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer">
             <span class="material-symbols-outlined text-lg">chevron_right</span>
           </a>
         </div>
       </main>
+
       <div class="move-conatiner bg-black/50" [class.active]="tomove">
-      <div class="content-container">
-        <span class="text-lg font-bold mt-5">Move {{Emails.length}} Email(s) To</span>
-        
-        <div class="buttons-folders">
-          <button (click)="move(folderStateService.userData().sentFolderId)">Sent</button>
-
-          @for(folder of CustomFolders; track $index){
-            <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
-          }
-        </div>
-
-        <div class="bottom-btn">
-          <button (click)="tomove=false">Back</button>
-          <button (click)="CustomFolderPopUp=true">Make new custom Folder</button>
+        <div class="content-container">
+          <span class="text-lg font-bold mt-5">Move {{Emails.length}} Email(s) To</span>
+          <div class="buttons-folders">
+            <button (click)="move(folderStateService.userData().sentFolderId)">Sent</button>
+            @for(folder of CustomFolders; track $index){
+              <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
+            }
+          </div>
+          <div class="bottom-btn">
+            <button (click)="tomove=false">Back</button>
+            <button (click)="CustomFolderPopUp=true">Make new custom Folder</button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <div class="move-conatiner bg-black/50" [class.active]="showDeleteOptions">
+        <div class="content-container" style="min-height: 250px; gap: 20px;">
+          <span class="text-lg font-bold mt-5 text-red-600">Delete {{Emails.length}} Email(s)</span>
+          <p class="text-slate-600 text-center px-4">Do you want to move these emails to Trash or delete them forever?</p>
+
+          <div class="flex flex-col gap-3 w-3/4">
+            <button (click)="moveToTrash()" class="bg-amber-100 text-amber-800 hover:bg-amber-200" style="border: 1px solid #d97706;">
+              <span class="material-symbols-outlined align-middle mr-1 text-sm">delete</span>
+              Move to Trash
+            </button>
+            <button (click)="deleteForever()" class="bg-red-100 text-red-800 hover:bg-red-200" style="border: 1px solid #dc2626;">
+              <span class="material-symbols-outlined align-middle mr-1 text-sm">delete_forever</span>
+              Delete Forever
+            </button>
+          </div>
+
+          <div class="bottom-btn">
+            <button (click)="showDeleteOptions=false">Cancel</button>
+          </div>
+        </div>
+      </div>
+
       <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
-      <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
-        <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
-        <button  (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
-        <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
-      </div>
+        <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
+          <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
+          <button (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
+          <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
+        </div>
       </div>
     </div>
   `,
@@ -510,6 +369,7 @@ export class Inbox implements OnInit{
     this.dataFile = mail;
     this.isRead = mail.isRead;
   }
+  showDeleteOptions: boolean = false;
   CustomFolderPopUp:boolean = false;
   foldername:string=''
   Emails:Datafile[]=[];
@@ -520,7 +380,6 @@ export class Inbox implements OnInit{
   isSearchActive = false;
   isAdvancedSearch = false;
   currentSearchKeyword = '';
-  isPriorityMode = false;
   currentAdvancedFilters: MailSearchRequestDto = {};
   ngOnInit() {
     this.getInbox(0);
@@ -531,7 +390,7 @@ export class Inbox implements OnInit{
       return;
     }
     this.page = page;
-    
+
     if (this.isSearchActive) {
       if (this.isAdvancedSearch) {
         this.performAdvancedSearch(this.page);
@@ -558,7 +417,7 @@ export class Inbox implements OnInit{
       }
     })
   }
-  getInbox(page: number){
+  getInbox(page:number){
     const userData: UserData = this.folderStateService.userData();
     const inboxId = userData.inboxFolderId;
     if(!inboxId){
@@ -569,18 +428,7 @@ export class Inbox implements OnInit{
     param = param.set('page', page);
     param = param.set("folderId",this.folderStateService.userData().inboxFolderId);
     console.log(param);
-
-    const endpoint = this.isPriorityMode 
-    ? 'http://localhost:8080/api/mails/sort'
-    : 'http://localhost:8080/api/mails';
-
-    if (this.isPriorityMode) {
-      param = param
-        .set('userId', userData.userId)
-        .set('sortBy', 'priority');
-    }
-
-    this.http.get<Datafile[]>(endpoint, {params:param}).subscribe({
+    this.http.get<Datafile[]>(`http://localhost:8080/api/mails`,{params:param}).subscribe({
       next:(respones) => {
         this.InboxData=respones;
         console.log(respones);
@@ -652,16 +500,16 @@ export class Inbox implements OnInit{
       console.log("removed");
       this.Emails=[];
     }
-  }
+}
   checked(id:string){
-    const emailIndex = this.Emails.findIndex(e => e.mailId === id);
-    if (emailIndex != -1) {
-      return true;
-    }
-    else{
-      return false;
-    }
+  const emailIndex = this.Emails.findIndex(e => e.mailId === id);
+  if (emailIndex != -1) {
+    return true;
   }
+  else{
+    return false;
+  }
+}
   delete(){
     const userData: UserData = this.folderStateService.userData();
     const inboxId = userData.inboxFolderId;
@@ -672,23 +520,23 @@ export class Inbox implements OnInit{
     let ids:string[]=[];
     for(let i:number=0; i<this.Emails.length;i++){
       ids.push(this.Emails[i].mailId);
-      
+
       const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
       this.toggleEmailsSelected(this.InboxData[emailIndex],false)
     }
     let params = new HttpParams();
     ids.forEach(id => params = params.append('ids', id));
-    
+
     this.http.delete(url, {params: params, responseType: 'text'}).subscribe({
-      next:()=>{ 
-        this.InboxData = this.InboxData.filter(e => !ids.includes(e.mailId)); 
-        this.Emails=[]; 
+      next:()=>{
+        this.InboxData = this.InboxData.filter(e => !ids.includes(e.mailId));
+        this.Emails=[];
       },
       error:(respones) => {
         console.log(respones);
       }
     })
-  }
+}
   CreateCustomFolder(){
     const url = "http://localhost:8080/api/folders"
     const payload={
@@ -705,11 +553,11 @@ export class Inbox implements OnInit{
       }
     })
   }
-  
+
   move(targetFolderId: string) {
-    
+
     if (this.Emails.length === 0) return;
-    
+
     const currentFolderId = this.folderStateService.userData().inboxFolderId;
     if (!currentFolderId || !targetFolderId) {
       alert("Error: Folder ID is missing. Please try logging in again.");
@@ -717,19 +565,19 @@ export class Inbox implements OnInit{
     }
 
     const mailIds = this.Emails.map(email => email.mailId);
-    
-    
+
+
     const url = `http://localhost:8080/api/mails/${targetFolderId}/${currentFolderId}`;
     const payload = { ids: mailIds };
 
-    
+
     this.http.patch(url, payload, { responseType: 'text' }).subscribe({
       next: (response) => {
-        
+
         const movedIdsSet = new Set(mailIds);
         this.InboxData = this.InboxData.filter(email => !movedIdsSet.has(email.mailId));
-        this.Emails = []; 
-        this.tomove = false; 
+        this.Emails = [];
+        this.tomove = false;
       },
       error: (err) => {
         console.error("Failed to move", err);
@@ -743,6 +591,7 @@ export class Inbox implements OnInit{
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
     this.page = 0;
+
     if (criteria.keywords) {
       // Quick keyword search
       this.isSearchActive = true;
@@ -761,7 +610,7 @@ export class Inbox implements OnInit{
   performQuickSearch(page: number) {
     const userData: UserData = this.folderStateService.userData();
     const folderId = userData.inboxFolderId;
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;
@@ -774,9 +623,6 @@ export class Inbox implements OnInit{
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
       next: (response) => {
-        if (this.isPriorityMode) {
-          response = this.sortByPriorityClientSide(response);
-        }
         this.InboxData = response;
         console.log('Search results:', response);
       },
@@ -796,41 +642,41 @@ export class Inbox implements OnInit{
     this.getInbox(0);
   }
 
-  getSanitizedPreview(body: string | undefined): SafeHtml {
-    if (!body) return '';
-    let truncated = body.length > 50 ? body.substring(0, 50) + '...' : body;
-    return this.sanitizer.bypassSecurityTrustHtml(truncated);
-  }
-
-  getPriorityLabel(priority: number | undefined): string {
-    switch(priority) {
-      case 1: return 'Urgent';
-      case 2: return 'High';
-      case 3: return 'Normal';
-      case 4: return 'Low';
-      default: return 'Normal';
+    getSanitizedPreview(body: string | undefined): SafeHtml {
+      if (!body) return '';
+      let truncated = body.length > 50 ? body.substring(0, 50) + '...' : body;
+      return this.sanitizer.bypassSecurityTrustHtml(truncated);
     }
-  }
 
-  refreshData() {
-    console.log("Refreshing Inbox Data...");
-    this.Emails = []; 
-    if (this.isSearchActive) {
-      if (this.isAdvancedSearch) {
-        this.performAdvancedSearch(this.page);
-      } else {
-        this.performQuickSearch(this.page);
+    getPriorityLabel(priority: number | undefined): string {
+      switch(priority) {
+        case 1: return 'Urgent';
+        case 2: return 'High';
+        case 3: return 'Normal';
+        case 4: return 'Low';
+        default: return 'Normal';
       }
-    } else {
-      this.getInbox(this.page);
     }
-  }
+
+    refreshData() {
+      console.log("Refreshing Inbox Data...");
 
 
-  performAdvancedSearch(page: number) {
+      this.Emails = [];
+
+
+      if (this.isSearchActive) {
+        this.performQuickSearch(0);
+      } else {
+        this.getInbox(this.page);
+      }
+    }
+
+
+    performAdvancedSearch(page: number) {
     const userData: UserData = this.folderStateService.userData();
     const folderId = userData.inboxFolderId;
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;
@@ -839,16 +685,13 @@ export class Inbox implements OnInit{
     let params = new HttpParams()
       .set('folderId', folderId)
       .set('page', page);
-    
+
     this.http.post<Datafile[]>(
       'http://localhost:8080/api/mails/filter',
       this.currentAdvancedFilters,
       { params }
     ).subscribe({
       next: (response) => {
-        if (this.isPriorityMode) {
-          response = this.sortByPriorityClientSide(response);
-        }
         this.InboxData = response;
         console.log('Filter results:', response);
       },
@@ -859,58 +702,67 @@ export class Inbox implements OnInit{
     });
   }
 
-  private sortByPriorityClientSide(emails: Datafile[]): Datafile[] {
-    return emails.sort((a, b) => {
-      const priorityA = a.priority || 3; // Default to Normal (3) if undefined
-      const priorityB = b.priority || 3;
-      return priorityA - priorityB; // 1 (Urgent) comes before 4 (Low)
+  askDelete() {
+    if (this.Emails.length > 0) {
+      this.showDeleteOptions = true;
+    }
+  }
+
+
+  moveToTrash() {
+    const userData = this.folderStateService.userData();
+    const inboxId = userData.inboxFolderId;
+    const url = `http://localhost:8080/api/mails/${inboxId}`;
+
+    if (this.Emails.length === 0) return;
+
+    let ids: string[] = [];
+    for (let i = 0; i < this.Emails.length; i++) {
+      ids.push(this.Emails[i].mailId);
+
+      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
+      if(emailIndex !== -1) this.toggleEmailsSelected(this.InboxData[emailIndex], false);
+    }
+
+    let params = new HttpParams();
+    ids.forEach(id => params = params.append('ids', id));
+
+    this.http.delete(url, { params: params, responseType: 'text' }).subscribe({
+      next: () => {
+        this.InboxData = this.InboxData.filter(e => !ids.includes(e.mailId));
+        this.Emails = [];
+        this.showDeleteOptions = false;
+      },
+      error: (res) => {
+        console.log(res);
+        alert("Failed to move to Trash");
+      }
     });
   }
 
-  // Priority sorting
-  togglePriorityMode(event: any) {
-    this.isPriorityMode = event.target.checked;
-    this.page = 0; // Reset to first page
-    
-    // Re-fetch current view with or without priority sorting
-    if (this.isSearchActive) {
-      if (this.isAdvancedSearch) {
-        this.performAdvancedSearch(0);
-      } else {
-        this.performQuickSearch(0);
+
+  deleteForever() {
+    if (this.Emails.length === 0) return;
+
+
+    const ids = this.Emails.map(e => e.mailId);
+
+
+    const url = `http://localhost:8080/api/mails`;
+
+    this.http.request('delete', url, { body: ids, responseType: 'text' }).subscribe({
+      next: () => {
+
+        const deletedIdsSet = new Set(ids);
+        this.InboxData = this.InboxData.filter(email => !deletedIdsSet.has(email.mailId));
+        this.Emails = [];
+        this.showDeleteOptions = false;
+        console.log("Deleted Forever successfully");
+      },
+      error: (err) => {
+        console.error("Delete Forever failed", err);
+        alert("Failed to delete emails forever");
       }
-    } else {
-      this.getInbox(0);
-    }
+    });
   }
-
-sortByPriority(page: number) {
-  const userData: UserData = this.folderStateService.userData();
-  const folderId = userData.inboxFolderId;
-  const userId = userData.userId;
-  
-  if (!folderId || !userId) {
-    console.error('folderId or userId is missing');
-    return;
-  }
-
-  let params = new HttpParams()
-    .set('userId', userId)
-    .set('folderId', folderId)
-    .set('sortBy', 'priority')
-    .set('page', page);
-
-  this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
-    next: (response) => {
-      this.InboxData = response;
-      console.log('Priority sorted results:', response);
-    },
-    error: (error) => {
-      console.error('Priority sort failed:', error);
-      alert('Failed to sort by priority');
-    }
-  });
-}
-
-
 }
