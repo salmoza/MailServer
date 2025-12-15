@@ -7,11 +7,12 @@ import {CustomFolderData, Datafile} from '../../Dtos/datafile';
 import {MailShuttleService} from '../../Dtos/MailDetails';
 import {FormsModule} from '@angular/forms';
 import {SearchBarComponent} from '../../components/search-bar/search-bar';
-
+import { HeaderComponent } from '../../header';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 @Component({
   selector: 'app-inbox',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule, SearchBarComponent],
+  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule, SearchBarComponent, HeaderComponent],
   template: `
     <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -133,8 +134,22 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
       </aside>
       <!-- Main Content -->
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <!-- Search Bar -->
-        <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
+        <!-- Top bar: Search + Avatar -->
+        <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
+          <!-- Search bar stretches -->
+          <div class="flex-1 mr-4">
+            <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
+          </div>
+          
+          <!-- Avatar dropdown -->
+          <app-header></app-header>
+        </div>
+
+        <!-- Rest of inbox content below -->
+        <div class="px-6 py-4">
+          <!-- email list / table here -->
+        </div>
+
         <!-- Toolbar -->
         <div
           class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
@@ -200,50 +215,51 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
               </thead>
 
               <tbody>
-                @for(item of InboxData; track $index){
-                  <tr
-                    class="border-t border-t-slate-200 hover:bg-slate-50"
-                  >
-                    <td class="px-4 py-2">
-                      <input
-                        class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                        type="checkbox"
-                        #checkbox
-                        (change)="toggleEmailsSelected(item,checkbox.checked)"
-                        [checked]="checked(item.mailId)"
-                      />
-                    </td>
+  @for(item of InboxData; track $index){
+    <tr class="border-t border-t-slate-200 hover:bg-slate-50">
+      <td class="px-4 py-2">
+        <input
+          class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+          type="checkbox"
+          #checkbox
+          (change)="toggleEmailsSelected(item,checkbox.checked)"
+          [checked]="checked(item.mailId)"
+        />
+      </td>
 
-                    <td class="py-0 pl-0 pr-4" colspan="4">
-                      <div
-                        class="flex items-center w-full py-2 cursor-pointer"
-                        (click)="goToMailDetails(item)"
-                      >
-                        <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
-                          {{item.sender}}
-                        </div>
+      <td class="py-0 pl-0 pr-4" colspan="4">
+        <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
+          <!-- Sender -->
+          <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
+            {{ item.sender }}
+          </div>
 
-                        <div class="px-4 w-1/2">
-                    <span class="text-slate-800 text-sm font-semibold"
-                    >{{item.subject}}</span
-                    >
-                          <span class="text-slate-500 text-sm ml-2 truncate"
-                          >{{item.body}}</span
-                          >
-                        </div>
+          <!-- Subject + Preview -->
+          <div class="px-4 w-1/2">
+            <span class="text-slate-800 text-sm font-semibold">{{ item.subject }}</span>
+            <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
+          </div>
 
-                        <div class="px-4 text-right w-auto">
-                          <span class="material-symbols-outlined text-slate-400 text-lg">attachment</span>
-                        </div>
+          <!-- Attachment icon -->
+          <div class="px-4 text-right w-auto">
+            <span 
+              *ngIf="item.attachments && item.attachments.length > 0" 
+              class="material-symbols-outlined text-slate-400 text-lg"
+            >
+              attachment
+            </span>
+          </div>
 
-                        <div class="px-4 text-slate-500 text-sm text-right w-1/6">
-                          {{item.date}}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                }
-              </tbody>
+          <!-- Date -->
+          <div class="px-4 text-slate-500 text-sm text-right w-1/6">
+            {{ item.date | date:'mediumDate' }}
+                </div>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+
             </table>
           </div>
         </div>
@@ -266,7 +282,7 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
           >
           <a (click)="updatePage(2)"
             class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >3</a
+            ></a
           >
           <a (click)="updatePage(page+1)"
             class="flex  size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer"
@@ -434,7 +450,7 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
   `],
 })
 export class Inbox implements OnInit{
-  constructor(private MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router) {
+  constructor(private MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router, private sanitizer: DomSanitizer) {
   }
   CustomFolderPopUp:boolean = false;
   foldername:string=''
@@ -649,4 +665,13 @@ export class Inbox implements OnInit{
     this.page = 0;
     this.getInbox(0);
   }
+
+    getSanitizedPreview(body: string | undefined): SafeHtml {
+      if (!body) return '';
+      let truncated = body.length > 50 ? body.substring(0, 50) + '...' : body;
+      return this.sanitizer.bypassSecurityTrustHtml(truncated);
+    }
+
+
+
 }

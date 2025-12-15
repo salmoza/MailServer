@@ -10,11 +10,12 @@ import {att} from '../compose/compose';
 import {FormsModule} from '@angular/forms';
 import {lastValueFrom} from 'rxjs';
 import {SearchBarComponent} from '../../components/search-bar/search-bar';
+import { HeaderComponent } from '../../header';
 
 @Component({
   selector: 'app-drafts',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule, SearchBarComponent],
+  imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule, SearchBarComponent, HeaderComponent],
   template: `
     <!-- Global resource loading added for robustness -->
     <link
@@ -118,8 +119,22 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
 
         <!-- Main Content -->
         <main class="flex-1 p-8">
-          <!-- Search Bar -->
-          <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
+          <!-- Top bar: Search + Avatar -->
+        <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
+          <!-- Search bar stretches -->
+          <div class="flex-1 mr-4">
+            <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
+          </div>
+          
+          <!-- Avatar dropdown -->
+          <app-header></app-header>
+        </div>
+
+        <!-- Rest of inbox content below -->
+        <div class="px-6 py-4">
+          <!-- email list / table here -->
+        </div>
+
           <div class="w-full max-w-7xl mx-auto">
             <!-- PageHeading -->
             <div class="flex flex-wrap justify-between gap-3 p-4">

@@ -7,11 +7,12 @@ import {CustomFolderData, Datafile} from '../../Dtos/datafile';
 import {MailShuttleService} from '../../Dtos/MailDetails';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {SearchBarComponent} from '../../components/search-bar/search-bar';
+import { HeaderComponent } from '../../header';
 
 @Component({
   selector: 'app-trash',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent],
+  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent, HeaderComponent],
   template: `
     <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -133,8 +134,22 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
       </aside>
       <!-- Main Content -->
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <!-- Search Bar -->
-        <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
+        <!-- Top bar: Search + Avatar -->
+        <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
+          <!-- Search bar stretches -->
+          <div class="flex-1 mr-4">
+            <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
+          </div>
+          
+          <!-- Avatar dropdown -->
+          <app-header></app-header>
+        </div>
+
+        <!-- Rest of inbox content below -->
+        <div class="px-6 py-4">
+          <!-- email list / table here -->
+        </div>
+
         <!-- Toolbar -->
         <div
           class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
@@ -232,12 +247,8 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
                           >
                         </div>
 
-                        <div class="px-4 text-right w-auto">
-                          <span class="material-symbols-outlined text-slate-400 text-lg">attachment</span>
-                        </div>
-
                         <div class="px-4 text-slate-500 text-sm text-right w-1/6">
-                          {{item.date}}
+                          {{item.date | date:'mediumDate'}}
                         </div>
                       </div>
                     </td>

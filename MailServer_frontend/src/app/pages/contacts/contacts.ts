@@ -4,11 +4,13 @@ import { RouterLink } from '@angular/router';
 import { ContactDto } from '../../Dtos/ContactDto';
 import { ContactService } from '../../services/contact.services';
 import { FormsModule } from '@angular/forms';
+import { HeaderComponent } from '../../header';
+import { SearchBarComponent } from '../../components/search-bar/search-bar';
 
 @Component({
   selector: 'app-contacts',
   standalone: true,
-  imports: [CommonModule, RouterLink , FormsModule , DatePipe],
+  imports: [CommonModule, RouterLink , FormsModule , DatePipe, HeaderComponent, SearchBarComponent],
   template: `<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-10 py-3 bg-white sticky top-0 z-10">
   <div class="flex items-center gap-8">
   <a [routerLink]="['/inbox']" class="flex items-center justify-center size-10 rounded-full hover:bg-slate-100 text-slate-600 transition cursor-pointer" title="Back to Inbox">
@@ -18,7 +20,7 @@ import { FormsModule } from '@angular/forms';
         <h2 class="text-slate-800 text-lg font-bold">EmailApp</h2>
      </div>
      
-     <label class="flex flex-col min-w-40 !h-10 max-w-64">
+     <!-- <label class="flex flex-col min-w-40 !h-10 max-w-64">
         <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
            <div class="text-slate-500 flex border-none bg-slate-100 items-center justify-center pl-3 rounded-l-lg border-r-0">
               <span class="material-symbols-outlined text-xl">search</span>
@@ -30,7 +32,32 @@ import { FormsModule } from '@angular/forms';
               placeholder="Search..." 
            />
         </div>
-     </label>
+     </label> -->
+
+
+
+     <!-- Top bar: Search + Avatar -->
+      <div class="flex items-center justify-between bg-white border-b border-gray-200 sticky top-0 z-50 px-6 py-3">
+        <!-- Search bar stretches -->
+        <div class="flex-1 mr-4">
+          <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
+        </div>
+
+        <!-- Avatar dropdown -->
+        <div class="flex-shrink-0">
+          <app-header></app-header>
+        </div>
+      </div>
+
+
+      <!-- Rest of inbox content below -->
+      <div class="px-6 py-4">
+        <!-- email list / table here -->
+      </div>
+
+
+
+
   </div>
 </header>
 
@@ -278,6 +305,15 @@ import { FormsModule } from '@angular/forms';
     :host .dark\\:bg-\\[\\#101922\\] {
       background-color: #101922 !important;
     }
+    .search-container {
+      width: 100%; /* Make full width of parent */
+    }
+
+    .search-input-wrapper {
+      width: 100%; /* Stretch input inside */
+      max-width: none; /* Remove limiting max-width */
+    }
+
   `],
 })
 
@@ -397,6 +433,12 @@ export class Contacts implements OnInit {
         error: () => alert('Failed to delete contacts')
       });
     }
+  }
+
+
+  handleSearch(criteria: any) {
+    console.log('Search criteria:', criteria);
+    // TODO: Implement search functionality
   }
 
   onDelete(contact: ContactDto, event: Event) {
