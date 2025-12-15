@@ -2,8 +2,9 @@ package com.example.backend.services.mailService;//package com.example.backend.s
 
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
+import com.example.backend.dtos.MailSearchRequestDto;
 import com.example.backend.model.*;
-import com.example.backend.factories.MailFactory;
+import com.example.backend.mappers.MailFactory;
 import com.example.backend.repo.*;
 import com.example.backend.services.AttachmentService;
 import com.example.backend.services.FolderService;
@@ -210,9 +211,7 @@ public class MailService {
 
             MailCriteria criteria = CriteriaFactory.from(filter);
 
-            boolean matches = !criteria.meetCriteria(List.of(mail)).isEmpty();
-
-            if (matches && mail.getFolders().size() == 1) {
+            if (criteria.matches(mail) && mail.getFolders().size() == 1) {
                 this.moveMails(
                         mail.getFolders().get(0).getFolderId(),
                         filter.getTargetFolder(),
@@ -222,6 +221,38 @@ public class MailService {
             }
         }
     }
+
+    public List<MailListDto> advancedSearch(String folderId, MailSearchRequestDto dto, int page) {
+
+        MailCriteria criteria = null;
+
+        if (dto.getSender() != null && !dto.getSender().isEmpty()) {
+            criteria = new SenderCriteria(dto.getSender());
+        }
+
+        if (dto.getReceiver() != null && !dto.getReceiver().isEmpty()) {
+            MailCriteria receiverCriteria = new ReceiverCriteria(dto.getReceiver());
+            criteria = (criteria == null) ? receiverCriteria : new AndCriteria(criteria, receiverCriteria);
+        }
+
+        if (dto.getSubject() != null && !dto.getSubject().isEmpty()) {
+            MailCriteria subjectCriteria = new SubjectCriteria(dto.getSubject());
+            criteria = (criteria == null) ? subjectCriteria : new AndCriteria(criteria, subjectCriteria);
+        }
+
+        if (dto.getBody() != null && !dto.getBody().isEmpty()) {
+            MailCriteria bodyCriteria = new BodyCriteria(dto.getBody());
+            criteria = (criteria == null) ? bodyCriteria : new AndCriteria(criteria, bodyCriteria);
+        }
+        List<Mail> mails = mailRepo.getMailsByFolderId(folderId);
+
+        if (criteria == null) {
+            return paginateMails(mails, page); // no filters, return all
+        }
+
+        return paginateMails(criteria.meetCriteria(mails), page);
+    }
+
 
 
 
@@ -259,16 +290,6 @@ public class MailService {
     public List<MailListDto> sortMails(String folderId, String sortType, int page) {
 
         List<Mail> mails = mailRepo.getMailsByFolderId(folderId);
-//        Folder folder = folderRepo.getByFolderId(folderId);
-//        String userId = folder.getUser().getUserId();
-//        List<Mail> allMails = mailRepo.getMailByUserId(userId);
-//        if(!Objects.equals(folder.getFolderName(), "trash")
-//        && !Objects.equals(folder.getFolderName(), "drafts")
-//        && !Objects.equals(folder.getFolderName(), "sent")) {
-//            for (Mail mail : allMails) {
-//                applyFilters(mail, userId);
-//            }
-//        }
         System.out.println(mails);
 
         MailSortingStrategy strategy;

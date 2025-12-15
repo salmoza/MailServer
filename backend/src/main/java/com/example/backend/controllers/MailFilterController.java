@@ -1,7 +1,7 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dtos.MailFilterDto;
-import com.example.backend.factories.MailFilterMapper;
+import com.example.backend.mappers.MailFilterMapper;
 import com.example.backend.model.MailFilter;
 import com.example.backend.services.MailFilterService;
 import org.springframework.beans.factory.annotation.Autowired;

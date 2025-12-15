@@ -2,7 +2,7 @@ package com.example.backend.services;
 
 import com.example.backend.dtos.ContactDto;
 import com.example.backend.model.Contact;
-import com.example.backend.factories.ContactFactory;
+import com.example.backend.mappers.ContactFactory;
 import com.example.backend.repo.ContactsRepo;
 import com.example.backend.repo.UserRepo;
 import com.example.backend.model.User;

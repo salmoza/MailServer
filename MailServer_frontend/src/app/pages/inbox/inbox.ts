@@ -6,11 +6,12 @@ import {HttpClient, HttpClientModule, HttpParams} from '@angular/common/http';
 import {CustomFolderData, Datafile} from '../../Dtos/datafile';
 import {MailShuttleService} from '../../Dtos/MailDetails';
 import {FormsModule} from '@angular/forms';
+import {SearchBarComponent} from '../../components/search-bar/search-bar';
 
 @Component({
   selector: 'app-inbox',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule],
+  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule, SearchBarComponent],
   template: `
     <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -47,10 +48,10 @@ import {FormsModule} from '@angular/forms';
                 <p class="text-slate-800 text-sm font-medium leading-normal">
                   Inbox
                 </p>
-                <span
+                <!-- <span
                   class="ml-auto text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5"
                   >3</span
-                >
+                > -->
               </a>
               <a [routerLink]="['/sent']"
                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
@@ -132,6 +133,8 @@ import {FormsModule} from '@angular/forms';
       </aside>
       <!-- Main Content -->
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <!-- Search Bar -->
+        <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
         <!-- Toolbar -->
         <div
           class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
@@ -449,7 +452,11 @@ export class Inbox implements OnInit{
       return;
     }
     this.page=page;
-    this.getInbox(this.page);
+    if(this.isSearchActive) {
+      this.performSearch(this.page);
+    } else {
+      this.getInbox(this.page);
+    }
   }
   getCustomFolders(){
     const url = "http://localhost:8080/api/folders";
@@ -596,5 +603,50 @@ export class Inbox implements OnInit{
         console.log("failed to move");
       }
     })
+  }
+  isSearchActive = false;
+  currentSearchKeyword = '';
+
+  handleSearch(criteria: any) {
+    console.log('Search criteria:', criteria);
+    // Only handle quick search (keywords)
+    if (criteria.keywords) {
+      this.currentSearchKeyword = criteria.keywords;
+      this.isSearchActive = true;
+      this.page = 0;
+      this.performSearch(0);
+    }
+  }
+  performSearch(page: number) {
+    const userData: UserData = this.folderStateService.userData();
+    const folderId = userData.inboxFolderId;
+    
+    if (!folderId) {
+      console.error('folderId is missing');
+      return;
+    }
+
+    let params = new HttpParams()
+      .set('folderId', folderId)
+      .set('keyword', this.currentSearchKeyword)
+      .set('page', page);
+
+    this.http.get<Datafile[]>('http://localhost:8080/mail/search', { params }).subscribe({
+      next: (response) => {
+        this.InboxData = response;
+        console.log('Search results:', response);
+      },
+      error: (error) => {
+        console.error('Search failed:', error);
+        alert('Failed to search emails');
+      }
+    });
+  }
+
+  clearSearch() {
+    this.isSearchActive = false;
+    this.currentSearchKeyword = '';
+    this.page = 0;
+    this.getInbox(0);
   }
 }

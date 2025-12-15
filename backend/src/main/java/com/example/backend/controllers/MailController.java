@@ -2,8 +2,9 @@ package com.example.backend.controllers;
 
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
+import com.example.backend.dtos.MailSearchRequestDto;
 import com.example.backend.dtos.MoveMaildto;
-import com.example.backend.factories.MailFactory;
+import com.example.backend.mappers.MailFactory;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.services.mailService.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +38,6 @@ public class MailController {
        return mailService.mailDetails(mailId, folderId);
     }
 
-//    // delete specific mail
-//    @DeleteMapping("/delete/{mailId}")
-//    public ResponseEntity<String> deleteMail (@PathVariable String mailId) {
-//        mailService.deleteMailById(mailId);
-//        return ResponseEntity.ok("Mail deleted successfully!");
-//    }
-
     // delete folder's mails
     @DeleteMapping("/{folderId}")    // deleteMails
     public ResponseEntity<?> deleteMails(@RequestParam List<String> ids , @PathVariable String folderId) {
@@ -58,14 +52,14 @@ public class MailController {
 
     }
 
-//    @GetMapping("/filter")
-//    public List<MailListDto> filter(
-//            @RequestParam String folderId,
-//            @RequestParam(required = false) String subject,
-//            @RequestParam(required = false) String sender) {
-//
-//        return mailService.filterEmails(folderId, subject, sender);
-//    }
+    @GetMapping("/filter")
+    public List<MailListDto> filter(
+            @RequestParam String folderId,
+            @RequestBody MailSearchRequestDto request,
+            @RequestParam int page
+    ) {
+        return mailService.advancedSearch(folderId, request, page);
+    }
 
 
     @GetMapping  // getAllMails

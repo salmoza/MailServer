@@ -9,11 +9,12 @@ import {HttpClient, HttpClientModule, HttpParams} from '@angular/common/http';
 import {att} from '../compose/compose';
 import {FormsModule} from '@angular/forms';
 import {lastValueFrom} from 'rxjs';
+import {SearchBarComponent} from '../../components/search-bar/search-bar';
 
 @Component({
   selector: 'app-drafts',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule],
+  imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule, SearchBarComponent],
   template: `
     <!-- Global resource loading added for robustness -->
     <link
@@ -117,6 +118,8 @@ import {lastValueFrom} from 'rxjs';
 
         <!-- Main Content -->
         <main class="flex-1 p-8">
+          <!-- Search Bar -->
+          <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
           <div class="w-full max-w-7xl mx-auto">
             <!-- PageHeading -->
             <div class="flex flex-wrap justify-between gap-3 p-4">
@@ -829,6 +832,10 @@ export class Drafts implements OnInit {
   }
   private delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  handleSearch(criteria: any) {
+    console.log('Search criteria:', criteria);
+    // TODO: Implement search functionality
   }
   removeoldAttachment(id: string) {
     const url = `http://localhost:8080/api/attachments/delete/${id}`;
