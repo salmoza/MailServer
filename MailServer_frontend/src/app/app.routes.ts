@@ -13,6 +13,7 @@ import {Trash} from './pages/trash/trash';
 import{CustomFolderPage} from './pages/custom-folder-page/custom-folder-page';
 
 
+
 export const routes: Routes = [
   { path: 'contacts/new', component: ContactFormComponent }, 
   { path: 'contacts/edit/:id', component: ContactFormComponent },

@@ -167,6 +167,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
             >
               <span class="material-symbols-outlined">folder_open</span>
             </button>
+            <button (click)="refreshData()" 
+            class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
+            title="Reload Emails">
+      <span class="material-symbols-outlined">refresh</span>
+    </button>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-slate-600"
@@ -673,5 +678,18 @@ export class Inbox implements OnInit{
     }
 
 
+    refreshData() {
+      console.log("Refreshing Inbox Data...");
+      
+      
+      this.Emails = []; 
+      
+      
+      if (this.isSearchActive) {
+        this.performSearch(0); 
+      } else {
+        this.getInbox(this.page); 
+      }
+    }
 
 }
