@@ -399,7 +399,18 @@ export class Compose {
     if (e) e.preventDefault();
     const em = this.currentEmailInput;
     if (em && this.isVaildEmail(em) && !this.recipients.includes(em)) {
-      this.recipients.push(em);
+      this.http.get<boolean>(`http://localhost:8080/api/mails/valid/${em}`,).subscribe({
+        next: (r:boolean) => {
+          if(r){
+          this.recipients.push(em);}
+          else{
+            alert(`Email doesn't exist: ${em}`);
+          }
+        },
+        error: e => {
+          alert(e.error.error);
+        }
+      })
     }
     this.currentEmailInput = '';
   }
