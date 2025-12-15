@@ -110,7 +110,6 @@ public class DraftService {
         User sender = userRepo.findByUserId(draft.getUserId()).orElseThrow();
         folderService.deleteMail(sender.getDraftsFolderId(), draft);
         folderService.addMail(sender.getSentFolderId(), draft);
-        mailRepo.delete(draft);
     }
 
 }

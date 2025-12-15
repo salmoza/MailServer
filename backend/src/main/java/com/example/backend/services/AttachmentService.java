@@ -67,11 +67,17 @@ public class AttachmentService {
     }
 
     public String DeleteAttachment(String id) {
-       List<Attachment> attop = attachmentsRepo.findByAttachmentId(id);
+       Optional<Attachment> attop = attachmentsRepo.findById(id);
        if(attop.isEmpty()){
            return "not found";
        }
-       Attachment att = attop.get(Integer.parseInt(id));
+       Attachment att = attop.get();
+       Mail parent = att.getMail();
+       if(parent != null){
+           parent.getAttachments().remove(att);
+           mailRepo.save(parent);
+       }
+       att.setMail(null);
        Path filePath = Paths.get(att.getFilePath());
        try{
            if(Files.deleteIfExists(filePath)){

@@ -7,6 +7,7 @@ import {FolderStateService} from '../../Dtos/FolderStateService';
 import {take} from 'rxjs';
 import {MailShuttleService} from '../../Dtos/MailDetails';
 import {FormsModule} from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 // @ts-ignore
 // @ts-ignore
@@ -194,31 +195,26 @@ import {FormsModule} from '@angular/forms';
                   <span class="font-medium">To:</span>
                   @for (mail of mail?.receivers; track $index){
                   <span>
-                  {{mail}}
+                  {{mail}},
                     </span>
                 }
                 </p>
               </div>
-              <div class="shrink-0 text-right">
-                <p class="text-gray-500 text-sm font-normal leading-normal">
-                  {{ mail?.date }}
-                </p>
+              <div class="px-4 text-slate-500 text-sm text-right w-1/6">
+                {{ mail?.date | date:'mediumDate' }}
               </div>
             </div>
             <!-- Email Body -->
             <div
               class="prose prose-sm sm:prose-base max-w-none text-gray-800 leading-relaxed flex-1"
             >
-              <p>
-                {{ mail?.body }}
-              </p>
+       
+                <div [innerHTML]="sanitizedBody"></div>
+
               <br/>
             </div>
             <!-- Attachments -->
             <div class="mt-8 pt-6 border-t border-gray-200">
-              <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                {{ mail?.attachments?.length }}
-              </h3>
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Attachment Card 1 -->
                 @for (item of mail?.attachments; track $index) {
@@ -231,7 +227,7 @@ import {FormsModule} from '@angular/forms';
                     </div>
                     <div class="flex-1">
                       <p class="text-sm font-medium text-gray-900 truncate">
-                        {{ item.fileName }}{{ item.fileType }}
+                        {{ item.filetype }}
                       </p>
                       <p class="text-xs text-gray-500">{{ item.fileSize }}</p>
                     </div>
@@ -434,6 +430,7 @@ export class MailDetail implements OnInit{
     private router: Router,
     private route: ActivatedRoute,
     private MailDetails:MailShuttleService,// Used to read URL parameters
+    private sanitizer: DomSanitizer,
   ) {}
   goToCustomFolder(Id:string){
     this.MailDetails.setCustom(Id);
@@ -525,4 +522,10 @@ export class MailDetail implements OnInit{
       }
     })
   }
+
+  get sanitizedBody(): SafeHtml {
+    if (!this.mail?.body) return '';
+    return this.sanitizer.bypassSecurityTrustHtml(this.mail.body);
+  }
+
 }

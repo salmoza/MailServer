@@ -41,4 +41,8 @@ public class AttachmentController {
             throw new IllegalArgumentException("nope");
         }
     }
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteAtt(@PathVariable("id") String id){
+        return ResponseEntity.ok(attachmentService.DeleteAttachment(id));
+    }
 }
