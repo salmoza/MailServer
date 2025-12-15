@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { FolderStateService } from '../../Dtos/FolderStateService';
 import { CustomFolderData } from '../../Dtos/datafile';
 import {MailShuttleService} from '../../Dtos/MailDetails';
+import {SearchBarComponent} from '../../components/search-bar/search-bar';
 
 interface MailFilter {
   filterId?: string;
@@ -284,7 +285,7 @@ export class Filters implements OnInit {
   };
   editingFilter: MailFilter | null = null;
 
-  private apiUrl = 'http://localhost:8080/api/filters';
+  private apiUrl = 'http://localhost:8080/api/filters/by-user';
 
   constructor(private MailDetails:MailShuttleService, private router : Router,
     private http: HttpClient,
@@ -299,10 +300,10 @@ export class Filters implements OnInit {
   }
 
   loadCustomFolders() {
-    const url = "http://localhost:8080/folders";
+    const url = "http://localhost:8080/api/folders";
     let params = new HttpParams();
-    params = params.set("userId", this.folderStateService.userData().userId)
-    .set("type", "custom");
+    params = params.set("type", "custom");
+    params = params.set("userId", this.folderStateService.userData().userId);
     
     this.http.get<CustomFolderData[]>(url, { params }).subscribe({
       next: (data) => {

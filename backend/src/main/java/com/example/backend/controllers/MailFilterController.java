@@ -23,7 +23,7 @@ public class MailFilterController {
     private MailFilterMapper filterMapper;
 
     // GET ALL filters for a user
-    @GetMapping("/{userId}")
+    @GetMapping("/by-user/{userId}")
     public ResponseEntity<List<MailFilterDto>> getAllFilters(@PathVariable String userId) {
         List<MailFilter> filters = filterService.getAllFilters(userId);
         List<MailFilterDto> dtos = filters.stream()

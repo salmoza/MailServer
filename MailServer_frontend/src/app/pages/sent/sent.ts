@@ -8,6 +8,13 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {SearchBarComponent} from '../../components/search-bar/search-bar';
 
+interface MailSearchRequestDto {
+  sender?: string;
+  receiver?: string;
+  subject?: string;
+  body?: string;
+}
+
 @Component({
   selector: 'app-sent',
   standalone: true,
@@ -134,7 +141,10 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
       <!-- Main Content -->
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         <!-- Search Bar -->
-        <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
+        <app-search-bar 
+          (onSearch)="handleSearch($event)"
+          (onClear)="handleClearSearch()">
+        </app-search-bar>
         <!-- Toolbar -->
         <div
           class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
@@ -443,18 +453,31 @@ export class Sent implements OnInit{
   Emails:Datafile[]=[];
   SentData:Datafile[]=[];
   CustomFolders:CustomFolderData[]=[];
-  page:number = 0;
+  page: number = 0;
   tomove:boolean=false;
+  isSearchActive = false;
+  isAdvancedSearch = false;
+  currentSearchKeyword = '';
+  currentAdvancedFilters: MailSearchRequestDto = {};
   ngOnInit() {
     this.getSent(0);
     this.getCustomFolders();
   }
-  updatePage(page:number){
-    if(page<0){
+  updatePage(page: number) {
+    if (page < 0) {
       return;
     }
-    this.page=page;
-    this.getSent(this.page);
+    this.page = page;
+    
+    if (this.isSearchActive) {
+      if (this.isAdvancedSearch) {
+        this.performAdvancedSearch(this.page);
+      } else {
+        this.performQuickSearch(this.page);
+      }
+    } else {
+      this.getSent(this.page);
+    }
   }
   getCustomFolders(){
     const url = "http://localhost:8080/api/folders";
@@ -604,6 +627,85 @@ export class Sent implements OnInit{
   }
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
-    // TODO: Implement search functionality
+    this.page = 0;
+    
+    if (criteria.keywords) {
+      // Quick keyword search
+      this.isSearchActive = true;
+      this.isAdvancedSearch = false;
+      this.currentSearchKeyword = criteria.keywords;
+      this.performQuickSearch(0);
+    } else if (criteria.advancedSearch) {
+      // Advanced filter search
+      this.isSearchActive = true;
+      this.isAdvancedSearch = true;
+      this.currentAdvancedFilters = criteria.advancedSearch;
+      this.performAdvancedSearch(0);
+    }
+  }
+
+  performQuickSearch(page: number) {
+    const userData = this.folderStateService.userData();
+    const folderId = userData.sentFolderId;
+    
+    if (!folderId) {
+      console.error('folderId is missing');
+      return;
+    }
+
+    let params = new HttpParams()
+      .set('folderId', folderId)
+      .set('keyword', this.currentSearchKeyword)
+      .set('page', page);
+
+    this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
+      next: (response) => {
+        this.SentData = response;
+        console.log('Search results:', response);
+      },
+      error: (error) => {
+        console.error('Search failed:', error);
+        alert('Failed to search emails');
+      }
+    });
+  }
+
+  performAdvancedSearch(page: number) {
+    const userData: UserData = this.folderStateService.userData();
+    const folderId = userData.sentFolderId;
+    
+    if (!folderId) {
+      console.error('folderId is missing');
+      return;
+    }
+
+    let params = new HttpParams()
+      .set('folderId', folderId)
+      .set('page', page);
+
+    // POST request with body for advanced filters
+    this.http.post<Datafile[]>(
+      'http://localhost:8080/api/mails/filter',
+      this.currentAdvancedFilters,
+      { params }
+    ).subscribe({
+      next: (response) => {
+        this.SentData = response;
+        console.log('Filter results:', response);
+      },
+      error: (error) => {
+        console.error('Filter failed:', error);
+        alert('Failed to filter emails');
+      }
+    });
+  }
+
+  handleClearSearch() {
+    this.isSearchActive = false;
+    this.isAdvancedSearch = false;
+    this.currentSearchKeyword = '';
+    this.currentAdvancedFilters = {};
+    this.page = 0;
+    this.getSent(0);
   }
 }

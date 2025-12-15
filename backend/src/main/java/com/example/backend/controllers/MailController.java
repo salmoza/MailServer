@@ -52,7 +52,7 @@ public class MailController {
 
     }
 
-    @GetMapping("/filter")
+    @PostMapping("/filter")
     public List<MailListDto> filter(
             @RequestParam String folderId,
             @RequestBody MailSearchRequestDto request,
