@@ -43,6 +43,7 @@ public class Folder {
     }
 
     public void addMail(Mail mail) {
+
         mails.add(mail);
         mail.getFolders().add(this);
     }

@@ -36,10 +36,10 @@ public class FolderService {
         folderRepo.delete(folderRepo.findByFolderIdAndUserUserId(folderId, userId));
     }
 
-    public void addMail( String folderId, Mail mail){
+    public void addMail(String previousState , String folderId, Mail mail){
         Folder folder = folderRepo.findByFolderId(folderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
-
+        mail.setPreviousFolderId(previousState);
         folder.addMail(mail);
         folderRepo.save(folder);
 

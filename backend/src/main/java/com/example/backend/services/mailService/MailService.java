@@ -51,6 +51,8 @@ public class MailService {
     @Autowired
     private MailFilterRepo filterRepo;
 
+
+
     public List<String> createNewMail(MailDto dto) {
 
         User senderUser = userRepo.findByEmail(dto.getSender());
@@ -61,7 +63,7 @@ public class MailService {
         // sender copy
         Mail senderCopy = MailFactory.createSenderCopy(senderId, dto);
         senderCopy = mailRepo.save(senderCopy);
-        folderService.addMail(senderUser.getSentFolderId(), senderCopy);
+        folderService.addMail( null ,senderUser.getSentFolderId(), senderCopy);
 
         Queue<String> receiversQueue = new LinkedList<>(dto.getReceivers());
 
@@ -108,7 +110,7 @@ public class MailService {
                     receiverCopy
             );
 
-            folderService.addMail(receiverUser.getInboxFolderId(), receiverCopy);
+            folderService.addMail(null , receiverUser.getInboxFolderId(), receiverCopy);
             applyFilters(receiverCopy, receiverUser.getUserId());
 
             ids.add(receiverCopy.getMailId());
@@ -139,6 +141,9 @@ public class MailService {
 
         Mail mail = mailRepo.findById(mailId)
                 .orElseThrow(() -> new RuntimeException("Mail not found"));
+
+            mail.setPreviousFolderId(folderId);
+            mailRepo.save(mail);
 
         folderService.deleteMail( folderId , mail);
 
@@ -273,7 +278,7 @@ public class MailService {
             String mailId = queue.poll();
             Mail mail = mailRepo.findById(mailId)
                     .orElseThrow(() -> new RuntimeException("Mail not found"));
-            folderService.addMail(toFolderId, mail);
+            folderService.addMail( fromFolderId ,toFolderId, mail);
             folderService.deleteMail(fromFolderId,mail);
 
         }
@@ -319,4 +324,34 @@ public class MailService {
     }
 
 
+    public void undo(List<String> ids) {
+        User user = new User();
+        Mail mail = new Mail();
+        String id = ids.get(0) ;
+        mail = mailRepo.findByMailId(id)
+                .orElseThrow(() -> new RuntimeException("Mail not found"));
+        user = userRepo.findByUserId(mail.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        String trashId = user.getTrashFolderId();
+        for (String i : ids ) {
+            Mail undoMail = mailRepo.findByMailId(i)
+                    .orElseThrow(() -> new RuntimeException("Mail not found"));
+
+            String targetFolderId = undoMail.getPreviousFolderId();
+
+
+            if (targetFolderId == null) {
+                targetFolderId = user.getInboxFolderId();
+            }
+
+            else if (!folderRepo.existsById(targetFolderId)) {
+                targetFolderId = user.getInboxFolderId();
+            }
+
+            undoMail.setDeletedAt(null);
+            folderService.addMail( trashId, undoMail.getPreviousFolderId() , undoMail );
+            folderService.deleteMail(trashId , undoMail);
+
+        }
+    }
 }
