@@ -32,7 +32,6 @@ public class DraftController {
     public ResponseEntity<Mail> updateDraft(@PathVariable String mailId, @RequestBody MailDto dto) {
         return ResponseEntity.ok(draftService.updateDraft(mailId, dto));
     }
-
     @GetMapping("/{mailId}/snapshots")
     public ResponseEntity<List<MailSnapshot>> getSnapshots(@PathVariable String mailId) {
         return ResponseEntity.ok(draftService.getSnapshots(mailId));
