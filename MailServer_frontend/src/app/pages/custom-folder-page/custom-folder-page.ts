@@ -543,8 +543,7 @@ export class CustomFolderPage implements OnInit{
       }
     });
   }
-  // isSearchActive = false;
-  // currentSearchKeyword = '';
+  
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
     this.page = 0;
