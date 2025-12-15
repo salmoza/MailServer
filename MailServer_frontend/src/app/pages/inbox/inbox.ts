@@ -188,7 +188,12 @@ interface MailSearchRequestDto {
               >Priority Mode</span
             >
             <label class="relative inline-flex items-center cursor-pointer">
-              <input class="sr-only peer" type="checkbox" value="" />
+              <input 
+                class="sr-only peer" 
+                type="checkbox" 
+                [(ngModel)]="isPriorityMode"
+                (change)="togglePriorityMode($event)"
+              />
               <div
                 class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"
               ></div>
@@ -515,6 +520,7 @@ export class Inbox implements OnInit{
   isSearchActive = false;
   isAdvancedSearch = false;
   currentSearchKeyword = '';
+  isPriorityMode = false;
   currentAdvancedFilters: MailSearchRequestDto = {};
   ngOnInit() {
     this.getInbox(0);
@@ -552,7 +558,7 @@ export class Inbox implements OnInit{
       }
     })
   }
-  getInbox(page:number){
+  getInbox(page: number){
     const userData: UserData = this.folderStateService.userData();
     const inboxId = userData.inboxFolderId;
     if(!inboxId){
@@ -563,7 +569,18 @@ export class Inbox implements OnInit{
     param = param.set('page', page);
     param = param.set("folderId",this.folderStateService.userData().inboxFolderId);
     console.log(param);
-    this.http.get<Datafile[]>(`http://localhost:8080/api/mails`,{params:param}).subscribe({
+
+    const endpoint = this.isPriorityMode 
+    ? 'http://localhost:8080/api/mails/sort'
+    : 'http://localhost:8080/api/mails';
+
+    if (this.isPriorityMode) {
+      param = param
+        .set('userId', userData.userId)
+        .set('sortBy', 'priority');
+    }
+
+    this.http.get<Datafile[]>(endpoint, {params:param}).subscribe({
       next:(respones) => {
         this.InboxData=respones;
         console.log(respones);
@@ -635,16 +652,16 @@ export class Inbox implements OnInit{
       console.log("removed");
       this.Emails=[];
     }
-}
+  }
   checked(id:string){
-  const emailIndex = this.Emails.findIndex(e => e.mailId === id);
-  if (emailIndex != -1) {
-    return true;
+    const emailIndex = this.Emails.findIndex(e => e.mailId === id);
+    if (emailIndex != -1) {
+      return true;
+    }
+    else{
+      return false;
+    }
   }
-  else{
-    return false;
-  }
-}
   delete(){
     const userData: UserData = this.folderStateService.userData();
     const inboxId = userData.inboxFolderId;
@@ -671,7 +688,7 @@ export class Inbox implements OnInit{
         console.log(respones);
       }
     })
-}
+  }
   CreateCustomFolder(){
     const url = "http://localhost:8080/api/folders"
     const payload={
@@ -726,7 +743,6 @@ export class Inbox implements OnInit{
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
     this.page = 0;
-    
     if (criteria.keywords) {
       // Quick keyword search
       this.isSearchActive = true;
@@ -758,6 +774,9 @@ export class Inbox implements OnInit{
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
       next: (response) => {
+        if (this.isPriorityMode) {
+          response = this.sortByPriorityClientSide(response);
+        }
         this.InboxData = response;
         console.log('Search results:', response);
       },
@@ -777,38 +796,38 @@ export class Inbox implements OnInit{
     this.getInbox(0);
   }
 
-    getSanitizedPreview(body: string | undefined): SafeHtml {
-      if (!body) return '';
-      let truncated = body.length > 50 ? body.substring(0, 50) + '...' : body;
-      return this.sanitizer.bypassSecurityTrustHtml(truncated);
-    }
+  getSanitizedPreview(body: string | undefined): SafeHtml {
+    if (!body) return '';
+    let truncated = body.length > 50 ? body.substring(0, 50) + '...' : body;
+    return this.sanitizer.bypassSecurityTrustHtml(truncated);
+  }
 
-    getPriorityLabel(priority: number | undefined): string {
-      switch(priority) {
-        case 1: return 'Urgent';
-        case 2: return 'High';
-        case 3: return 'Normal';
-        case 4: return 'Low';
-        default: return 'Normal';
-      }
+  getPriorityLabel(priority: number | undefined): string {
+    switch(priority) {
+      case 1: return 'Urgent';
+      case 2: return 'High';
+      case 3: return 'Normal';
+      case 4: return 'Low';
+      default: return 'Normal';
     }
+  }
 
-    refreshData() {
-      console.log("Refreshing Inbox Data...");
-      
-      
-      this.Emails = []; 
-      
-      
-      if (this.isSearchActive) {
-        this.performQuickSearch(0); 
+  refreshData() {
+    console.log("Refreshing Inbox Data...");
+    this.Emails = []; 
+    if (this.isSearchActive) {
+      if (this.isAdvancedSearch) {
+        this.performAdvancedSearch(this.page);
       } else {
-        this.getInbox(this.page); 
+        this.performQuickSearch(this.page);
       }
+    } else {
+      this.getInbox(this.page);
     }
+  }
 
 
-    performAdvancedSearch(page: number) {
+  performAdvancedSearch(page: number) {
     const userData: UserData = this.folderStateService.userData();
     const folderId = userData.inboxFolderId;
     
@@ -827,6 +846,9 @@ export class Inbox implements OnInit{
       { params }
     ).subscribe({
       next: (response) => {
+        if (this.isPriorityMode) {
+          response = this.sortByPriorityClientSide(response);
+        }
         this.InboxData = response;
         console.log('Filter results:', response);
       },
@@ -836,4 +858,59 @@ export class Inbox implements OnInit{
       }
     });
   }
+
+  private sortByPriorityClientSide(emails: Datafile[]): Datafile[] {
+    return emails.sort((a, b) => {
+      const priorityA = a.priority || 3; // Default to Normal (3) if undefined
+      const priorityB = b.priority || 3;
+      return priorityA - priorityB; // 1 (Urgent) comes before 4 (Low)
+    });
+  }
+
+  // Priority sorting
+  togglePriorityMode(event: any) {
+    this.isPriorityMode = event.target.checked;
+    this.page = 0; // Reset to first page
+    
+    // Re-fetch current view with or without priority sorting
+    if (this.isSearchActive) {
+      if (this.isAdvancedSearch) {
+        this.performAdvancedSearch(0);
+      } else {
+        this.performQuickSearch(0);
+      }
+    } else {
+      this.getInbox(0);
+    }
+  }
+
+sortByPriority(page: number) {
+  const userData: UserData = this.folderStateService.userData();
+  const folderId = userData.inboxFolderId;
+  const userId = userData.userId;
+  
+  if (!folderId || !userId) {
+    console.error('folderId or userId is missing');
+    return;
+  }
+
+  let params = new HttpParams()
+    .set('userId', userId)
+    .set('folderId', folderId)
+    .set('sortBy', 'priority')
+    .set('page', page);
+
+  this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
+    next: (response) => {
+      this.InboxData = response;
+      console.log('Priority sorted results:', response);
+    },
+    error: (error) => {
+      console.error('Priority sort failed:', error);
+      alert('Failed to sort by priority');
+    }
+  });
+}
+
+
 }
