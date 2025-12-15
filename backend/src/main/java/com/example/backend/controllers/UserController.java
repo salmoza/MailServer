@@ -51,16 +51,20 @@ public class UserController {
     }
 
     @PostMapping("/signUp")
-//    public ResponseEntity<?>  signup (@Valid @RequestBody UserSignupDTO user) {
-//        return ResponseEntity.ok(userService.signUp(user)) ;
-//    }
     public ResponseEntity<?> signup(@RequestBody UserSignupDTO dto) {
         try {
-            SignUpRequest req =
-                    (SignUpRequest) RequestFactory.createRequest("signup", dto.getUsername(), dto.getEmail(), dto.getPassword());
-            return ResponseEntity.ok(userService.signUp(req));
+            SignUpRequest req = (SignUpRequest) RequestFactory.createRequest("signup",
+                    dto.getUsername(), dto.getEmail(), dto.getPassword());
+
+
+            String message = userService.signUp(req);
+
+
+            return ResponseEntity.ok(Map.of("message", message));
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 

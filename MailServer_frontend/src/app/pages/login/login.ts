@@ -256,19 +256,32 @@ login(){
     }
   })
 }
-sign_up(){
-  const payload={
-    password:this.password,
-    email:this.email,
-    username:this.username,
+
+
+
+sign_up() {
+  const payload = {
+    password: this.password,
+    email: this.email,
+    username: this.username,
   }
-  this.hhtp.post(this.url+'signUp',payload).subscribe({
-    next:(response:any)=>{
-    this.issign_up=false;
+  
+  this.hhtp.post(this.url + 'signUp', payload).subscribe({
+    next: (response: any) => {
+      
+      alert("sign up successfully please sign in");
+      console.log(response.message); 
+      this.issign_up = false;
     },
-    error:(response:any)=>{
-      alert(response.error.error);
+    error: (err: any) => {
+      
+      if (err.error && err.error.error) {
+        alert(err.error.error);
+      } else {
+        alert("Signup failed");
+      }
     }
   })
 }
+
 }
