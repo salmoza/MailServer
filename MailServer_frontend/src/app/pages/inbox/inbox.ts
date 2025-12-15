@@ -195,7 +195,7 @@ interface MailSearchRequestDto {
             <label class="relative inline-flex items-center cursor-pointer">
               <input class="sr-only peer" type="checkbox" value="" />
               <div
-                class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
+                class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"
               ></div>
             </label>
           </div>
@@ -235,29 +235,42 @@ interface MailSearchRequestDto {
               </thead>
 
               <tbody>
-  @for(item of InboxData; track $index){
-    <tr class="border-t border-t-slate-200 hover:bg-slate-50">
-      <td class="px-4 py-2">
-        <input
-          class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-          type="checkbox"
-          #checkbox
-          (change)="toggleEmailsSelected(item,checkbox.checked)"
-          [checked]="checked(item.mailId)"
-        />
-      </td>
+      @for(item of InboxData; track $index){
+        <tr class="border-t border-t-slate-200 hover:bg-slate-50">
+          <td class="px-4 py-2">
+            <input
+              class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+              type="checkbox"
+              #checkbox
+              (change)="toggleEmailsSelected(item,checkbox.checked)"
+              [checked]="checked(item.mailId)"
+            />
+          </td>
 
       <td class="py-0 pl-0 pr-4" colspan="4">
         <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
           <!-- Sender -->
-          <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
-            {{ item.senderDisplayName }}
+          <div class="px-4 w-1/4">
+            <div
+              class="text-slate-900 text-sm"
+            >
+              {{ item.senderDisplayName || item.sender }}
+            </div>
           </div>
+
 
           <!-- Subject + Preview -->
           <div class="px-4 w-1/2">
-            <span class="text-slate-800 text-sm font-semibold">{{ item.subject }}</span>
-            <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
+            <span
+              class="text-sm"
+            >
+              {{ item.subject }}
+            </span>
+
+            <span
+              class="text-sm ml-2"
+              [innerHTML]="getSanitizedPreview(item.body)"
+            ></span>
           </div>
 
           <!-- Attachment icon -->
@@ -271,9 +284,12 @@ interface MailSearchRequestDto {
           </div>
 
           <!-- Date -->
-          <div class="px-4 text-slate-500 text-sm text-right w-1/6">
+          <div
+            class="px-4 text-sm text-right w-1/6"
+          >
             {{ item.date | date:'mediumDate' }}
-                </div>
+          </div>
+
               </div>
             </td>
           </tr>
@@ -473,7 +489,17 @@ interface MailSearchRequestDto {
   `],
 })
 export class Inbox implements OnInit{
+  dataFile!: Datafile;
+  isRead!: boolean;
   constructor(private MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router, private sanitizer: DomSanitizer) {
+    const mail = this.MailDetails.getMailData();
+
+    if (!mail) {
+      console.error('No mail data found');
+      return;
+    }
+    this.dataFile = mail;
+    this.isRead = mail.isRead;
   }
   CustomFolderPopUp:boolean = false;
   foldername:string=''
@@ -545,11 +571,40 @@ export class Inbox implements OnInit{
     })
   }
   goToMailDetails(details:Datafile){
+    if (!details.isRead) {
+      details.isRead = true;
+      this.markMailAsRead(details.mailId);
+
+      const index = this.InboxData.findIndex(e => e.mailId === details.mailId);
+      if (index !== -1) {
+        this.InboxData[index].isRead = true;
+      }
+    }
     this.MailDetails.setMailData(details);
-    console.log(details);
     this.MailDetails.setFromId(this.folderStateService.userData().inboxFolderId);
-    this.router.navigate([`/mail`]);
+    this.router.navigate(['/mail']);
   }
+
+  markMailAsRead(mailId: string) {
+    const url = `http://localhost:8080/api/mails/read/${mailId}`;
+
+    this.http.patch(url, {}, { responseType: 'text' }).subscribe({
+      next: () => {
+        console.log('Mail marked as read');
+
+        // Update InboxData after confirmation
+        const index = this.InboxData.findIndex(e => e.mailId === mailId);
+        if (index !== -1) {
+          this.InboxData[index].isRead = true;
+        }
+      },
+      error: err => {
+        console.error('Failed to mark mail as read', err);
+      }
+    });
+  }
+
+
   goToCustomFolder(Id:string){
     this.MailDetails.setCustom(Id);
     this.router.navigate([`/Custom`]);

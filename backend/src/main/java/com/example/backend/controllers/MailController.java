@@ -105,6 +105,12 @@ public class MailController {
         return ResponseEntity.ok("All mails deleted successfully!");
     }
 
+    @PatchMapping //undo
+    public ResponseEntity<?> undo(@RequestBody List<String> ids) {
+        mailService.undo(ids) ;
+        return ResponseEntity.ok("successfully") ;
+    }
+
 
 
 }

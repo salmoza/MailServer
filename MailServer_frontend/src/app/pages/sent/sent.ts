@@ -162,9 +162,14 @@ interface MailSearchRequestDto {
 
           <td class="py-0 pl-0 pr-4" colspan="3">
             <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-              <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">{{item.senderDisplayName}}</div>
+              <div class="px-4 w-1/4">
+            <!-- Sender name -->
+            <div class="text-slate-900 text-sm">
+              {{ item.senderDisplayName || item.sender }}
+            </div>
+          </div>
               <div class="px-4 w-1/2">
-                <span class="text-slate-800 text-sm font-semibold truncate">{{item.subject}}</span>
+                <span class="text-slate-800 text-sm truncate">{{item.subject}}</span>
                 <span class="text-slate-500 text-sm ml-2 truncate">{{item.body}}</span>
               </div>
               <div class="px-4 text-slate-500 text-sm text-right w-1/6">

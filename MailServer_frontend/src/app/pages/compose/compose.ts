@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { FolderStateService } from '../../Dtos/FolderStateService';
+import { Datafile } from '../../Dtos/datafile';
+import { MailShuttleService } from '../../Dtos/MailDetails';
 
 export interface att {
   id: string;
@@ -266,11 +268,22 @@ export interface att {
 export class Compose {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('bodyEditor') bodyEditor!: ElementRef<HTMLDivElement>;
+  dataFile?: Datafile;
+  isRead! : boolean;
 
-  constructor(private route: Router, private http: HttpClient) {
+  constructor(private route: Router, private http: HttpClient, private mailShuttle: MailShuttleService,) {
     this.folderStateService = inject(FolderStateService);
     this.sender = this.folderStateService.userData().email;
+    const mail = this.mailShuttle.getMailData();
+
+    if (!mail) {
+      console.error('No mail data found');
+      return;
+    }
+    this.dataFile = mail;
+    this.isRead = mail.isRead ;
   }
+  // isRead: boolean = this.dataFile.isRead ;
 
   recipients: string[] = [];
   folderStateService;
@@ -379,6 +392,7 @@ export class Compose {
 
   private sendFinalMail() {
     alert('Mail sent');
+    this.route.navigate(['/inbox']);
   }
 
   addRecipient(e: Event | null) {
