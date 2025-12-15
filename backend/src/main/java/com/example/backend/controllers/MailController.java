@@ -97,16 +97,23 @@ public class MailController {
         return mailRepo.findAll().stream().map(mailFactory::toListDto).toList();
     }    // for testing */
 
-    @DeleteMapping
+   /* @DeleteMapping
     public ResponseEntity<String> deleteAll () {
         mailRepo.deleteAll();
         return ResponseEntity.ok("All mails deleted successfully!");
-    }
+    } */
 
     @PatchMapping //undo
     public ResponseEntity<?> undo(@RequestBody List<String> ids) {
         mailService.undo(ids) ;
         return ResponseEntity.ok("successfully") ;
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteForever (@RequestBody List<String> ids) {
+        mailService.deleteForever(ids);
+        return ResponseEntity.ok("successfully deleted");
+
     }
 
 
