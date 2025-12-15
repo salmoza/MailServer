@@ -21,188 +21,109 @@ interface MailSearchRequestDto {
   standalone: true,
   imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent],
   template: `
-    <!-- Global resource loading added for robustness -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
-    <!-- Main Container: Enforced light background -->
     <div class="flex h-screen w-full">
-      <!-- SideNavBar -->
-      <aside
-        class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0"
-      >
+      <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
         <div class="flex h-full flex-col justify-between">
           <div class="flex flex-col gap-6">
             <div class="flex items-center gap-3 px-3">
-
               <h1 class="text-slate-800 text-base font-medium leading-normal">
                 {{folderStateService.userData().username}}
               </h1>
             </div>
             <button [routerLink]="['/compose']"
-              class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
-            >
+              class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
               <span class="truncate">Compose</span>
             </button>
             <div class="flex flex-col gap-1">
-              <a [routerLink]="['/inbox']"
-                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 "
-              >
-                <!-- Removed dark:text-slate-200 -->
-                <span class="material-symbols-outlined text-slate-800 fill"
-                >inbox</span
-                >
-                <p class="text-slate-800 text-sm font-medium leading-normal">
-                  Inbox
-                </p>
-                <span
-                  class="ml-auto text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5"
-                >3</span
-                >
+              <a [routerLink]="['/inbox']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
+                <span class="material-symbols-outlined text-slate-800">inbox</span>
+                <p class="text-slate-800 text-sm font-medium leading-normal">Inbox</p>
               </a>
-              <a [routerLink]="['/sent']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600"
-                  >send</span
-                >
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Sent
-                </p>
+              <a [routerLink]="['/sent']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
+                <span class="material-symbols-outlined text-slate-600">send</span>
+                <p class="text-slate-600 text-sm font-medium leading-normal">Sent</p>
               </a>
-              <a [routerLink]="['/drafts']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600"
-                  >draft</span
-                >
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Drafts
-                </p>
+              <a [routerLink]="['/drafts']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
+                <span class="material-symbols-outlined text-slate-600">draft</span>
+                <p class="text-slate-600 text-sm font-medium leading-normal">Drafts</p>
               </a>
-              <a [routerLink]="['/trash']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600"
-                  >delete</span
-                >
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Trash
-                </p>
+              <a [routerLink]="['/trash']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
+                <span class="material-symbols-outlined text-slate-600">delete</span>
+                <p class="text-slate-600 text-sm font-medium leading-normal">Trash</p>
               </a>
-              <a [routerLink]="['/contacts']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600"
-                  >contacts</span
-                >
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Contacts
-                </p>
+              <a [routerLink]="['/contacts']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
+                <span class="material-symbols-outlined text-slate-600">contacts</span>
+                <p class="text-slate-600 text-sm font-medium leading-normal">Contacts</p>
               </a>
-              <a [routerLink]="['/filters']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
+              <a [routerLink]="['/filters']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
                 <span class="material-symbols-outlined text-slate-600">filter_alt</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Filters
-                </p>
+                <p class="text-slate-600 text-sm font-medium leading-normal">Filters</p>
               </a>
             </div>
+            
             <div class="flex flex-col gap-1">
               <div class="flex items-center justify-between px-3 py-2">
-                <h2
-                  class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Custom Folders
-                </h2>
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Custom Folders</h2>
                 <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp=true">
                   <span class="material-symbols-outlined text-base">add</span>
                 </button>
               </div>
               @for(custom of CustomFolders; track $index) {
-                @if(custom.folderId == MailDetails.getCustomId()){
                 <a (click)="goToCustomFolder(custom.folderId)"
-                   class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 bg-primary/20"
-                >
-                <span class="material-symbols-outlined text-slate-600"
-                >folder</span
-                >
-
-
-                  <p class="text-slate-600 text-sm font-medium leading-normal">
-                    {{custom.folderName}}
-                  </p>
-
-              </a>
-                }
-                @else{
-                  <a (click)="goToCustomFolder(custom.folderId)"
-                     class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-                  >
-                <span class="material-symbols-outlined text-slate-600"
-                >folder</span
-                >
-
-
-                    <p class="text-slate-600 text-sm font-medium leading-normal">
-                      {{custom.folderName}}
-                    </p>
-
-                  </a>
-                }
+                   class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"
+                   [ngClass]="{'bg-primary/20': custom.folderId == MailDetails.getCustomId(), 'hover:bg-slate-100': custom.folderId != MailDetails.getCustomId()}">
+                  <span class="material-symbols-outlined text-slate-600">folder</span>
+                  <p class="text-slate-600 text-sm font-medium leading-normal">{{custom.folderName}}</p>
+                </a>
               }
             </div>
           </div>
         </div>
       </aside>
-      <!-- Main Content -->
+
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <!-- Search Bar -->
         <app-search-bar 
           (onSearch)="handleSearch($event)"
           (onClear)="handleClearSearch()">
         </app-search-bar>
-        <!-- Toolbar -->
-        <div
-          class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
-        >
+        
+        <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
           <div class="flex gap-2">
             <button (click)="delete()"
               class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
-            >
+              [disabled]="Emails.length === 0">
               <span class="material-symbols-outlined">delete</span>
             </button>
             <button (click)="tomove = true"
               class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
-            >
+              [disabled]="Emails.length === 0">
               <span class="material-symbols-outlined">folder_open</span>
+            </button>
+            <button (click)="getCustom(page)" 
+              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
+              title="Reload Emails">
+              <span class="material-symbols-outlined">refresh</span>
             </button>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-sm font-medium text-slate-600"
-              >Priority Mode</span
-            >
+            <span class="text-sm font-medium text-slate-600">Priority Mode</span>
             <label class="relative inline-flex items-center cursor-pointer">
               <input class="sr-only peer" type="checkbox" value="" />
-              <div
-                class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-              ></div>
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
             </label>
           </div>
         </div>
-        <!-- Email List Table -->
+
         <div class="flex-1 px-6 py-4 overflow-x-hidden">
-          <div
-            class="flex overflow-hidden rounded-lg border border-slate-200 bg-white"
-          >
+          <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
             <table class="w-full text-left">
               <thead class="bg-slate-50">
               <tr>
                 <th class="px-4 py-3 w-12">
-                  <input
-                    class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+                  <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-0"
                     type="checkbox"
                     #checkbox
                     (click)="addallemails(checkbox.checked)"
@@ -230,18 +151,13 @@ interface MailSearchRequestDto {
                 </th>
               </tr>
               </thead>
-
               <tbody>
                 @for(item of InboxData; track $index){
-                  <tr
-                    class="border-t border-t-slate-200 hover:bg-slate-50"
-                  >
+                  <tr class="border-t border-t-slate-200 hover:bg-slate-50">
                     <td class="px-4 py-2">
-                      <input
-                        class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+                      <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-0"
                         type="checkbox"
-                        #checkbox
-                        (change)="toggleEmailsSelected(item,checkbox.checked)"
+                        (change)="toggleEmailsSelected(item, $any($event.target).checked)"
                         [checked]="checked(item.mailId)"
                       />
                     </td>
@@ -263,9 +179,8 @@ interface MailSearchRequestDto {
                           <span class="text-slate-800 text-sm font-semibold">{{item.subject}}</span>
                           <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
                         </div>
-
                         <div class="px-4 w-1/12">
-                          <span 
+                           <span *ngIf="item.attachments && item.attachments.length > 0" 
                             class="text-xs font-semibold px-2 py-1 rounded"
                             [ngClass]="{
                               'bg-red-100 text-red-700': item.priority === 1,
@@ -288,68 +203,45 @@ interface MailSearchRequestDto {
             </table>
           </div>
         </div>
-        <!-- Pagination -->
-        <div
-          class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto"
-        >
-          <a (click)="updatePage(page-1)"
-            class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_left</span>
-          </a>
-          <a (click)="updatePage(0)"
-            class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary"
-            >1</a
-          >
-          <a (click)="updatePage(1)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >2</a
-          >
-          <a (click)="updatePage(2)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >3</a
-          >
-          <a (click)="updatePage(page+1)"
-            class="flex  size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_right</span>
-          </a>
+
+        <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto gap-2">
+           <button (click)="updatePage(page-1)" class="flex items-center justify-center text-slate-500 hover:text-primary">
+             <span class="material-symbols-outlined text-lg">chevron_left</span>
+           </button>
+           <button *ngFor="let p of [0,1,2]" (click)="updatePage(p)" [class.bg-primary]="page===p" [class.text-white]="page===p" class="px-3 py-1 rounded-lg text-sm">{{p+1}}</button>
+           <button (click)="updatePage(page+1)" class="flex items-center justify-center text-slate-500 hover:text-primary">
+             <span class="material-symbols-outlined text-lg">chevron_right</span>
+           </button>
         </div>
       </main>
+      
       <div class="move-conatiner bg-black/50" [class.active]="tomove">
-        <div class="content-container ">
+        <div class="content-container">
           <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
+          
           <div class="buttons-folders">
-            <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
+            <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
+            
+            <button (click)="move(folderStateService.userData().sentFolderId)">Sent</button>
+
             @for(folder of CustomFolders; track $index){
-              <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
+              @if(folder.folderId !== MailDetails.getCustomId()){
+                 <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
+              }
             }
           </div>
+
           <div class="bottom-btn">
             <button (click)="tomove=false">Back</button>
             <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
           </div>
         </div>
       </div>
-      <div class="move-conatiner bg-black/50" [class.active]="tomove">
-        <div class="content-container ">
-          <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
-          <div class="buttons-folders">
-          <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
-          @for(folder of CustomFolders; track $index){
-            <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
-          }
-          </div>
-          <div class="bottom-btn">
-            <button (click)="tomove=false">Back</button>
-          <button>make new custom Folder</button>
-          </div>
-        </div>
-      </div>
+
       <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
         <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
           <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
-          <button  (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
+          <button (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
           <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
         </div>
       </div>
@@ -542,28 +434,26 @@ export class CustomFolderPage implements OnInit{
       }
     })
   }
+  
   getCustom(page:number){
-    const userData: UserData = this.folderStateService.userData();
-    const CustomId = userData.inboxFolderId;
+    const CustomId = this.MailDetails.getCustomId();
     if(!CustomId){
-      console.error('CustomId is missing');
-      return;
+       
+       console.error('CustomId is missing, redirecting');
+       this.router.navigate(['/inbox']);
+       return;
     }
-    let param = new HttpParams
-    const id = this.MailDetails.getCustomId();
-    param = param.set('page', page);
-    param = param.set("folderId",id);
+    let param = new HttpParams().set('page', page).set("folderId", CustomId);
     this.http.get<Datafile[]>(`http://localhost:8080/api/mails`,{params:param}).subscribe({
       next:(respones) => {
         this.InboxData = this.transformMailData(respones);
         console.log(respones);
       },
-      error:(respones) => {
-        console.log(respones);
-        alert("failed to fetch mails");
-      }
+      error:() => alert("failed to fetch mails")
     })
   }
+
+  
   goToMailDetails(details:Datafile){
     this.MailDetails.setMailData(details);
     this.MailDetails.setFromId(this.MailDetails.getCustomId());
@@ -572,7 +462,17 @@ export class CustomFolderPage implements OnInit{
   }
   goToCustomFolder(Id:string){
     this.MailDetails.setCustom(Id);
-    this.router.navigate([`/Custom`]);
+    
+    
+    if (this.router.url.includes('/Custom')) {
+       
+       this.page = 0;
+       this.getCustom(0);
+       this.getCustomFolders(); 
+    } else {
+       
+       this.router.navigate([`/Custom`]);
+    }
   }
   toggleEmailsSelected(email:Datafile,ischecked:boolean){
     if(ischecked){
@@ -636,44 +536,52 @@ export class CustomFolderPage implements OnInit{
     })
   }
   CreateCustomFolder(){
-    const url = "http://localhost:8080/api/folders"
+    const url = "http://localhost:8080/api/folders";
     const payload={
       folderName:this.foldername,
       folderId:this.folderStateService.userData().inboxFolderId,
+      userId:this.folderStateService.userData().userId, 
     }
     this.http.post(url, payload).subscribe({
-      next:(respones) => {
-        console.log(respones);
+      next:() => {
+        this.CustomFolderPopUp = false;
+        this.getCustomFolders(); 
       },
-      error:(respones) => {
-        alert("failed to create custom folder");
-      }
+      error:() => alert("failed to create custom folder")
     })
   }
-  move(moveMailToFolderId:string){
-    let mailids:string[]=[];
-    const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.MailDetails.getCustomId()}`;
-    for(let i:number=0; i<this.Emails.length;i++){
-      mailids.push(this.Emails[i].mailId);
-      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
-    }
-    const payload={
-      ids:mailids
-    }
-    this.http.post(url, payload).subscribe({
-      next:(respones) => {
-        const movedIdsSet = new Set(mailids);
+  
+  move(targetFolderId: string) {
+    if (this.Emails.length === 0) return;
 
+    const currentFolderId = this.MailDetails.getCustomId();
+    
+    
+    if(!currentFolderId) {
+        alert("System State lost. Please return to Inbox and try again.");
+        this.router.navigate(['/inbox']);
+        return;
+    }
+
+    const mailIds = this.Emails.map(email => email.mailId);
+    const url = `http://localhost:8080/api/mails/${targetFolderId}/${currentFolderId}`;
+    const payload = { ids: mailIds };
+
+    
+    this.http.patch(url, payload, { responseType: 'text' }).subscribe({
+      next: (response) => {
+        const movedIdsSet = new Set(mailIds);
         this.InboxData = this.InboxData.filter(email => !movedIdsSet.has(email.mailId));
-
         this.Emails = [];
+        this.tomove = false;
       },
-      error:(respones) => {
-        console.log("failed to move");
+      error: (err) => {
+        console.error("Failed to move", err);
+        alert("Failed to move emails");
       }
-    })
+    });
   }
+  
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
     this.page = 0;
@@ -692,7 +600,7 @@ export class CustomFolderPage implements OnInit{
       this.performAdvancedSearch(0);
     }
   }
-
+  
   performQuickSearch(page: number) {
     const folderId = this.MailDetails.getCustomId();
     

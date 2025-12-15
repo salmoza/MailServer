@@ -30,6 +30,7 @@ public class Mail {
     private int priority;
     private String subject;
     private String body;
+    private String previousFolderId;
     @Enumerated(EnumType.STRING)
     private MailStatus status;
     private Timestamp deletedAt;

@@ -41,7 +41,7 @@ public class DraftService {
         Mail draft = MailFactory.createDraftCopy(dto) ;
 
         draft = mailRepo.save(draft);
-        folderService.addMail(user.getDraftsFolderId(), draft);
+        folderService.addMail(null ,user.getDraftsFolderId(), draft);
         saveSnapshot(draft);
         return draft;
     }
@@ -103,13 +103,13 @@ public class DraftService {
             if (receiver == null) continue;
             Mail receiverCopy = MailFactory.createReceiverCopyFromDraft(receiver.getUserId() , draft , receiverEmail) ;
             mailRepo.save(receiverCopy);
-            folderService.addMail(receiver.getInboxFolderId(), receiverCopy);
+            folderService.addMail(null ,receiver.getInboxFolderId(), receiverCopy);
         }
 
 
         User sender = userRepo.findByUserId(draft.getUserId()).orElseThrow();
         folderService.deleteMail(sender.getDraftsFolderId(), draft);
-        folderService.addMail(sender.getSentFolderId(), draft);
+        folderService.addMail(null , sender.getSentFolderId(), draft);
     }
 
 }

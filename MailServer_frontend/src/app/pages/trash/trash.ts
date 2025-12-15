@@ -9,6 +9,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {SearchBarComponent} from '../../components/search-bar/search-bar';
 import { HeaderComponent } from '../../header';
 
+
 interface MailSearchRequestDto {
   sender?: string;
   receiver?: string;
@@ -21,13 +22,10 @@ interface MailSearchRequestDto {
   standalone: true,
   imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent, HeaderComponent],
   template: `
-    <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
-    <!-- Main Container: Enforced light background -->
     <div class="flex h-screen w-full">
-      <!-- SideNavBar -->
       <aside
         class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0"
       >
@@ -45,11 +43,9 @@ interface MailSearchRequestDto {
               <span class="truncate">Compose</span>
             </button>
             <div class="flex flex-col gap-1">
-              <!-- Active Inbox Link -->
               <a [routerLink]="['/inbox']"
                  class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
               >
-                <!-- Removed dark:text-slate-200 -->
                 <span class="material-symbols-outlined text-slate-800 fill"
                 >inbox</span
                 >
@@ -64,7 +60,6 @@ interface MailSearchRequestDto {
               <a [routerLink]="['/sent']"
                  class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
               >
-                <!-- Removed dark:text-slate-400 -->
                 <span class="material-symbols-outlined text-slate-600"
                 >send</span
                 >
@@ -93,7 +88,7 @@ interface MailSearchRequestDto {
                 </p>
               </a>
               <a [routerLink]="['/contacts']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
               >
                 <span class="material-symbols-outlined text-slate-600"
                   >contacts</span
@@ -103,7 +98,7 @@ interface MailSearchRequestDto {
                 </p>
               </a>
               <a [routerLink]="['/filters']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
               >
                 <span class="material-symbols-outlined text-slate-600">filter_alt</span>
                 <p class="text-slate-600 text-sm font-medium leading-normal">
@@ -111,7 +106,6 @@ interface MailSearchRequestDto {
                 </p>
               </a>
             </div>
-            <!-- Custom Folders -->
             <div class="flex flex-col gap-1">
               <div class="flex items-center justify-between px-3 py-2">
                 <h2
@@ -139,11 +133,8 @@ interface MailSearchRequestDto {
           </div>
         </div>
       </aside>
-      <!-- Main Content -->
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <!-- Top bar: Search + Avatar -->
         <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
-          <!-- Search bar stretches -->
           <div class="flex-1 mr-4">
             <app-search-bar 
               (onSearch)="handleSearch($event)"
@@ -151,16 +142,9 @@ interface MailSearchRequestDto {
             </app-search-bar>
           </div>
           
-          <!-- Avatar dropdown -->
           <app-header></app-header>
         </div>
 
-        <!-- Rest of inbox content below -->
-        <div class="px-6 py-4">
-          <!-- email list / table here -->
-        </div>
-
-        <!-- Toolbar -->
         <div
           class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
         >
@@ -168,16 +152,20 @@ interface MailSearchRequestDto {
             <button (click)="delete()"
                     class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     [disabled]="Emails.length === 0"
+                    title="Delete Forever"
             >
-              <span class="material-symbols-outlined">delete</span>
+              <span class="material-symbols-outlined">delete_forever</span>
             </button>
-            <button (click)="tomove = true"
+            
+            <button (click)="undo()"
                     class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     [disabled]="Emails.length === 0"
+                    title="Restore to previous folder"
             >
-              <span class="material-symbols-outlined">folder_open</span>
+              <span class="material-symbols-outlined">undo</span>
             </button>
           </div>
+          
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-slate-600"
             >Priority Mode</span
@@ -190,7 +178,6 @@ interface MailSearchRequestDto {
             </label>
           </div>
         </div>
-        <!-- Email List Table -->
         <div class="flex-1 px-6 py-4 overflow-x-hidden">
           <div
             class="flex overflow-hidden rounded-lg border border-slate-200 bg-white"
@@ -268,7 +255,6 @@ interface MailSearchRequestDto {
             </table>
           </div>
         </div>
-        <!-- Pagination -->
         <div
           class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto"
         >
@@ -296,21 +282,7 @@ interface MailSearchRequestDto {
           </a>
         </div>
       </main>
-      <div class="move-conatiner bg-black/50" [class.active]="tomove">
-        <div class="content-container ">
-          <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
-          <div class="buttons-folders">
-            <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
-            @for(folder of CustomFolders; track $index){
-              <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
-            }
-          </div>
-          <div class="bottom-btn">
-            <button (click)="tomove=false">Back</button>
-            <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
-          </div>
-        </div>
-      </div>
+      
       <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
         <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
           <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
@@ -322,8 +294,8 @@ interface MailSearchRequestDto {
   `,
   styles: [`
     /* 1. We define the font-family globally here, assuming the font files can be reached */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap](https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
     /* 2. Base styles */
     :host {
@@ -466,11 +438,14 @@ export class Trash implements OnInit{
   TrashData:Datafile[]=[];
   page: number = 0;
   CustomFolders:CustomFolderData[]=[];
-  tomove:boolean=false;
+  
+  
+  
   isSearchActive = false;
   isAdvancedSearch = false;
   currentSearchKeyword = '';
   currentAdvancedFilters: MailSearchRequestDto = {};
+  
   ngOnInit() {
     this.getTrash(0);
     this.getCustomFolders();
@@ -480,7 +455,7 @@ export class Trash implements OnInit{
       return;
     }
     this.page = page;
-    
+
     if (this.isSearchActive) {
       if (this.isAdvancedSearch) {
         this.performAdvancedSearch(this.page);
@@ -495,7 +470,7 @@ export class Trash implements OnInit{
     const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
     param = param.set("userId", this.folderStateService.userData().userId)
-    .set("type", "custom");
+      .set("type", "custom");
     this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
       next: data => {
         this.CustomFolders = data;
@@ -576,7 +551,7 @@ export class Trash implements OnInit{
     let ids:string[]=[];
     for(let i:number=0; i<this.Emails.length;i++){
       ids.push(this.Emails[i].mailId);
-      /*to remove the email form Sent*/
+
       const emailIndex = this.TrashData.findIndex(e => e.mailId === this.Emails[i].mailId);
       this.toggleEmailsSelected(this.TrashData[emailIndex],false)
     }
@@ -586,6 +561,10 @@ export class Trash implements OnInit{
     });
     this.http.delete(url, {params:params}).subscribe({
       next:(respones) => {
+        
+        const deletedIdsSet = new Set(ids);
+        this.TrashData = this.TrashData.filter(email => !deletedIdsSet.has(email.mailId));
+        this.Emails = [];
         console.log(respones);
       },
       error:(respones) => {
@@ -593,46 +572,58 @@ export class Trash implements OnInit{
       }
     })
   }
-
-  move(moveMailToFolderId:string){
-    let mailids:string[]=[];
-    const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.folderStateService.userData().trashFolderId}`;
-    for(let i:number=0; i<this.Emails.length;i++){
-      mailids.push(this.Emails[i].mailId);
-      const emailIndex = this.TrashData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.TrashData[emailIndex],false)
+  
+  
+  undo() {
+    if (this.Emails.length === 0) {
+      return;
     }
-    const payload={
-      ids:mailids
-    }
-    this.http.patch(url, payload).subscribe({
-      next:(respones) => {
-        const movedIdsSet = new Set(mailids);
-
-        this.TrashData = this.TrashData.filter(email => !movedIdsSet.has(email.mailId));
-
+    
+    
+    const url = `http://localhost:8080/api/mails`; 
+    
+    const ids = this.Emails.map(email => email.mailId);
+    
+    this.http.patch(url, ids , {responseType : "text"} ).subscribe({
+      next: (response) => {
+        console.log("Undo successful", response);
+        
+        const restoredIdsSet = new Set(ids);
+        this.TrashData = this.TrashData.filter(email => !restoredIdsSet.has(email.mailId));
+        
         this.Emails = [];
       },
-      error:(respones) => {
-        console.log("failed to move");
+      error: (error) => {
+        console.error("Undo failed", error);
+        alert("Failed to restore emails");
       }
-    })
+    });
   }
+  
+  
+
   goToCustomFolder(Id:string){
     this.MailDetails.setCustom(Id);
     this.router.navigate([`/Custom`]);
   }
+
   CreateCustomFolder(){
-    const url = "http://localhost:8080/api/folders"
-    const payload={
-      folderName:this.foldername,
-      folderId:this.folderStateService.userData().inboxFolderId,
-    }
+    const url = "http://localhost:8080/api/folders";
+    const payload = {
+      folderName: this.foldername,
+
+      folderId: this.folderStateService.userData().inboxFolderId,
+
+      userId: this.folderStateService.userData().userId,
+    };
+
     this.http.post(url, payload).subscribe({
-      next:(respones) => {
+      next: (respones) => {
         console.log(respones);
+        this.CustomFolderPopUp = false;
+        this.getCustomFolders();
       },
-      error:(respones) => {
+      error: (respones) => {
         alert("failed to create custom folder");
       }
     })
@@ -641,7 +632,7 @@ export class Trash implements OnInit{
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
     this.page = 0;
-    
+
     if (criteria.keywords) {
       // Quick keyword search
       this.isSearchActive = true;
@@ -660,7 +651,7 @@ export class Trash implements OnInit{
   performQuickSearch(page: number) {
     const userData = this.folderStateService.userData();
     const folderId = userData.trashFolderId;
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;
@@ -683,10 +674,10 @@ export class Trash implements OnInit{
     });
   }
 
-    performAdvancedSearch(page: number) {
+  performAdvancedSearch(page: number) {
     const userData: UserData = this.folderStateService.userData();
     const folderId = userData.trashFolderId;
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;

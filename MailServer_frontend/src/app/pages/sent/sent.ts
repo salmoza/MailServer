@@ -218,10 +218,16 @@ interface MailSearchRequestDto {
     <!-- Move Emails Modal -->
     <div class="move-conatiner bg-black/50" [class.active]="tomove">
       <div class="content-container">
-        <span class="text-lg font-bold mt-5">Move email To</span>
+        <span class="text-lg font-bold mt-5">Move {{Emails.length}} Email(s) To</span>
+        
         <div class="buttons-folders">
-          <button *ngFor="let folder of CustomFolders" (click)="move(folder.folderId)">{{folder.folderName}}</button>
+          <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
+          
+          @for(folder of CustomFolders; track $index){
+             <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
+          }
         </div>
+
         <div class="bottom-btn">
           <button (click)="tomove=false">Back</button>
           <button (click)="CustomFolderPopUp=true">Make new custom Folder</button>
@@ -345,12 +351,28 @@ export class Sent implements OnInit {
     });
   }
 
-  move(moveMailToFolderId:string){
-    const mailids = this.Emails.map(e => e.mailId);
-    const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.folderStateService.userData().sentFolderId}`;
-    this.http.patch(url, {ids:mailids}).subscribe({
-      next:()=>{ this.SentData = this.SentData.filter(e => !mailids.includes(e.mailId)); this.Emails=[]; this.tomove=false; },
-      error:()=>alert("Failed to move emails")
+  move(targetFolderId: string) {
+    if (this.Emails.length === 0) return;
+    
+    const currentFolderId = this.folderStateService.userData().sentFolderId;
+    
+    if (!currentFolderId || !targetFolderId) {
+       alert("Error: Folder ID missing.");
+       return;
+    }
+
+    const mailIds = this.Emails.map(email => email.mailId);
+    const url = `http://localhost:8080/api/mails/${targetFolderId}/${currentFolderId}`;
+    const payload = { ids: mailIds };
+
+    this.http.patch(url, payload, { responseType: 'text' }).subscribe({
+      next: () => {
+        const movedIdsSet = new Set(mailIds);
+        this.SentData = this.SentData.filter(email => !movedIdsSet.has(email.mailId));
+        this.Emails = [];
+        this.tomove = false;
+      },
+      error: (err) => alert("Failed to move emails")
     });
   }
 
@@ -360,14 +382,21 @@ export class Sent implements OnInit {
   }
 
   CreateCustomFolder(){
+    const url = "http://localhost:8080/api/folders";
     const payload = {
-      folderName:this.foldername,
-      folderId:this.folderStateService.userData().userId,
-      type:'custom'
+      folderName: this.foldername,
+      
+      folderId: this.folderStateService.userData().inboxFolderId,
+      
+      userId: this.folderStateService.userData().userId,
     };
-    this.http.post(`http://localhost:8080/api/folders`,payload).subscribe({
-      next:()=>this.getCustomFolders(),
-      error:()=>alert("Failed to create custom folder")
+    
+    this.http.post(url, payload).subscribe({
+      next: () => {
+        this.CustomFolderPopUp = false;
+        this.getCustomFolders(); 
+      },
+      error: () => alert("Failed to create custom folder")
     });
   }
   handleSearch(criteria: any) {

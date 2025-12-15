@@ -190,7 +190,7 @@ interface MailSearchRequestDto {
             <label class="relative inline-flex items-center cursor-pointer">
               <input class="sr-only peer" type="checkbox" value="" />
               <div
-                class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
+                class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"
               ></div>
             </label>
           </div>
@@ -235,17 +235,17 @@ interface MailSearchRequestDto {
               </thead>
 
               <tbody>
-  @for(item of InboxData; track $index){
-    <tr class="border-t border-t-slate-200 hover:bg-slate-50">
-      <td class="px-4 py-2">
-        <input
-          class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-          type="checkbox"
-          #checkbox
-          (change)="toggleEmailsSelected(item,checkbox.checked)"
-          [checked]="checked(item.mailId)"
-        />
-      </td>
+      @for(item of InboxData; track $index){
+        <tr class="border-t border-t-slate-200 hover:bg-slate-50">
+          <td class="px-4 py-2">
+            <input
+              class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+              type="checkbox"
+              #checkbox
+              (change)="toggleEmailsSelected(item,checkbox.checked)"
+              [checked]="checked(item.mailId)"
+            />
+          </td>
 
       <td class="py-0 pl-0 pr-4" colspan="5">
         <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
@@ -259,10 +259,19 @@ interface MailSearchRequestDto {
             me
           </div>
 
+
           <!-- Subject -->
           <div class="px-4 w-1/3">
-            <span class="text-slate-800 text-sm font-semibold">{{ item.subject }}</span>
-            <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
+            <span
+              class="text-sm"
+            >
+              {{ item.subject }}
+            </span>
+
+            <span
+              class="text-sm ml-2"
+              [innerHTML]="getSanitizedPreview(item.body)"
+            ></span>
           </div>
 
           <!-- Priority -->
@@ -280,7 +289,9 @@ interface MailSearchRequestDto {
           </div>
 
           <!-- Date -->
-          <div class="px-4 text-slate-500 text-sm text-right w-1/6">
+          <div
+            class="px-4 text-sm text-right w-1/6"
+          >
             {{ item.date | date:'mediumDate' }}
           </div>
         </div>
@@ -321,20 +332,23 @@ interface MailSearchRequestDto {
         </div>
       </main>
       <div class="move-conatiner bg-black/50" [class.active]="tomove">
-        <div class="content-container ">
-          <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
-          <div class="buttons-folders">
-          <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
+      <div class="content-container">
+        <span class="text-lg font-bold mt-5">Move {{Emails.length}} Email(s) To</span>
+        
+        <div class="buttons-folders">
+          <button (click)="move(folderStateService.userData().sentFolderId)">Sent</button>
+
           @for(folder of CustomFolders; track $index){
             <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
           }
-          </div>
-          <div class="bottom-btn">
-            <button (click)="tomove=false">Back</button>
-          <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
-          </div>
+        </div>
+
+        <div class="bottom-btn">
+          <button (click)="tomove=false">Back</button>
+          <button (click)="CustomFolderPopUp=true">Make new custom Folder</button>
         </div>
       </div>
+    </div>
       <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
       <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
         <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
@@ -479,7 +493,17 @@ interface MailSearchRequestDto {
   `],
 })
 export class Inbox implements OnInit{
+  dataFile!: Datafile;
+  isRead!: boolean;
   constructor(private MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router, private sanitizer: DomSanitizer) {
+    const mail = this.MailDetails.getMailData();
+
+    if (!mail) {
+      console.error('No mail data found');
+      return;
+    }
+    this.dataFile = mail;
+    this.isRead = mail.isRead;
   }
   CustomFolderPopUp:boolean = false;
   foldername:string=''
@@ -551,10 +575,40 @@ export class Inbox implements OnInit{
     })
   }
   goToMailDetails(details:Datafile){
+    if (!details.isRead) {
+      details.isRead = true;
+      this.markMailAsRead(details.mailId);
+
+      const index = this.InboxData.findIndex(e => e.mailId === details.mailId);
+      if (index !== -1) {
+        this.InboxData[index].isRead = true;
+      }
+    }
     this.MailDetails.setMailData(details);
     this.MailDetails.setFromId(this.folderStateService.userData().inboxFolderId);
-    this.router.navigate([`/mail`]);
+    this.router.navigate(['/mail']);
   }
+
+  markMailAsRead(mailId: string) {
+    const url = `http://localhost:8080/api/mails/read/${mailId}`;
+
+    this.http.patch(url, {}, { responseType: 'text' }).subscribe({
+      next: () => {
+        console.log('Mail marked as read');
+
+        // Update InboxData after confirmation
+        const index = this.InboxData.findIndex(e => e.mailId === mailId);
+        if (index !== -1) {
+          this.InboxData[index].isRead = true;
+        }
+      },
+      error: err => {
+        console.error('Failed to mark mail as read', err);
+      }
+    });
+  }
+
+
   goToCustomFolder(Id:string){
     this.MailDetails.setCustom(Id);
     this.router.navigate([`/Custom`]);
@@ -592,9 +646,19 @@ export class Inbox implements OnInit{
   }
 }
   delete(){
-    if(!this.Emails.length) return;
-    const ids = this.Emails.map(e => e.mailId);
-    const url = `http://localhost:8080/api/mails/${this.folderStateService.userData().sentFolderId}`;
+    const userData: UserData = this.folderStateService.userData();
+    const inboxId = userData.inboxFolderId;
+    const url = `http://localhost:8080/api/mails/${inboxId}`
+    if(this.Emails.length == 0){
+      return
+    }
+    let ids:string[]=[];
+    for(let i:number=0; i<this.Emails.length;i++){
+      ids.push(this.Emails[i].mailId);
+      
+      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
+      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
+    }
     let params = new HttpParams();
     ids.forEach(id => params = params.append('ids', id));
     
@@ -603,48 +667,58 @@ export class Inbox implements OnInit{
         this.InboxData = this.InboxData.filter(e => !ids.includes(e.mailId)); 
         this.Emails=[]; 
       },
-      error:()=>alert("Failed to delete emails")
-    });
-  }
-    CreateCustomFolder(){
-      const url = "http://localhost:8080/api/folders"
-      const payload={
-        folderName:this.foldername,
-        folderId:this.folderStateService.userData().inboxFolderId,
-        userId:this.folderStateService.userData().userId,
-      }
-      this.http.post(url, payload).subscribe({
-        next:(respones) => {
-          console.log(respones);
-        },
-        error:(respones) => {
-          alert("failed to create custom folder");
-        }
-      })
-    }
-  move(moveMailToFolderId:string){
-    let mailids:string[]=[];
-    const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.folderStateService.userData().inboxFolderId}`;
-    for(let i:number=0; i<this.Emails.length;i++){
-      mailids.push(this.Emails[i].mailId);
-      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
-    }
-      const payload={
-        ids:mailids
-      }
-    this.http.patch(url, payload).subscribe({
-      next:(respones) => {
-        const movedIdsSet = new Set(mailids);
-
-        this.InboxData = this.InboxData.filter(email => !movedIdsSet.has(email.mailId));
-
-        this.Emails = [];
-      },
       error:(respones) => {
-        console.log("failed to move");
+        console.log(respones);
       }
     })
+}
+  CreateCustomFolder(){
+    const url = "http://localhost:8080/api/folders"
+    const payload={
+      folderName:this.foldername,
+      folderId:this.folderStateService.userData().inboxFolderId,
+      userId:this.folderStateService.userData().userId,
+    }
+    this.http.post(url, payload).subscribe({
+      next:(respones) => {
+        console.log(respones);
+      },
+      error:(respones) => {
+        alert("failed to create custom folder");
+      }
+    })
+  }
+  
+  move(targetFolderId: string) {
+    
+    if (this.Emails.length === 0) return;
+    
+    const currentFolderId = this.folderStateService.userData().inboxFolderId;
+    if (!currentFolderId || !targetFolderId) {
+      alert("Error: Folder ID is missing. Please try logging in again.");
+      return;
+    }
+
+    const mailIds = this.Emails.map(email => email.mailId);
+    
+    
+    const url = `http://localhost:8080/api/mails/${targetFolderId}/${currentFolderId}`;
+    const payload = { ids: mailIds };
+
+    
+    this.http.patch(url, payload, { responseType: 'text' }).subscribe({
+      next: (response) => {
+        
+        const movedIdsSet = new Set(mailIds);
+        this.InboxData = this.InboxData.filter(email => !movedIdsSet.has(email.mailId));
+        this.Emails = []; 
+        this.tomove = false; 
+      },
+      error: (err) => {
+        console.error("Failed to move", err);
+        alert("Failed to move emails. Check console for details.");
+      }
+    });
   }
   // isSearchActive = false;
   // currentSearchKeyword = '';
@@ -746,7 +820,7 @@ export class Inbox implements OnInit{
     let params = new HttpParams()
       .set('folderId', folderId)
       .set('page', page);
-
+    
     this.http.post<Datafile[]>(
       'http://localhost:8080/api/mails/filter',
       this.currentAdvancedFilters,
