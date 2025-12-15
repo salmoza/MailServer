@@ -10,5 +10,7 @@ public class AttachmentDto {
     private String filePath;
     private String id;
     private String mailId;
+    private String fileName;
+    private Double fileSize;
 
 }

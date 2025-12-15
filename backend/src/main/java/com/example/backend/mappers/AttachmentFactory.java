@@ -22,6 +22,8 @@ public class AttachmentFactory {
         AttachmentDto dto = new AttachmentDto();
         dto.setId(entity.getAttachmentId());
         dto.setFiletype(entity.getFiletype());
+        dto.setFileName(entity.getFilename());
+        dto.setFileSize(entity.getFilesize());
 
         if (entity.getMail() != null) {
             dto.setMailId(entity.getMail().getMailId());
