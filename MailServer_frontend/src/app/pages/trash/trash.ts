@@ -576,7 +576,7 @@ export class Trash implements OnInit{
     let ids:string[]=[];
     for(let i:number=0; i<this.Emails.length;i++){
       ids.push(this.Emails[i].mailId);
-      /*to remove the email form Sent*/
+      
       const emailIndex = this.TrashData.findIndex(e => e.mailId === this.Emails[i].mailId);
       this.toggleEmailsSelected(this.TrashData[emailIndex],false)
     }
@@ -622,17 +622,24 @@ export class Trash implements OnInit{
     this.MailDetails.setCustom(Id);
     this.router.navigate([`/Custom`]);
   }
+  
   CreateCustomFolder(){
-    const url = "http://localhost:8080/api/folders"
-    const payload={
-      folderName:this.foldername,
-      folderId:this.folderStateService.userData().inboxFolderId,
-    }
+    const url = "http://localhost:8080/api/folders";
+    const payload = {
+      folderName: this.foldername,
+      
+      folderId: this.folderStateService.userData().inboxFolderId, 
+      
+      userId: this.folderStateService.userData().userId, 
+    };
+
     this.http.post(url, payload).subscribe({
-      next:(respones) => {
+      next: (respones) => {
         console.log(respones);
+        this.CustomFolderPopUp = false; 
+        this.getCustomFolders(); 
       },
-      error:(respones) => {
+      error: (respones) => {
         alert("failed to create custom folder");
       }
     })

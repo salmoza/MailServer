@@ -307,20 +307,23 @@ interface MailSearchRequestDto {
         </div>
       </main>
       <div class="move-conatiner bg-black/50" [class.active]="tomove">
-        <div class="content-container ">
-          <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
-          <div class="buttons-folders">
-          <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
+      <div class="content-container">
+        <span class="text-lg font-bold mt-5">Move {{Emails.length}} Email(s) To</span>
+        
+        <div class="buttons-folders">
+          <button (click)="move(folderStateService.userData().sentFolderId)">Sent</button>
+
           @for(folder of CustomFolders; track $index){
             <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
           }
-          </div>
-          <div class="bottom-btn">
-            <button (click)="tomove=false">Back</button>
-          <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
-          </div>
+        </div>
+
+        <div class="bottom-btn">
+          <button (click)="tomove=false">Back</button>
+          <button (click)="CustomFolderPopUp=true">Make new custom Folder</button>
         </div>
       </div>
+    </div>
       <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
       <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
         <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
@@ -587,7 +590,7 @@ export class Inbox implements OnInit{
     let ids:string[]=[];
     for(let i:number=0; i<this.Emails.length;i++){
       ids.push(this.Emails[i].mailId);
-      /*to remove the email form inbox*/
+      
       const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
       this.toggleEmailsSelected(this.InboxData[emailIndex],false)
     }
@@ -620,29 +623,37 @@ export class Inbox implements OnInit{
       }
     })
   }
-  move(moveMailToFolderId:string){
-    let mailids:string[]=[];
-    const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.folderStateService.userData().inboxFolderId}`;
-    for(let i:number=0; i<this.Emails.length;i++){
-      mailids.push(this.Emails[i].mailId);
-      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
+  
+  move(targetFolderId: string) {
+    
+    if (this.Emails.length === 0) return;
+    
+    const currentFolderId = this.folderStateService.userData().inboxFolderId;
+    if (!currentFolderId || !targetFolderId) {
+      alert("Error: Folder ID is missing. Please try logging in again.");
+      return;
     }
-      const payload={
-        ids:mailids
-      }
-    this.http.patch(url, payload).subscribe({
-      next:(respones) => {
-        const movedIdsSet = new Set(mailids);
 
+    const mailIds = this.Emails.map(email => email.mailId);
+    
+    
+    const url = `http://localhost:8080/api/mails/${targetFolderId}/${currentFolderId}`;
+    const payload = { ids: mailIds };
+
+    
+    this.http.patch(url, payload, { responseType: 'text' }).subscribe({
+      next: (response) => {
+        
+        const movedIdsSet = new Set(mailIds);
         this.InboxData = this.InboxData.filter(email => !movedIdsSet.has(email.mailId));
-
-        this.Emails = [];
+        this.Emails = []; 
+        this.tomove = false; 
       },
-      error:(respones) => {
-        console.log("failed to move");
+      error: (err) => {
+        console.error("Failed to move", err);
+        alert("Failed to move emails. Check console for details.");
       }
-    })
+    });
   }
   // isSearchActive = false;
   // currentSearchKeyword = '';
@@ -735,7 +746,7 @@ export class Inbox implements OnInit{
     let params = new HttpParams()
       .set('folderId', folderId)
       .set('page', page);
-
+    
     this.http.post<Datafile[]>(
       'http://localhost:8080/api/mails/filter',
       this.currentAdvancedFilters,
