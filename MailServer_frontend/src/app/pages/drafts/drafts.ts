@@ -615,12 +615,16 @@ export class Drafts implements OnInit {
     ids.forEach((id) => {
       params = params.append('ids', id);
     });
-    this.http.delete(url, {params:params}).subscribe({
+    this.http.delete(url, {params:params,  responseType: 'text'}).subscribe({
       next:(respones) => {
         console.log(respones);
+        const deletedIds = new Set(ids);
+        this.DraftData = this.DraftData.filter(email => !deletedIds.has(email.mailId));
+        this.Emails = [];
       },
       error:(respones) => {
         console.log(respones);
+        alert("Failed to delete emails");
       }
     })
   }
@@ -663,7 +667,7 @@ export class Drafts implements OnInit {
 
     let params = new HttpParams();
     params = params.append('ids', id);
-    this.http.delete(url, {params:params}).subscribe({
+    this.http.delete(url, {params:params, responseType: 'text'}).subscribe({
       next:(respones) => {
         console.log(respones);
         const emailIndex = this.DraftData.findIndex(e => e.mailId === id);

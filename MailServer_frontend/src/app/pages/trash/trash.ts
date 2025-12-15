@@ -519,7 +519,7 @@ export class Trash implements OnInit{
     param = param.set("folderId",this.folderStateService.userData().trashFolderId);
     this.http.get<Datafile[]>(`http://localhost:8080/api/mails`,{params:param}).subscribe({
       next:(respones) => {
-        this.TrashData=respones;
+        this.TrashData = this.transformMailData(respones);
         console.log(respones);
       },
       error:(respones) => {
@@ -719,5 +719,19 @@ export class Trash implements OnInit{
     this.currentAdvancedFilters = {};
     this.page = 0;
     this.getTrash(0);
+  }
+
+  transformMailData(mails: Datafile[]): Datafile[] {
+    const currentUserEmail = this.folderStateService.userData().email;
+    return mails.map(mail => {
+      const isSender = mail.sender === currentUserEmail;
+      return {
+        ...mail,
+        sender: isSender ? currentUserEmail : (mail.receivers && mail.receivers.length > 0 ? mail.receivers[0] : ''),
+        receivers: isSender ? mail.receivers : [currentUserEmail],
+        senderDisplayName: isSender ? 'me' : mail.senderDisplayName,
+        receiverDisplayNames: isSender ? mail.receiverDisplayNames : ['me']
+      };
+    });
   }
 }

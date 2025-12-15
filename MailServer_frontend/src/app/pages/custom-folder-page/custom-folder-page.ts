@@ -209,15 +209,20 @@ interface MailSearchRequestDto {
                   />
                 </th>
 
-                <th class="py-3 pl-0 pr-4" colspan="4">
+                <th class="py-3 pl-0 pr-4" colspan="6">
                   <div class="flex items-center w-full">
-                    <div class="px-4 text-slate-800 w-1/4 text-sm font-medium">
+                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">
                       Sender
                     </div>
-                    <div class="px-4 text-slate-800 w-1/2 text-sm font-medium">
+                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">
+                      Receiver
+                    </div>
+                    <div class="px-4 text-slate-800 w-1/3 text-sm font-medium">
                       Subject
                     </div>
-                    <div class="px-4 text-slate-800 w-auto text-sm font-medium"></div>
+                    <div class="px-4 text-slate-800 w-1/12 text-sm font-medium">
+                      Priority
+                    </div>
                     <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-right">
                       Date
                     </div>
@@ -241,30 +246,39 @@ interface MailSearchRequestDto {
                       />
                     </td>
 
-                    <td class="py-0 pl-0 pr-4" colspan="4">
+                    <td class="py-0 pl-0 pr-4" colspan="6">
                       <div
                         class="flex items-center w-full py-2 cursor-pointer"
                         (click)="goToMailDetails(item)"
                       >
-                        <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
-                          {{item.sender}}
+                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
+                          {{ item.senderDisplayName }}
                         </div>
 
-                        <div class="px-4 w-1/2">
-                    <span class="text-slate-800 text-sm font-semibold"
-                    >{{item.subject}}</span
-                    >
-                          <span class="text-slate-500 text-sm ml-2 truncate"
-                          >{{item.body}}</span
-                          >
+                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
+                          {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0 ? item.receiverDisplayNames[0] : '-' }}
                         </div>
 
-                        <div class="px-4 text-right w-auto">
-                          <span class="material-symbols-outlined text-slate-400 text-lg">attachment</span>
+                        <div class="px-4 w-1/3">
+                          <span class="text-slate-800 text-sm font-semibold">{{item.subject}}</span>
+                          <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
+                        </div>
+
+                        <div class="px-4 w-1/12">
+                          <span 
+                            class="text-xs font-semibold px-2 py-1 rounded"
+                            [ngClass]="{
+                              'bg-red-100 text-red-700': item.priority === 1,
+                              'bg-orange-100 text-orange-700': item.priority === 2,
+                              'bg-yellow-100 text-yellow-700': item.priority === 3,
+                              'bg-blue-100 text-blue-700': item.priority === 4
+                            }">
+                            {{ getPriorityLabel(item.priority) }}
+                          </span>
                         </div>
 
                         <div class="px-4 text-slate-500 text-sm text-right w-1/6">
-                          {{item.date}}
+                          {{ item.date | date:'mediumDate' }}
                         </div>
                       </div>
                     </td>
@@ -541,7 +555,7 @@ export class CustomFolderPage implements OnInit{
     param = param.set("folderId",id);
     this.http.get<Datafile[]>(`http://localhost:8080/api/mails`,{params:param}).subscribe({
       next:(respones) => {
-        this.InboxData=respones;
+        this.InboxData = this.transformMailData(respones);
         console.log(respones);
       },
       error:(respones) => {
@@ -609,9 +623,12 @@ export class CustomFolderPage implements OnInit{
     ids.forEach((id) => {
       params = params.append('ids', id);
     });
-    this.http.delete(url, {params:params}).subscribe({
+    this.http.delete(url, {params:params, responseType: 'text'}).subscribe({
       next:(respones) => {
         console.log(respones);
+        const deletedIds = new Set(ids);
+        this.InboxData = this.InboxData.filter(email => !deletedIds.has(email.mailId));
+        this.Emails = [];
       },
       error:(respones) => {
         console.log(respones);
@@ -691,7 +708,7 @@ export class CustomFolderPage implements OnInit{
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
       next: (response) => {
-        this.InboxData = response;
+        this.InboxData = this.transformMailData(response);
         console.log('Search results:', response);
       },
       error: (error) => {
@@ -719,7 +736,7 @@ export class CustomFolderPage implements OnInit{
       { params }
     ).subscribe({
       next: (response) => {
-        this.InboxData = response;
+        this.InboxData = this.transformMailData(response);
         console.log('Filter results:', response);
       },
       error: (error) => {
@@ -736,5 +753,32 @@ export class CustomFolderPage implements OnInit{
     this.currentAdvancedFilters = {};
     this.page = 0;
     this.getCustom(0);
+  }
+
+  getSanitizedPreview(body: string | undefined): string {
+    if (!body) return '';
+    return body.length > 50 ? body.substring(0, 50) + '...' : body;
+  }
+
+  getPriorityLabel(priority: number | undefined): string {
+    switch(priority) {
+      case 1: return 'Urgent';
+      case 2: return 'High';
+      case 3: return 'Normal';
+      case 4: return 'Low';
+      default: return 'Normal';
+    }
+  }
+
+  transformMailData(mails: Datafile[]): Datafile[] {
+    const currentUserEmail = this.folderStateService.userData().email;
+    return mails.map(mail => {
+      const isSender = mail.sender === currentUserEmail;
+      return {
+        ...mail,
+        senderDisplayName: mail.senderDisplayName || mail.sender,
+        receiverDisplayNames: mail.receiverDisplayNames && mail.receiverDisplayNames.length > 0 ? mail.receiverDisplayNames : ['Unknown']
+      };
+    });
   }
 }

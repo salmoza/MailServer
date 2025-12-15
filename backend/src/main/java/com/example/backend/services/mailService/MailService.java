@@ -58,15 +58,48 @@ public class MailService {
 
         String senderId = senderUser.getUserId();
 
-        // sender copy
+        // Build the complete receiver display names list FIRST
+        List<String> receiverDisplayNames = new ArrayList<>();
+        for (String receiverEmail : dto.getReceivers()) {
+            User receiverUser = userRepo.findByEmail(receiverEmail);
+            if (receiverUser == null) continue;
+
+            Contact senderContact = senderUser.getContacts().stream()
+                    .filter(c -> c.getEmailAddresses().contains(receiverUser.getEmail()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (senderContact != null) {
+                receiverDisplayNames.add(senderContact.getName());
+            } else if (receiverUser.getUsername() != null) {
+                receiverDisplayNames.add(receiverUser.getUsername());
+            } else {
+                receiverDisplayNames.add(receiverUser.getEmail());
+            }
+        }
+
+        // Create sender copy with complete receiver list
         Mail senderCopy = MailFactory.createSenderCopy(senderId, dto);
+
+        // Sender display name (for Sent folder)
+        senderCopy.setSenderDisplayName(
+                senderUser.getUsername() != null
+                        ? senderUser.getUsername()
+                        : senderUser.getEmail()
+        );
+
+        // Set receiver display names on sender copy
+        senderCopy.setReceiverDisplayNames(receiverDisplayNames);
+
         senderCopy = mailRepo.save(senderCopy);
         folderService.addMail(senderUser.getSentFolderId(), senderCopy);
 
-        Queue<String> receiversQueue = new LinkedList<>(dto.getReceivers());
-
         List<String> ids = new ArrayList<>();
         ids.add(senderCopy.getMailId());
+
+        // Create receiver copies
+        Queue<String> receiversQueue = new LinkedList<>(dto.getReceivers());
+
         while (!receiversQueue.isEmpty()) {
 
             String currentReceiverEmail = receiversQueue.poll();
@@ -79,28 +112,23 @@ public class MailService {
             // receiver copy
             Mail receiverCopy = MailFactory.createReceiverCopy(receiverId, dto, currentReceiverEmail);
 
+            // Receiver sees sender name
+            Contact receiverContact = receiverUser.getContacts().stream()
+                    .filter(c -> c.getEmailAddresses().contains(senderUser.getEmail()))
+                    .findFirst()
+                    .orElse(null);
 
-            if (senderUser.getUsername()!= null) {
-                senderCopy.setSenderDisplayName(senderUser.getUsername());
+            if (receiverContact != null) {
+                receiverCopy.setSenderDisplayName(receiverContact.getName());
+            } else if (senderUser.getUsername() != null) {
                 receiverCopy.setSenderDisplayName(senderUser.getUsername());
-            }
-            else {
-                Contact contact = receiverUser.getContacts().stream().filter(
-                        contactTmp -> contactTmp.getEmailAddresses()
-                                .stream()
-                                .anyMatch(email -> email.equals(senderUser.getEmail())))
-                        .findFirst()
-                        .orElse(null);
-                if (contact != null) {
-                    receiverCopy.setSenderDisplayName(contact.getName());
-                }
-                else {
-                    senderCopy.setSenderDisplayName(senderUser.getEmail());
-                    receiverCopy.setSenderDisplayName(senderUser.getEmail());
-                }
+            } else {
+                receiverCopy.setSenderDisplayName(senderUser.getEmail());
             }
 
-            senderCopy = mailRepo.save(senderCopy);
+            // Set receiver display names on receiver copy too
+            receiverCopy.setReceiverDisplayNames(receiverDisplayNames);
+
             receiverCopy = mailRepo.save(receiverCopy);
 
             attachmentService.duplicateAttachmentsForNewMail(
@@ -116,6 +144,8 @@ public class MailService {
 
         return ids;
     }
+
+
     public void deleteMailById(String mailId) {
         Mail mail = mailRepo.findByMailId(mailId)
                 .orElseThrow(() -> new RuntimeException("Mail not found"));
@@ -303,6 +333,7 @@ public class MailService {
         }
 
         MailSorter sorter = new MailSorter(strategy);
+
         return paginateMails(sorter.sort(mails), page);
     }
 

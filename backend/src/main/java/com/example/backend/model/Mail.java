@@ -25,6 +25,7 @@ public class Mail {
     private String senderDisplayName;
     @Builder.Default
     private List<String> receiverEmails  = new ArrayList<>();
+    private List<String> receiverDisplayNames  = new ArrayList<>();
     private String senderEmail;
     private int priority;
     private String subject;

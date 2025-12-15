@@ -212,15 +212,20 @@ interface MailSearchRequestDto {
                   />
                 </th>
 
-                <th class="py-3 pl-0 pr-4" colspan="4">
+                <th class="py-3 pl-0 pr-4" colspan="5">
                   <div class="flex items-center w-full">
-                    <div class="px-4 text-slate-800 w-1/4 text-sm font-medium">
+                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">
                       Sender
                     </div>
-                    <div class="px-4 text-slate-800 w-1/2 text-sm font-medium">
+                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">
+                      Receiver
+                    </div>
+                    <div class="px-4 text-slate-800 w-1/3 text-sm font-medium">
                       Subject
                     </div>
-                    <div class="px-4 text-slate-800 w-auto text-sm font-medium"></div>
+                    <div class="px-4 text-slate-800 w-1/12 text-sm font-medium">
+                      Priority
+                    </div>
                     <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-right">
                       Date
                     </div>
@@ -242,35 +247,44 @@ interface MailSearchRequestDto {
         />
       </td>
 
-      <td class="py-0 pl-0 pr-4" colspan="4">
+      <td class="py-0 pl-0 pr-4" colspan="5">
         <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
           <!-- Sender -->
-          <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
-            {{ item.sender }}
+          <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
+            {{ item.senderDisplayName }}
           </div>
 
-          <!-- Subject + Preview -->
-          <div class="px-4 w-1/2">
+          <!-- Receiver -->
+          <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
+            me
+          </div>
+
+          <!-- Subject -->
+          <div class="px-4 w-1/3">
             <span class="text-slate-800 text-sm font-semibold">{{ item.subject }}</span>
             <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
           </div>
 
-          <!-- Attachment icon -->
-          <div class="px-4 text-right w-auto">
+          <!-- Priority -->
+          <div class="px-4 w-1/12">
             <span 
-              *ngIf="item.attachments && item.attachments.length > 0" 
-              class="material-symbols-outlined text-slate-400 text-lg"
-            >
-              attachment
+              class="text-xs font-semibold px-2 py-1 rounded"
+              [ngClass]="{
+                'bg-red-100 text-red-700': item.priority === 1,
+                'bg-orange-100 text-orange-700': item.priority === 2,
+                'bg-yellow-100 text-yellow-700': item.priority === 3,
+                'bg-blue-100 text-blue-700': item.priority === 4
+              }">
+              {{ getPriorityLabel(item.priority) }}
             </span>
           </div>
 
           <!-- Date -->
           <div class="px-4 text-slate-500 text-sm text-right w-1/6">
             {{ item.date | date:'mediumDate' }}
-                </div>
-              </div>
-            </td>
+          </div>
+        </div>
+      </td>
           </tr>
         }
       </tbody>
@@ -578,48 +592,36 @@ export class Inbox implements OnInit{
   }
 }
   delete(){
-    const userData: UserData = this.folderStateService.userData();
-    const inboxId = userData.inboxFolderId;
-    const url = `http://localhost:8080/api/mails/${inboxId}`
-    if(this.Emails.length == 0){
-      return
-    }
-    let ids:string[]=[];
-    for(let i:number=0; i<this.Emails.length;i++){
-      ids.push(this.Emails[i].mailId);
-      /*to remove the email form inbox*/
-      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
-    }
+    if(!this.Emails.length) return;
+    const ids = this.Emails.map(e => e.mailId);
+    const url = `http://localhost:8080/api/mails/${this.folderStateService.userData().sentFolderId}`;
     let params = new HttpParams();
-    ids.forEach((id) => {
-      params = params.append('ids', id);
+    ids.forEach(id => params = params.append('ids', id));
+    
+    this.http.delete(url, {params: params, responseType: 'text'}).subscribe({
+      next:()=>{ 
+        this.InboxData = this.InboxData.filter(e => !ids.includes(e.mailId)); 
+        this.Emails=[]; 
+      },
+      error:()=>alert("Failed to delete emails")
     });
-    this.http.delete(url, {params:params}).subscribe({
-      next:(respones) => {
-        console.log(respones);
-      },
-      error:(respones) => {
-        console.log(respones);
-      }
-    })
-}
-  CreateCustomFolder(){
-    const url = "http://localhost:8080/api/folders"
-    const payload={
-      folderName:this.foldername,
-      folderId:this.folderStateService.userData().inboxFolderId,
-      userId:this.folderStateService.userData().userId,
-    }
-    this.http.post(url, payload).subscribe({
-      next:(respones) => {
-        console.log(respones);
-      },
-      error:(respones) => {
-        alert("failed to create custom folder");
-      }
-    })
   }
+    CreateCustomFolder(){
+      const url = "http://localhost:8080/api/folders"
+      const payload={
+        folderName:this.foldername,
+        folderId:this.folderStateService.userData().inboxFolderId,
+        userId:this.folderStateService.userData().userId,
+      }
+      this.http.post(url, payload).subscribe({
+        next:(respones) => {
+          console.log(respones);
+        },
+        error:(respones) => {
+          alert("failed to create custom folder");
+        }
+      })
+    }
   move(moveMailToFolderId:string){
     let mailids:string[]=[];
     const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.folderStateService.userData().inboxFolderId}`;
@@ -707,6 +709,15 @@ export class Inbox implements OnInit{
       return this.sanitizer.bypassSecurityTrustHtml(truncated);
     }
 
+    getPriorityLabel(priority: number | undefined): string {
+      switch(priority) {
+        case 1: return 'Urgent';
+        case 2: return 'High';
+        case 3: return 'Normal';
+        case 4: return 'Low';
+        default: return 'Normal';
+      }
+    }
 
     refreshData() {
       console.log("Refreshing Inbox Data...");

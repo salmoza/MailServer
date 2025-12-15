@@ -65,8 +65,6 @@ public class MailController {
     @GetMapping  // getAllMails
     public List<MailListDto> getAllMails(@RequestParam int page, @RequestParam String folderId) {
         return mailService.sortMails(folderId, "date", page);
-
-//        return mailRepo.findAll() ;
     }
 
     @GetMapping("/search")

@@ -137,10 +137,12 @@ interface MailSearchRequestDto {
                    (change)="addallemails($event.target.checked)"
                    [checked]="Emails.length===SentData.length"/>
           </th>
-          <th class="py-3 pl-0 pr-4" colspan="3">
+          <th class="py-3 pl-0 pr-4" colspan="5">
             <div class="flex items-center w-full">
-              <div class="px-4 text-slate-800 w-1/4 text-sm font-medium">Sender</div>
-              <div class="px-4 text-slate-800 w-1/2 text-sm font-medium">Subject</div>
+              <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">Sender</div>
+              <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">Receiver</div>
+              <div class="px-4 text-slate-800 w-1/3 text-sm font-medium">Subject</div>
+              <div class="px-4 text-slate-800 w-1/12 text-sm font-medium">Priority</div>
               <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-right">Date</div>
             </div>
           </th>
@@ -154,15 +156,39 @@ interface MailSearchRequestDto {
                    class="h-5 w-5 rounded border-slate-300 text-primary"
                    (change)="toggleEmailsSelected(item, $event.target.checked)"
                    [checked]="checked(item.mailId)"/>
-          </td>
-
-          <td class="py-0 pl-0 pr-4" colspan="3">
+          <td class="py-0 pl-0 pr-4" colspan="5">
             <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-              <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">{{item.sender}}</div>
-              <div class="px-4 w-1/2">
-                <span class="text-slate-800 text-sm font-semibold truncate">{{item.subject}}</span>
-                <span class="text-slate-500 text-sm ml-2 truncate">{{item.body}}</span>
+              <!-- Sender -->
+              <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
+                me
               </div>
+
+              <!-- Receiver -->
+              <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
+                {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0 ? item.receiverDisplayNames[0] : '-' }}
+              </div>
+
+              <!-- Subject -->
+              <div class="px-4 w-1/3">
+                <span class="text-slate-800 text-sm font-semibold">{{ item.subject }}</span>
+                <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
+              </div>
+
+              <!-- Priority -->
+              <div class="px-4 w-1/12">
+                <span 
+                  class="text-xs font-semibold px-2 py-1 rounded"
+                  [ngClass]="{
+                    'bg-red-100 text-red-700': item.priority === 1,
+                    'bg-orange-100 text-orange-700': item.priority === 2,
+                    'bg-yellow-100 text-yellow-700': item.priority === 3,
+                    'bg-blue-100 text-blue-700': item.priority === 4
+                  }">
+                  {{ getPriorityLabel(item.priority) }}
+                </span>
+              </div>
+
+              <!-- Date -->
               <div class="px-4 text-slate-500 text-sm text-right w-1/6">
                 {{ item.date | date:'mediumDate' }}
               </div>
@@ -276,7 +302,10 @@ export class Sent implements OnInit {
   getSent(page:number){
     let params = new HttpParams().set("page", page).set("folderId", this.folderStateService.userData().sentFolderId!);
     this.http.get<Datafile[]>(`http://localhost:8080/api/mails`,{params}).subscribe({
-      next:res => this.SentData=res,
+      next:res => {
+        console.log('Sent mails data:', res);
+        this.SentData=res;
+      },
       error:err => alert("Failed to fetch mails")
     });
   }
@@ -306,8 +335,12 @@ export class Sent implements OnInit {
     const url = `http://localhost:8080/api/mails/${this.folderStateService.userData().sentFolderId}`;
     let params = new HttpParams();
     ids.forEach(id => params = params.append('ids', id));
-    this.http.delete(url,{params}).subscribe({
-      next:()=>{ this.SentData = this.SentData.filter(e => !ids.includes(e.mailId)); this.Emails=[]; },
+    
+    this.http.delete(url, {params: params, responseType: 'text'}).subscribe({
+      next:()=>{ 
+        this.SentData = this.SentData.filter(e => !ids.includes(e.mailId)); 
+        this.Emails=[]; 
+      },
       error:()=>alert("Failed to delete emails")
     });
   }
@@ -419,5 +452,20 @@ export class Sent implements OnInit {
     this.currentAdvancedFilters = {};
     this.page = 0;
     this.getSent(0);
+  }
+
+  getSanitizedPreview(body: string | undefined): string {
+    if (!body) return '';
+    return body.length > 50 ? body.substring(0, 50) + '...' : body;
+  }
+
+  getPriorityLabel(priority: number | undefined): string {
+    switch(priority) {
+      case 1: return 'Urgent';
+      case 2: return 'High';
+      case 3: return 'Normal';
+      case 4: return 'Low';
+      default: return 'Normal';
+    }
   }
 }

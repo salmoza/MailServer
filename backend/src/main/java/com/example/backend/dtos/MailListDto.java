@@ -16,7 +16,9 @@ public class MailListDto {
     private String senderEmail;
     private String senderDisplayName;
     private List<String> receiverEmails;
+    private List<String> receiverDisplayNames;
     private String subject;
     private LocalDateTime date;
     private Boolean isRead;
+    private int priority;
 }

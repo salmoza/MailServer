@@ -12,6 +12,7 @@ export interface Datafile{
   userId:string;
   subject:string;
   senderDisplayName:string;
+  receiverDisplayNames: string[];
   attachments:attachment[];
 }
 export interface attachment{

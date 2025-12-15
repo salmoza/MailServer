@@ -117,10 +117,12 @@ public class MailFactory {
                 .mailId(mail.getMailId())
                 .senderEmail(mail.getSenderEmail())
                 .senderDisplayName(mail.getSenderDisplayName())
+                .receiverDisplayNames(mail.getReceiverDisplayNames())
                 .subject(mail.getSubject())
                 .date(mail.getDate().toLocalDateTime())
                 .isRead(mail.getIsRead())
                 .receiverEmails(mail.getReceiverEmails())
+                .priority(mail.getPriority())
                 .build() ;
     }
 

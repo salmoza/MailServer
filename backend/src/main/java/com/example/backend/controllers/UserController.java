@@ -74,4 +74,9 @@ public class UserController {
         return Map.of("error", fistError);
     }
 
+    @GetMapping("/get/all")
+    public List<UserDto> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
 }
