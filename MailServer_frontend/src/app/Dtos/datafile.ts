@@ -15,9 +15,10 @@ export interface Datafile{
   attachments:attachment[];
 }
 export interface attachment{
+  id: string;
   fileName: string;
   filetype: string;
-  fileSize:string;
+  fileSize:number;
   attachmentId:string;
 }
 export interface CustomFolderData{

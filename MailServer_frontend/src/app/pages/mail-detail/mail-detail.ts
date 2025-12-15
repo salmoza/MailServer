@@ -8,6 +8,8 @@ import {take} from 'rxjs';
 import {MailShuttleService} from '../../Dtos/MailDetails';
 import {FormsModule} from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import {HeaderComponent} from '../../header';
+import {SearchBarComponent} from '../../components/search-bar/search-bar';
 
 // @ts-ignore
 // @ts-ignore
@@ -15,7 +17,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 @Component({
   selector: 'app-mail-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule],
+  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule, HeaderComponent, SearchBarComponent],
   template: `
     <!-- Global resource loading added for robustness -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
@@ -49,31 +51,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
             </div>
           </label>
         </div>
-        <div class="flex flex-1 justify-end gap-2 sm:gap-4">
-          <div class="flex gap-1 sm:gap-2">
-            <button
-              class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-transparent text-gray-700 hover:bg-gray-100 gap-2 text-sm font-bold min-w-0 px-2.5"
-            >
-              <span class="material-symbols-outlined">help</span>
-            </button>
-            <button
-              class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-transparent text-gray-700 hover:bg-gray-100 gap-2 text-sm font-bold min-w-0 px-2.5"
-            >
-              <span class="material-symbols-outlined">settings</span>
-            </button>
-            <button
-              class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-transparent text-gray-700 hover:bg-gray-100 gap-2 text-sm font-bold min-w-0 px-2.5"
-            >
-              <span class="material-symbols-outlined">apps</span>
-            </button>
-          </div>
-          <div
-            class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-            data-alt="User avatar image"
-            style="
-              background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAdfKKGz5yrnxyYagz1tKKwt0jvcnkV7OQEOptlf274lpHltWTfOzNidkMsYHSKMxSeACXmF9nL-1bnHiHDOq6i50wbRrbggkzBI2h4oQmhacVwMqv5Fn9rLV9aZwexW9XL1whzm8Z4NAaM3KEA3n9Y0BKz2l60iIULZSpTT0WU5BnD2Og58TwqFEoOvmyk8Fo6XEze78UHNrI3PuFJe8u3YfX8TXwXdMowAl7-65dEhpnPhLoVPzbnvfk5BiBCfPdpPX0Pwwvc4mE');
-            "
-          ></div>
+        <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
+          <app-header></app-header>
         </div>
       </header>
       <div class="flex flex-1 overflow-hidden">
@@ -90,7 +69,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
             </button>
             <div class="flex flex-col gap-1">
               <a [routerLink]="['/inbox']"
-                 class="flex items-center gap-4 px-3 py-2 rounded-lg bg-[#137fec]/10 text-[#137fec]"
+                 class="flex items-center gap-4 px-3 py-2  hover:bg-gray-100 text-gray-700"
               >
                 <span class="material-symbols-outlined">inbox</span>
                 <p class="text-sm font-medium leading-normal">Inbox</p>
@@ -181,9 +160,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                 class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12 shrink-0"
                 data-alt="Sender Alejandro Vargas's avatar"
                 style="
-                  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCsv0IdT0BP-Y_THxlaT2iGOHBRXuo7RJ1WvJAKdtAD8phpiPGZdQqH4F5V07fBTgTfMEWtaixkgZlFJ4XboEyFfictht7JMnb1qja6MUnlGP4gjMbfl7mkLKZExIPLs6uvrbz96l-EEDNShTLIxseIzBSWU8iPKzmnFNyDoj7Zjm8zn0hVgxkau2jVqEsoJIEf7TPMOlAnW29x8olUyWB7_czjfK3W1Sa7gi9kAHNwMRFRbC9RHbGBviEaRL7pZ28B6qSe8hCO00Y');
+                  background-image: url('https://cdn-icons-png.flaticon.com/512/149/149071.png');
                 "
-              ></div>
+
+              >
+              </div>
               <div class="flex flex-col justify-center flex-1">
                 <p class="text-gray-900 text-base font-medium leading-normal">
                   {{mail?.senderDisplayName}}
@@ -208,7 +189,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
             <div
               class="prose prose-sm sm:prose-base max-w-none text-gray-800 leading-relaxed flex-1"
             >
-       
+
                 <div [innerHTML]="sanitizedBody"></div>
 
               <br/>
@@ -227,11 +208,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                     </div>
                     <div class="flex-1">
                       <p class="text-sm font-medium text-gray-900 truncate">
-                        {{ item.filetype }}
+                        {{item.fileName}}
                       </p>
-                      <p class="text-xs text-gray-500">{{ item.fileSize }}</p>
+                      <p class="text-xs text-gray-500">{{formatFileSize(item.fileSize)}}</p>
                     </div>
-                    <button (click)="getDownloadUrl(item.attachmentId)"
+                    <button (click)="DownloadAtt(item.id,item.fileName)"
                             class="p-2 text-gray-500 hover:text-[#137fec]"
                             title="Download"
                     >
@@ -490,9 +471,25 @@ export class MailDetail implements OnInit{
   }
 
   // Generates the correct download link (as previously implemented)
-  getDownloadUrl(attachmentId: string): string {
-    const attachmentApiUrl = 'http://localhost:8080/api/attachments';
-    return `${attachmentApiUrl}/${attachmentId}/download`;
+  DownloadAtt(attachmentId: string,fileName:string) {
+    const attachmentApiUrl = `http://localhost:8080/api/attachments/download/${attachmentId}`;
+    this.http.get(attachmentApiUrl,{responseType:'blob'}).subscribe({
+      next: (blob:Blob) => {
+        const objectUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = fileName;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(objectUrl);
+      },
+      error: (err) => {
+        console.log(err);
+        alert("failed to download attachment");
+      }
+    })
   }
   CreateCustomFolder(){
     const url = "http://localhost:8080/api/folders"
@@ -527,5 +524,10 @@ export class MailDetail implements OnInit{
     if (!this.mail?.body) return '';
     return this.sanitizer.bypassSecurityTrustHtml(this.mail.body);
   }
-
+  formatFileSize(bytes: number) {
+    const KB = bytes / 1024;
+    if (KB < 1024) return `${KB.toFixed(1)} KB`;
+    const MB = KB / 1024;
+    return `${MB.toFixed(2)} MB`;
+  }
 }

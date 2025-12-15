@@ -33,11 +33,16 @@ interface MailSearchRequestDto {
       >
         <div class="flex h-full flex-col justify-between">
           <div class="flex flex-col gap-6">
-            <div class="flex items-center gap-3 px-3">
-
-              <h1 class="text-slate-800 text-base font-medium leading-normal">
-                {{folderStateService.userData().username}}
-              </h1>
+            <div class="flex items-center gap-3 px-2">
+              <div class="flex flex-col">
+                <!-- Text Color Fix: Ensure text is dark -->
+                <h1 class="text-gray-900 text-base font-medium leading-normal">
+                  {{folderStateService.userData().username}}
+                </h1>
+                <p class="text-gray-500 text-sm font-normal leading-normal">
+                  {{folderStateService.userData().email}}
+                </p>
+              </div>
             </div>
             <button [routerLink]="['/compose']"
               class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
@@ -145,12 +150,12 @@ interface MailSearchRequestDto {
         <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
           <!-- Search bar stretches -->
           <div class="flex-1 mr-4">
-          <app-search-bar 
+          <app-search-bar
             (onSearch)="handleSearch($event)"
             (onClear)="handleClearSearch()">
           </app-search-bar>
           </div>
-          
+
           <!-- Avatar dropdown -->
           <app-header></app-header>
         </div>
@@ -177,7 +182,7 @@ interface MailSearchRequestDto {
             >
               <span class="material-symbols-outlined">folder_open</span>
             </button>
-            <button (click)="refreshData()" 
+            <button (click)="refreshData()"
             class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
             title="Reload Emails">
       <span class="material-symbols-outlined">refresh</span>
@@ -246,7 +251,7 @@ interface MailSearchRequestDto {
         <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
           <!-- Sender -->
           <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
-            {{ item.sender }}
+            {{ item.senderDisplayName }}
           </div>
 
           <!-- Subject + Preview -->
@@ -257,8 +262,8 @@ interface MailSearchRequestDto {
 
           <!-- Attachment icon -->
           <div class="px-4 text-right w-auto">
-            <span 
-              *ngIf="item.attachments && item.attachments.length > 0" 
+            <span
+              *ngIf="item.attachments && item.attachments.length > 0"
               class="material-symbols-outlined text-slate-400 text-lg"
             >
               attachment
@@ -309,7 +314,7 @@ interface MailSearchRequestDto {
       <div class="move-conatiner bg-black/50" [class.active]="tomove">
       <div class="content-container">
         <span class="text-lg font-bold mt-5">Move {{Emails.length}} Email(s) To</span>
-        
+
         <div class="buttons-folders">
           <button (click)="move(folderStateService.userData().sentFolderId)">Sent</button>
 
@@ -490,7 +495,7 @@ export class Inbox implements OnInit{
       return;
     }
     this.page = page;
-    
+
     if (this.isSearchActive) {
       if (this.isAdvancedSearch) {
         this.performAdvancedSearch(this.page);
@@ -541,6 +546,7 @@ export class Inbox implements OnInit{
   }
   goToMailDetails(details:Datafile){
     this.MailDetails.setMailData(details);
+    console.log(details);
     this.MailDetails.setFromId(this.folderStateService.userData().inboxFolderId);
     this.router.navigate([`/mail`]);
   }
@@ -590,7 +596,7 @@ export class Inbox implements OnInit{
     let ids:string[]=[];
     for(let i:number=0; i<this.Emails.length;i++){
       ids.push(this.Emails[i].mailId);
-      
+
       const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
       this.toggleEmailsSelected(this.InboxData[emailIndex],false)
     }
@@ -623,11 +629,11 @@ export class Inbox implements OnInit{
       }
     })
   }
-  
+
   move(targetFolderId: string) {
-    
+
     if (this.Emails.length === 0) return;
-    
+
     const currentFolderId = this.folderStateService.userData().inboxFolderId;
     if (!currentFolderId || !targetFolderId) {
       alert("Error: Folder ID is missing. Please try logging in again.");
@@ -635,19 +641,19 @@ export class Inbox implements OnInit{
     }
 
     const mailIds = this.Emails.map(email => email.mailId);
-    
-    
+
+
     const url = `http://localhost:8080/api/mails/${targetFolderId}/${currentFolderId}`;
     const payload = { ids: mailIds };
 
-    
+
     this.http.patch(url, payload, { responseType: 'text' }).subscribe({
       next: (response) => {
-        
+
         const movedIdsSet = new Set(mailIds);
         this.InboxData = this.InboxData.filter(email => !movedIdsSet.has(email.mailId));
-        this.Emails = []; 
-        this.tomove = false; 
+        this.Emails = [];
+        this.tomove = false;
       },
       error: (err) => {
         console.error("Failed to move", err);
@@ -661,7 +667,7 @@ export class Inbox implements OnInit{
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
     this.page = 0;
-    
+
     if (criteria.keywords) {
       // Quick keyword search
       this.isSearchActive = true;
@@ -680,7 +686,7 @@ export class Inbox implements OnInit{
   performQuickSearch(page: number) {
     const userData: UserData = this.folderStateService.userData();
     const folderId = userData.inboxFolderId;
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;
@@ -721,15 +727,15 @@ export class Inbox implements OnInit{
 
     refreshData() {
       console.log("Refreshing Inbox Data...");
-      
-      
-      this.Emails = []; 
-      
-      
+
+
+      this.Emails = [];
+
+
       if (this.isSearchActive) {
-        this.performQuickSearch(0); 
+        this.performQuickSearch(0);
       } else {
-        this.getInbox(this.page); 
+        this.getInbox(this.page);
       }
     }
 
@@ -737,7 +743,7 @@ export class Inbox implements OnInit{
     performAdvancedSearch(page: number) {
     const userData: UserData = this.folderStateService.userData();
     const folderId = userData.inboxFolderId;
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;
@@ -746,7 +752,7 @@ export class Inbox implements OnInit{
     let params = new HttpParams()
       .set('folderId', folderId)
       .set('page', page);
-    
+
     this.http.post<Datafile[]>(
       'http://localhost:8080/api/mails/filter',
       this.currentAdvancedFilters,

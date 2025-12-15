@@ -84,30 +84,6 @@ import { HeaderComponent } from '../../header';
                 >
                 <p class="text-sm font-medium leading-normal">Trash</p>
               </a>
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center justify-between px-3 py-2">
-                  <h2
-                    class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                  >
-                    Custom Folders
-                  </h2>
-                  <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp=true">
-                    <span class="material-symbols-outlined text-base">add</span>
-                  </button>
-                </div>
-                @for(custom of CustomFolders; track $index) {
-                  <a (click)="goToCustomFolder(custom.folderId)"
-                     class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-                  >
-                <span class="material-symbols-outlined text-slate-600"
-                >folder</span
-                >
-                    <p class="text-slate-600 text-sm font-medium leading-normal">
-                      {{custom.folderName}}
-                    </p>
-                  </a>
-                }
-              </div>
             </div>
           </div>
           <button [routerLink]="['/compose']"
@@ -118,22 +94,20 @@ import { HeaderComponent } from '../../header';
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 p-8">
+        <main class="flex-1 pl-10">
           <!-- Top bar: Search + Avatar -->
         <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
           <!-- Search bar stretches -->
           <div class="flex-1 mr-4">
             <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
           </div>
-          
+
           <!-- Avatar dropdown -->
           <app-header></app-header>
         </div>
 
         <!-- Rest of inbox content below -->
-        <div class="px-6 py-4">
-          <!-- email list / table here -->
-        </div>
+
 
           <div class="w-full max-w-7xl mx-auto">
             <!-- PageHeading -->

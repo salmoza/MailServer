@@ -28,12 +28,17 @@ interface MailSearchRequestDto {
     <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
       <div class="flex h-full flex-col justify-between">
         <div class="flex flex-col gap-6">
-          <div class="flex items-center gap-3 px-3">
-            <h1 class="text-slate-800 text-base font-medium leading-normal">
-              {{folderStateService.userData().username}}
-            </h1>
+          <div class="flex items-center gap-3 px-2">
+            <div class="flex flex-col">
+              <!-- Text Color Fix: Ensure text is dark -->
+              <h1 class="text-gray-900 text-base font-medium leading-normal">
+                {{folderStateService.userData().username}}
+              </h1>
+              <p class="text-gray-500 text-sm font-normal leading-normal">
+                {{folderStateService.userData().email}}
+              </p>
+            </div>
           </div>
-
           <button [routerLink]="['/compose']"
                   class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold">
             Compose
@@ -44,7 +49,6 @@ interface MailSearchRequestDto {
             <a [routerLink]="['/inbox']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
               <span class="material-symbols-outlined text-slate-800">inbox</span>
               <p class="text-slate-800 text-sm font-medium">Inbox</p>
-              <span class="ml-auto text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">3</span>
             </a>
 
             <a [routerLink]="['/sent']" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20">
@@ -99,12 +103,12 @@ interface MailSearchRequestDto {
     <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
       <!-- Search bar stretches -->
       <div class="flex-1 mr-4">
-        <app-search-bar 
+        <app-search-bar
           (onSearch)="handleSearch($event)"
           (onClear)="handleClearSearch()">
         </app-search-bar>
       </div>
-      
+
       <!-- Avatar dropdown -->
       <app-header></app-header>
     </div>
@@ -158,7 +162,7 @@ interface MailSearchRequestDto {
 
           <td class="py-0 pl-0 pr-4" colspan="3">
             <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-              <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">{{item.sender}}</div>
+              <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">{{item.senderDisplayName}}</div>
               <div class="px-4 w-1/2">
                 <span class="text-slate-800 text-sm font-semibold truncate">{{item.subject}}</span>
                 <span class="text-slate-500 text-sm ml-2 truncate">{{item.body}}</span>
@@ -193,10 +197,10 @@ interface MailSearchRequestDto {
     <div class="move-conatiner bg-black/50" [class.active]="tomove">
       <div class="content-container">
         <span class="text-lg font-bold mt-5">Move {{Emails.length}} Email(s) To</span>
-        
+
         <div class="buttons-folders">
           <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
-          
+
           @for(folder of CustomFolders; track $index){
              <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
           }
@@ -259,7 +263,7 @@ export class Sent implements OnInit {
       return;
     }
     this.page = page;
-    
+
     if (this.isSearchActive) {
       if (this.isAdvancedSearch) {
         this.performAdvancedSearch(this.page);
@@ -320,9 +324,9 @@ export class Sent implements OnInit {
 
   move(targetFolderId: string) {
     if (this.Emails.length === 0) return;
-    
+
     const currentFolderId = this.folderStateService.userData().sentFolderId;
-    
+
     if (!currentFolderId || !targetFolderId) {
        alert("Error: Folder ID missing.");
        return;
@@ -352,16 +356,16 @@ export class Sent implements OnInit {
     const url = "http://localhost:8080/api/folders";
     const payload = {
       folderName: this.foldername,
-      
+
       folderId: this.folderStateService.userData().inboxFolderId,
-      
+
       userId: this.folderStateService.userData().userId,
     };
-    
+
     this.http.post(url, payload).subscribe({
       next: () => {
         this.CustomFolderPopUp = false;
-        this.getCustomFolders(); 
+        this.getCustomFolders();
       },
       error: () => alert("Failed to create custom folder")
     });
@@ -369,7 +373,7 @@ export class Sent implements OnInit {
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
     this.page = 0;
-    
+
     if (criteria.keywords) {
       // Quick keyword search
       this.isSearchActive = true;
@@ -388,7 +392,7 @@ export class Sent implements OnInit {
   performQuickSearch(page: number) {
     const userData = this.folderStateService.userData();
     const folderId = userData.sentFolderId;
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;
@@ -414,7 +418,7 @@ export class Sent implements OnInit {
   performAdvancedSearch(page: number) {
     const userData: UserData = this.folderStateService.userData();
     const folderId = userData.sentFolderId;
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;

@@ -262,7 +262,7 @@ sign_up(){
     email:this.email,
     username:this.username,
   }
-  this.hhtp.post(this.url+'signUp',payload).subscribe({
+  this.hhtp.post(this.url+'signUp',payload,{responseType:"text"}).subscribe({
     next:(response:any)=>{
     this.issign_up=false;
     },
