@@ -90,12 +90,15 @@ public class DraftService {
     }
 
 
+    @Transactional
     public void sendDraft(String mailId) {
         Mail draft = mailRepo.findByMailId(mailId)
                 .orElseThrow(() -> new RuntimeException("Mail not found"));
         if (draft == null || draft.getStatus() != MailStatus.DRAFT) {
             throw new RuntimeException("Draft not found");
         }
+
+        mailSnapshotRepo.deleteByMailId(draft.getMailId());
 
         draft.setStatus(MailStatus.SENT);
         draft.setDate(Timestamp.valueOf(LocalDateTime.now()));
@@ -124,7 +127,7 @@ public class DraftService {
 
         for (String i : ids) {
 
-            mailSnapshotRepo.deleteAllByMail(mailRepo.findByMailId(i).orElseThrow(() -> new RuntimeException("Mail not found")));
+            mailSnapshotRepo.deleteByMailId(i);
 
             Mail deletedMail = mailRepo.findByMailId(i)
                     .orElseThrow(() -> new RuntimeException("Mail not found"));
