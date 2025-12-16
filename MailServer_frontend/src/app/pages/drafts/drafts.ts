@@ -1,16 +1,18 @@
-import {Component, ElementRef, inject, OnInit, ViewChild} from '@angular/core';
+import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {Router, RouterLink, RouterModule} from '@angular/router';
-import {MailDetail} from '../mail-detail/mail-detail';
-import {MailShuttleService} from '../../Dtos/MailDetails';
-import {attachment, CustomFolderData, Datafile} from '../../Dtos/datafile';
-import {FolderStateService} from '../../Dtos/FolderStateService';
-import {HttpClient, HttpClientModule, HttpParams , HttpHeaders} from '@angular/common/http';
-import {att} from '../compose/compose';
-import {FormsModule} from '@angular/forms';
-import {lastValueFrom} from 'rxjs';
-import {SearchBarComponent} from '../../components/search-bar/search-bar';
+import { Router, RouterLink, RouterModule } from '@angular/router';
+import { MailDetail } from '../mail-detail/mail-detail';
+import { MailShuttleService } from '../../Dtos/MailDetails';
+import { attachment, CustomFolderData, Datafile } from '../../Dtos/datafile';
+import { FolderStateService } from '../../Dtos/FolderStateService';
+import { HttpClient, HttpClientModule, HttpParams, HttpHeaders } from '@angular/common/http';
+import { att } from '../compose/compose';
+import { FormsModule } from '@angular/forms';
+import { lastValueFrom } from 'rxjs';
+import { SearchBarComponent } from '../../components/search-bar/search-bar';
 import { HeaderComponent } from '../../header';
+import { SidebarComponent } from '../../components/side-bar/side-bar';
+import { FolderSidebarService } from '../../services/folder-sidebar.service';
 
 // Interface for Advanced Search
 interface MailSearchRequestDto {
@@ -23,433 +25,179 @@ interface MailSearchRequestDto {
 @Component({
   selector: 'app-drafts',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule, SearchBarComponent, HeaderComponent],
+  imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule, SearchBarComponent, HeaderComponent, SidebarComponent],
   template: `
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
-    
-    <div class="relative flex min-h-screen w-full flex-col bg-[#f6f7f8] font-display group/design-root overflow-x-hidden">
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
 
-      <div class="flex flex-grow">
-        <aside class="flex h-screen min-h-full w-64 flex-col border-r border-gray-200 bg-white p-4 sticky top-0 z-10">
-          <div class="flex h-full flex-col justify-between">
-            <div class="flex flex-col gap-6">
-              <div class="flex items-center gap-3 px-2">
-                <div class="flex flex-col">
-                  <h1 class="text-gray-900 text-base font-medium leading-normal">
-                    {{folderStateService.userData().username}}
-                  </h1>
-                  <p class="text-gray-500 text-sm font-normal leading-normal">
-                    {{folderStateService.userData().email}}
-                  </p>
-                </div>
-              </div>
-              <button [routerLink]="['/compose']" class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
-                <span class="truncate ">Compose</span>
-              </button>
-              <div class="flex flex-col gap-1">
-                <a [routerLink]="['/inbox']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-                  <span class="material-symbols-outlined text-slate-800 fill">inbox</span>
-                  <p class="text-slate-800 text-sm font-medium leading-normal">Inbox</p>
-                </a>
-                <a [routerLink]="['/sent']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-                  <span class="material-symbols-outlined text-slate-600">send</span>
-                  <p class="text-slate-600 text-sm font-medium leading-normal">Sent</p>
-                </a>
-                <a [routerLink]="['/drafts']" class="flex items-center gap-3 px-3 py-2 rounded-lg  bg-primary/20">
-                  <span class="material-symbols-outlined text-slate-600">draft</span>
-                  <p class="text-slate-600 text-sm font-medium leading-normal">Drafts</p>
-                </a>
-                <a [routerLink]="['/trash']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-                  <span class="material-symbols-outlined text-slate-600">delete</span>
-                  <p class="text-slate-600 text-sm font-medium leading-normal">Trash</p>
-                </a>
-                <a [routerLink]="['/contacts']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-                  <span class="material-symbols-outlined text-slate-600">contacts</span>
-                  <p class="text-slate-600 text-sm font-medium leading-normal">Contacts</p>
-                </a>
-                <a [routerLink]="['/filters']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-                  <span class="material-symbols-outlined text-slate-600">filter_alt</span>
-                  <p class="text-slate-600 text-sm font-medium leading-normal">Filters</p>
-                </a>
-              </div>
-            </div>
-            <div class="flex flex-col gap-1 mt-4">
-              <div class="flex items-center justify-between px-3 py-2">
-                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Custom Folders
-                </h2>
-                <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp = true">
-                  <span class="material-symbols-outlined text-base">add</span>
-                </button>
-              </div>
-              @for(custom of CustomFolders; track $index) {
-                <a (click)="goToCustomFolder(custom.folderId)" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 cursor-pointer">
-                  <span class="material-symbols-outlined text-slate-600">folder</span>
-                  <p class="text-slate-600 text-sm font-medium leading-normal">
-                    {{ custom.folderName }}
-                  </p>
-                </a>
-              }
-            </div>
-          </div>
-          <button [routerLink]="['/compose']"
-                  class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 mt-auto bg-[#137fec] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#137fec]/90"
-          >
-            <span class="truncate">New Email</span>
-          </button>
-        </aside>
+<div class="flex h-screen w-full font-inter">
+  <app-sidebar
+    [username]="folderStateService.userData().username"
+    [userEmail]="folderStateService.userData().email"
+    [customFolders]="CustomFolders"
+    [activeCustomFolderId]="getCurrentFolderId()"
+    (folderClick)="handleFolderClick($event)"
+    (createFolder)="handleCreateFolder()"
+    (renameFolder)="handleRenameFolder($event)"
+    (deleteFolder)="handleDeleteFolder($event)">
+  </app-sidebar>
 
-        <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-          <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
-            <div class="flex-1 mr-4">
-              <app-search-bar 
-                (onSearch)="handleSearch($event)"
-                (onClear)="handleClearSearch()">
-              </app-search-bar>
-            </div>
+  <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f6f7f8]">
+    <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div class="flex-1 mr-4">
+        <app-search-bar (onSearch)="handleSearch($event)" (onClear)="handleClearSearch()"></app-search-bar>
+      </div>
+      <app-header></app-header>
+    </div>
 
-            <app-header></app-header>
-          </div>
-          <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
-            <div class="flex gap-2">
-            <button
-              (click)="delete()"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
-              title="Delete Forever"
-            >
-              <span class="material-symbols-outlined">delete_forever</span>
-            </button>
-
-              <button (click)="refreshData()"
-                      class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
-                      title="Reload Emails">
-                <span class="material-symbols-outlined">refresh</span>
-              </button>
-            </div>
-            <div class="relative inline-block">
-              <button (click)="toggleSortMenu()"
-                      class="flex items-center gap-2 px-3 py-2 text-slate-600 text-sm font-medium hover:bg-slate-100 rounded-lg">
-                Sort by: <span [textContent]="currentSort"></span>
-                <span class="material-symbols-outlined text-lg">expand_more</span>
-              </button>
-              <div *ngIf="showSortMenu" class="absolute right-0 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
-                <div class="py-1">
-                  <button (click)="setSortAndClose('Date (Newest first)')"
-                          [ngClass]="{'bg-blue-50': currentSort === 'Date (Newest first)'}"
-                          class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                    Date (Newest first)
-                  </button>
-                  <button (click)="setSortAndClose('Date (Oldest first)')"
-                          [ngClass]="{'bg-blue-50': currentSort === 'Date (Oldest first)'}"
-                          class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                    Date (Oldest first)
-                  </button>
-                  <button (click)="setSortAndClose('Subject (A → Z)')"
-                          [ngClass]="{'bg-blue-50': currentSort === 'Subject (A → Z)'}"
-                          class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                    Subject (A → Z)
-                  </button>
-                  <button (click)="setSortAndClose('Priority')"
-                          [ngClass]="{'bg-blue-50': currentSort === 'Priority'}"
-                          class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                    Priority
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex-1 px-6 py-4 overflow-x-hidden">
-            <div class="bg-white rounded-lg border border-gray-200">
-              <div class="px-4 py-3 @container">
-                <div class="flex overflow-hidden">
-                  <table class="w-full">
-                    <thead>
-                    <tr class="border-b border-gray-200">
-                      <th class="px-4 py-3 text-left w-12">
-                        <input
-                          class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
-                          type="checkbox"
-                          #checkbox
-                          (click)="addallemails(checkbox.checked)"
-                        />
-                      </th>
-                      <th
-                        class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal w-1/4"
-                      >
-                        Receiver
-                      </th>
-                      <th class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal w-1/2">
-                        Subject
-                      </th>
-                      <th class="px-4 py-3 text-left text-gray-500 text-sm font-medium leading-normal">
-                        Actions
-                      </th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @for(item of DraftData ; track $index) {
-                      <tr class="border-b bg-blend-color  group items-center ">
-                        <td class="h-[72px] px-4 py-2">
-                          <input
-                            class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
-                            type="checkbox"
-                            #checkbox
-                            (change)="toggleEmailsSelected(item,checkbox.checked)"
-                            [checked]="checked(item.mailId)"
-                          />
-                        </td>
-                        <td class="h-[72px] px-4 py-2 text-gray-900 text-sm font-normal leading-normal">
-                          <div style="display: flex ; flex-direction: column; gap:2px;width: 100%">
-                            @for(email of item.receiverEmails; track $index) {
-                              <span style="; border-radius: 10px; display: flex;padding: 5px">
-                        {{email}}
-                          </span>
-                            }
-                          </div>
-                        </td>
-                        <td class="h-[72px] px-4 py-2 text-gray-500 text-sm font-normal leading-normal">
-                          {{item.subject || '(No Subject)'}}
-                        </td>
-                        <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
-                          <div
-                            class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <button (click)="openEdit(item.mailId)"
-                                    class="p-2 flex items-center text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-4xl transition-transform duration-100 hover:scale-105"
-                                    title="Edit Draft"
-                            >
-                              <span class="material-symbols-outlined text-xl">edit</span>
-                            </button>
-                            
-                          </div>
-                        </td>
-                      </tr>
-                    }
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto">
-            <a (click)="updatePage(page - 1)"
-               class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary">
-              <span class="material-symbols-outlined text-lg">chevron_left</span>
-            </a>
-            <a (click)="updatePage(0)"
-               class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary">
-              1
-            </a>
-            <a (click)="updatePage(1)"
-               class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100">
-              2
-            </a>
-            <a (click)="updatePage(page + 1)"
-               class="flex size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer">
-              <span class="material-symbols-outlined text-lg">chevron_right</span>
-            </a>
-          </div>
-        </main>
-        
-        <div class="popup" [class.active]="isopen">
-        <div
-          class="relative flex h-full w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8"
-        >
-          <div
-            class="flex w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-gray-900/10 dark:bg-[#101922] dark:ring-white/10"
-          >
-            <header
-              class="flex items-center justify-between border-b border-gray-200  bg-gray-100  px-4 py-3"
-            >
-              <h3 class="text-lg font-semibold text-gray-800 ">New Message</h3>
-              <button
-                class="cursor-pointer flex items-center p-2 text-gray-500 rounded-full hover:bg-gray-200 hover:text-gray-800 dark:hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#0D6EFD]"
-                (click)="isopen=false">
-                <span class="material-symbols-outlined text-xl">close</span>
-              </button>
-            </header>
-            <div class="flex flex-col p-4 sm:p-6 space-y-4 bg-white">
-              <div class="flex items-center border-b border-gray-200 dark:border-gray-700 pb-2">
-                <label class="w-16 text-sm font-medium text-gray-600 dark:text-gray-400" for="to"
-                >To</label
-                >
-                <div class="flex-1 flex items-center space-x-2">
-                  @for(email of recipients;track email){
-                    <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
-                {{email}}
-                      <button (click)="removeRecipient(email)" class="ml-2 text-red-600 hover:text-red-900 cursor-pointer">&times;
-                </button>
-              </span>
-                  }
-                  <input
-                    class="form-input w-full flex-1 resize-none border-none bg-transparent p-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-0 focus:ring-0"
-                    id="to"
-                    placeholder="Recipients"
-                    type="email"
-                    name="current_receiver"
-                    [(ngModel)]="currentEmailInput"
-                    (keydown.enter)="addRecipient($event)"
-                    (keydown.tab)="addRecipient($event)"
-                  />
-                </div>
-              </div>
-              <div class="flex items-center border-b border-gray-200 dark:border-gray-700">
-                <label class="w-16 text-sm font-medium text-gray-600 dark:text-gray-400" for="subject"
-                >Subject</label
-                >
-                <input
-                  class="form-input w-full flex-1 resize-none border-none bg-transparent p-2   placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-0 focus:ring-0"
-                  id="subject"
-                  placeholder="Subject"
-                  type="text"
-                  name="subject"
-                  [(ngModel)]="subject"
-                />
-              </div>
-              <div>
-                <div class="bord border-gray-600 border-2 rounded-2xl ">
-                  <textarea
-                    class="form-textarea w-full h-48 p-3 border-none resize-y focus:ring-0 text-black bg-white  placeholder:text-gray-400 dark:placeholder:text-gray-500"
-                    placeholder="Compose your message..."
-                    [(ngModel)]="body"></textarea>
-                </div>
-              </div>
-              <div (click)="openFileUpload()"
-                   class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer"
-              >
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  click to upload.
-                </p>
-              </div>
-              <input #fileInput type="file" (change)="handleFileupload($event)" hidden name="upload_file_input" />
-              @for(item of attachments;track item){
-                <div class="space-y-2">
-                  <div
-                    class="flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-800 rounded-lg"
-                  >
-                    <div class="flex items-center space-x-2">
-                      <span class="material-symbols-outlined text-gray-500">{{item.name}}</span>
-                      <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >{{item.filetype}}</span
-                      >
-                      <span class="text-xs text-gray-500 dark:text-gray-400">{{item.sizeMB}}</span>
-                    </div>
-                    <button (click)="removeNewAttachment(item.id)"
-                            class="cursor-pointer p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-400 dark:text-gray-400 dark:hover:bg-red-700"
-                    >
-                      <span class="material-symbols-outlined text-lg">close</span>
-                    </button>
-                  </div>
-                </div>
-              }
-              <div class="space-y-2">
-              @for(item of oldattachments;track item){
-                  <div
-                    class="flex items-center justify-between p-3 bg-gray-100 rounded-lg border border-gray-300"
-                  >
-                    <div class="flex items-center space-x-2">
-                      <span class="material-symbols-outlined text-gray-500">{{item.fileName}}</span>
-                      <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >{{item.filetype}}</span
-                      >
-                      <span class="text-xs text-gray-500 dark:text-gray-400">{{item.fileSize}}</span>
-                    </div>
-                    <button (click)="removeoldAttachment(item.id)"
-                            class="cursor-pointer p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-red-700"
-                    >
-                      <span class="material-symbols-outlined text-lg">close</span>
-                    </button>
-                  </div>
-              }
-              </div>
-            </div>
-            <footer
-              class="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-200  bg-gray-50 "
-            >
-              <div class="flex items-center space-x-2 mb-4 sm:mb-0">
-                <button (click)="SentDraft()"
-                        class="cursor-pointer flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0D6EFD] rounded-lg shadow-sm hover:bg-[#0D6EFD]/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD]"
-                >
-                  <span>Send</span>
-                </button>
-                <button (click)="SaveDraft();"
-                        class="cursor-pointer px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD]   "
-                >
-                  Save Draft
-                </button>
-              </div>
-              <div class="flex items-center space-x-2">
-                <div class="flex items-center gap-1">
-                  <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Priority:</span>
-                  <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
-                    <button (click)="priority=4"
-                            class="px-2 py-1 text-sm cursor-pointer   text-gray-800 dark:text-gray-200 rounded-l-md border-r border-gray-300 dark:border-gray-600"
-                            [class.bg-gray-500]="priority === 4"
-                            [class.text-white]="priority === 4"
-                            [class.color-white]="priority === 4"
-                            [class.font-bold]="priority === 4"
-                            [class.bg-gray-50]="priority !== 4"
-                            [class.text-gray-600]="priority !== 4"
-                            [class.hover:bg-gray-200]="priority !== 4"
-                    >
-                      4
-                    </button>
-                    <button (click)="priority=3" class="px-2 py-1 cursor-pointer text-sm hover:bg-gray-100 dark:hover:bg-blue-100"
-                            [class.bg-blue-100]="priority === 3"
-                            [class.text-blue-800]="priority === 3"
-                            [class.font-bold]="priority === 3"
-                            [class.bg-gray-50]="priority !== 3"
-                            [class.text-gray-600]="priority !== 3"
-                            [class.hover:bg-gray-200]="priority !== 3"
-                    >
-                      3
-                    </button>
-                    <button (click)="priority=2"
-                            class="px-2 py-1 text-sm text-yellow-600 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/50"
-                            [class.bg-yellow-300]="priority === 2"
-                            [class.text-yellow-800]="priority === 2"
-                            [class.font-bold]="priority === 2"
-                            [class.bg-gray-50]="priority !== 2"
-                            [class.text-yellow-600]="priority !== 2"
-                            [class.hover:bg-yellow-50]="priority !== 2"
-                    >
-                      2
-                    </button>
-                    <button (click)="priority=1"
-                            class="px-2 py-1 text-sm text-red-600 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/50 rounded-r-md border-l border-gray-300 dark:border-gray-600 "
-                            [class.bg-red-100]="priority === 1"
-                            [class.text-red-800]="priority === 1"
-                            [class.font-bold]="priority === 1"
-                            [class.bg-gray-50]="priority !== 1"
-                            [class.text-red-600]="priority !== 1"
-                            [class.hover:bg-red-50]="priority !== 1"
-                    >
-                      1
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </footer>
+    <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
+      <div class="flex gap-2">
+        <button (click)="delete()" class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" [disabled]="Emails.length === 0" title="Delete Forever">
+          <span class="material-symbols-outlined">delete_forever</span>
+        </button>
+        <button (click)="refreshData()" class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer" title="Reload Emails">
+          <span class="material-symbols-outlined">refresh</span>
+        </button>
+      </div>
+      <div class="relative inline-block">
+        <button (click)="toggleSortMenu()" class="flex items-center gap-2 px-3 py-2 text-slate-600 text-sm font-medium hover:bg-slate-100 rounded-lg">
+          Sort by: <span [textContent]="currentSort"></span>
+          <span class="material-symbols-outlined text-lg">expand_more</span>
+        </button>
+        <div *ngIf="showSortMenu" class="absolute right-0 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+          <div class="py-1">
+            <button (click)="setSortAndClose('Date (Newest first)')" [ngClass]="{'bg-blue-50': currentSort === 'Date (Newest first)'}" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Date (Newest first)</button>
+            <button (click)="setSortAndClose('Date (Oldest first)')" [ngClass]="{'bg-blue-50': currentSort === 'Date (Oldest first)'}" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Date (Oldest first)</button>
+            <button (click)="setSortAndClose('Subject (A → Z)')" [ngClass]="{'bg-blue-50': currentSort === 'Subject (A → Z)'}" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Subject (A → Z)</button>
+            <button (click)="setSortAndClose('Priority')" [ngClass]="{'bg-blue-50': currentSort === 'Priority'}" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Priority</button>
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="flex-1 px-6 py-4 overflow-x-hidden">
+      <div class="bg-white rounded-lg border border-gray-200">
+        <div class="flex overflow-hidden rounded-lg">
+          <table class="w-full text-left table-fixed">
+            <thead class="bg-slate-50 border-b border-gray-200">
+              <tr>
+                <th class="px-4 py-3 w-12">
+                  <input class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] focus:ring-1 focus:ring-[#137fec]" type="checkbox" #checkbox (click)="addallemails(checkbox.checked)" />
+                </th>
+                <th class="px-4 py-3 w-1/4 text-xs font-semibold text-slate-600 uppercase tracking-wider">Receiver</th>
+                <th class="px-4 py-3 w-1/2 text-xs font-semibold text-slate-600 uppercase tracking-wider">Subject</th>
+                <th class="px-4 py-3 w-1/6 text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for(item of DraftData ; track $index) {
+                <tr class="border-b bg-blend-color group items-center hover:bg-slate-50 transition-colors">
+                  <td class="h-[72px] px-4 py-2 w-12">
+                    <input class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] focus:ring-1 focus:ring-[#137fec]" type="checkbox" #checkbox (change)="toggleEmailsSelected(item,checkbox.checked)" [checked]="checked(item.mailId)" />
+                  </td>
+                  <td class="h-[72px] px-4 py-2 text-gray-900 text-sm font-normal leading-normal truncate">
+                    <div style="display: flex ; flex-direction: column; gap:2px;width: 100%">
+                      @for(email of item.receiverEmails; track $index) {
+                        <span>{{email}}</span>
+                      }
+                    </div>
+                  </td>
+                  <td class="h-[72px] px-4 py-2 text-gray-500 text-sm font-normal leading-normal truncate">
+                    {{item.subject || '(No Subject)'}}
+                  </td>
+                  <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+                    <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button (click)="openEdit(item.mailId)" class="p-2 flex items-center text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-4xl transition-transform duration-100 hover:scale-105" title="Edit Draft">
+                        <span class="material-symbols-outlined text-xl">edit</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-    
-    <div class="popup" [class.active]="CustomFolderPopUp" style="background-color: rgba(0,0,0,0.5);">
-      <div class="bg-amber-50 rounded-xl p-8 flex flex-col gap-5 shadow-xl w-96">
-          <h2 class="text-xl font-bold text-center text-gray-800">New Folder</h2>
-          <input type="text" placeholder="Folder Name..." [(ngModel)]="foldername" class="p-3 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:outline-none"/>
-          <div class="flex justify-between mt-4">
-            <button (click)="CustomFolderPopUp = false" class="px-5 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-100">Cancel</button>
-            <button (click)="CreateCustomFolder()" class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Create</button>
+
+    <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto gap-2">
+      <button (click)="updatePage(page - 1)" class="flex cursor-pointer items-center justify-center text-slate-500 hover:text-primary"><span class="material-symbols-outlined text-lg">chevron_left</span></button>
+      <button (click)="updatePage(0)" [ngClass]="{'bg-primary text-white': page === 0, 'bg-slate-100 text-slate-600': page !== 0}" class="px-3 py-1 rounded-lg text-sm cursor-pointer">1</button>
+      <button (click)="updatePage(1)" [ngClass]="{'bg-primary text-white': page === 1, 'bg-slate-100 text-slate-600': page !== 1}" class="px-3 py-1 rounded-lg text-sm cursor-pointer">2</button>
+      <button (click)="updatePage(page + 1)" class="flex items-center justify-center text-slate-500 hover:text-primary cursor-pointer"><span class="material-symbols-outlined text-lg">chevron_right</span></button>
+    </div>
+  </main>
+
+  <div class="popup" [class.active]="isopen">
+    <div class="relative flex h-full w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div class="flex w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-gray-900/10 dark:bg-[#101922] dark:ring-white/10">
+        <header class="flex items-center justify-between border-b border-gray-200 bg-gray-100 px-4 py-3">
+          <h3 class="text-lg font-semibold text-gray-800">New Message</h3>
+          <button class="cursor-pointer flex items-center p-2 text-gray-500 rounded-full hover:bg-gray-200 hover:text-gray-800 focus:outline-none" (click)="isopen=false"><span class="material-symbols-outlined text-xl">close</span></button>
+        </header>
+        <div class="flex flex-col p-4 sm:p-6 space-y-4 bg-white">
+          <div class="flex items-center border-b border-gray-200 pb-2">
+            <label class="w-16 text-sm font-medium text-gray-600" for="to">To</label>
+            <div class="flex-1 flex items-center space-x-2">
+              @for(email of recipients;track email){
+                <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">{{email}}<button (click)="removeRecipient(email)" class="ml-2 text-red-600 hover:text-red-900 cursor-pointer">&times;</button></span>
+              }
+              <input class="form-input w-full flex-1 resize-none border-none bg-transparent p-2 focus:outline-0 focus:ring-0" id="to" placeholder="Recipients" type="email" name="current_receiver" [(ngModel)]="currentEmailInput" (keydown.enter)="addRecipient($event)" (keydown.tab)="addRecipient($event)" />
+            </div>
           </div>
+          <div class="flex items-center border-b border-gray-200">
+            <label class="w-16 text-sm font-medium text-gray-600" for="subject">Subject</label>
+            <input class="form-input w-full flex-1 resize-none border-none bg-transparent p-2 focus:outline-0 focus:ring-0" id="subject" placeholder="Subject" type="text" name="subject" [(ngModel)]="subject" />
+          </div>
+          <div>
+            <div class="bord border-gray-600 border-2 rounded-2xl">
+              <textarea class="form-textarea w-full h-48 p-3 border-none resize-y focus:ring-0 text-black bg-white" placeholder="Compose your message..." [(ngModel)]="body"></textarea>
+            </div>
+          </div>
+          <div (click)="openFileUpload()" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer">
+            <p class="text-sm text-gray-500">click to upload.</p>
+          </div>
+          <input #fileInput type="file" (change)="handleFileupload($event)" hidden name="upload_file_input" />
+          @for(item of attachments;track item){
+            <div class="space-y-2"><div class="flex items-center justify-between p-2 bg-gray-100 rounded-lg"><div class="flex items-center space-x-2"><span class="material-symbols-outlined text-gray-500">{{item.name}}</span><span class="text-sm font-medium text-gray-700">{{item.filetype}}</span><span class="text-xs text-gray-500">{{item.sizeMB}}</span></div><button (click)="removeNewAttachment(item.id)" class="cursor-pointer p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-400"><span class="material-symbols-outlined text-lg">close</span></button></div></div>
+          }
+          <div class="space-y-2">
+            @for(item of oldattachments;track item){
+              <div class="flex items-center justify-between p-3 bg-gray-100 rounded-lg border border-gray-300"><div class="flex items-center space-x-2"><span class="material-symbols-outlined text-gray-500">{{item.fileName}}</span><span class="text-sm font-medium text-gray-700">{{item.filetype}}</span><span class="text-xs text-gray-500">{{item.fileSize}}</span></div><button (click)="removeoldAttachment(item.id)" class="cursor-pointer p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-200"><span class="material-symbols-outlined text-lg">close</span></button></div>
+            }
+          </div>
+        </div>
+        <footer class="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
+          <div class="flex items-center space-x-2 mb-4 sm:mb-0">
+            <button (click)="SentDraft()" class="cursor-pointer flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0D6EFD] rounded-lg shadow-sm hover:bg-[#0D6EFD]/80 focus:outline-none"><span>Send</span></button>
+            <button (click)="SaveDraft();" class="cursor-pointer px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-200 focus:outline-none">Save Draft</button>
+          </div>
+          <div class="flex items-center space-x-2">
+            <div class="flex items-center gap-1"><span class="text-sm font-medium text-gray-600">Priority:</span>
+              <div class="flex items-center border border-gray-300 rounded-lg">
+                <button (click)="priority=4" class="px-2 py-1 text-sm cursor-pointer rounded-l-md border-r border-gray-300" [class.bg-gray-500]="priority === 4" [class.text-white]="priority === 4">4</button>
+                <button (click)="priority=3" class="px-2 py-1 cursor-pointer text-sm" [class.bg-blue-100]="priority === 3" [class.text-blue-800]="priority === 3">3</button>
+                <button (click)="priority=2" class="px-2 py-1 text-sm text-yellow-600 cursor-pointer" [class.bg-yellow-300]="priority === 2" [class.text-yellow-800]="priority === 2">2</button>
+                <button (click)="priority=1" class="px-2 py-1 text-sm text-red-600 cursor-pointer rounded-r-md border-l border-gray-300" [class.bg-red-100]="priority === 1" [class.text-red-800]="priority === 1">1</button>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
+  </div>
+
+  <div class="popup" [class.active]="CustomFolderPopUp" style="background-color: rgba(0,0,0,0.5);">
+    <div class="bg-amber-50 rounded-xl p-8 flex flex-col gap-5 shadow-xl w-96">
+      <h2 class="text-xl font-bold text-center text-gray-800">New Folder</h2>
+      <input type="text" placeholder="Folder Name..." [(ngModel)]="foldername" class="p-3 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:outline-none"/>
+      <div class="flex justify-between mt-4">
+        <button (click)="CustomFolderPopUp = false" class="px-5 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-100">Cancel</button>
+        <button (click)="CreateCustomFolder()" class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
   `,
   styles: [`
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
@@ -522,8 +270,14 @@ interface MailSearchRequestDto {
 export class Drafts implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   
-  constructor(private http:HttpClient,protected folderStateService: FolderStateService,private route:Router,private Shuffler:MailShuttleService) {
-  }
+  
+  constructor(
+      private http: HttpClient,
+      protected folderStateService: FolderStateService,
+      private route: Router,
+      private Shuffler: MailShuttleService,
+      private folderSidebarService: FolderSidebarService
+  ) {}
   
   page=0;
   showSortMenu = false;
@@ -555,8 +309,6 @@ export class Drafts implements OnInit {
     this.getCustomFolders();
   }
 
-  
-  
   updatePage(page: number) {
     if (page < 0) {
       return;
@@ -588,24 +340,21 @@ export class Drafts implements OnInit {
   }
 
   refreshData() {
-    
     this.updatePage(this.page);
   }
-
-  
 
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
     this.page = 0; 
 
     if (criteria.keywords) {
-      
+      // Quick keyword search
       this.isSearchActive = true;
       this.isAdvancedSearch = false;
       this.currentSearchKeyword = criteria.keywords;
       this.performQuickSearch(0);
     } else if (criteria.advancedSearch) {
-      
+      // Advanced filter search
       this.isSearchActive = true;
       this.isAdvancedSearch = true;
       this.currentAdvancedFilters = criteria.advancedSearch;
@@ -680,8 +429,6 @@ export class Drafts implements OnInit {
     this.refreshData(); 
   }
 
-  
-
   applySorting(sortBy: string, page: number) {
     const userData: UserData = this.folderStateService.userData();
     const folderId = userData.draftsFolderId; 
@@ -722,8 +469,6 @@ export class Drafts implements OnInit {
     this.updatePage(0); 
   }
   
-  
-
   getCustomFolders(){
     const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
@@ -739,10 +484,29 @@ export class Drafts implements OnInit {
     })
   }
 
-  goToCustomFolder(Id:string){
-    this.Shuffler.setCustom(Id);
-    this.route.navigate([`/Custom`]);
+  
+
+  handleFolderClick(folderId: string) {
+    this.folderSidebarService.navigateToCustomFolder(folderId);
   }
+
+  handleCreateFolder() {
+    this.CustomFolderPopUp = this.folderSidebarService.openCreateFolderModal();
+  }
+
+  handleRenameFolder(data: {folderId: string, newName: string}) {
+    this.folderSidebarService.renameFolder(data.folderId, data.newName, () => this.getCustomFolders());
+  }
+
+  handleDeleteFolder(folderId: string) {
+    this.folderSidebarService.deleteFolder(folderId, () => this.getCustomFolders());
+  }
+
+  getCurrentFolderId(): string {
+    return this.folderSidebarService.getActiveCustomFolderId();
+  }
+
+  
 
   CreateCustomFolder() {
     const url = 'http://localhost:8080/api/folders';
@@ -762,8 +526,6 @@ export class Drafts implements OnInit {
       },
     });
   }
-
-  
 
   toggleEmailsSelected(email:Datafile,ischecked:boolean){
     if(ischecked){
@@ -792,8 +554,6 @@ export class Drafts implements OnInit {
     const emailIndex = this.Emails.findIndex(e => e.mailId === id);
     return emailIndex != -1;
   }
-
-  
 
   openEdit(id:string){
     this.DraftId = id;

@@ -32,177 +32,138 @@ interface MailSearchRequestDto {
     SidebarComponent
   ],
   template: `
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
-    <div class="flex h-screen w-full">
-    <app-sidebar
-      [username]="folderStateService.userData().username"
-      [userEmail]="folderStateService.userData().email"
-      [customFolders]="CustomFolders"
-      [activeCustomFolderId]="getCurrentFolderId()"
-      (folderClick)="handleFolderClick($event)"
-      (createFolder)="handleCreateFolder()"
-      (renameFolder)="handleRenameFolder($event)"
-      (deleteFolder)="handleDeleteFolder($event)">
-    </app-sidebar>
-      <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <div
-          class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50"
-        >
-          <div class="flex-1 mr-4">
-            <app-search-bar
-              (onSearch)="handleSearch($event)"
-              (onClear)="handleClearSearch()">
-            </app-search-bar>
-          </div>
+<div class="flex h-screen w-full font-inter">
+  <app-sidebar
+    [username]="folderStateService.userData().username"
+    [userEmail]="folderStateService.userData().email"
+    [customFolders]="CustomFolders"
+    [activeCustomFolderId]="getCurrentFolderId()"
+    (folderClick)="handleFolderClick($event)"
+    (createFolder)="handleCreateFolder()"
+    (renameFolder)="handleRenameFolder($event)"
+    (deleteFolder)="handleDeleteFolder($event)">
+  </app-sidebar>
 
-          <app-header></app-header>
-        </div>
+  <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f6f7f8]">
+    <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div class="flex-1 mr-4">
+        <app-search-bar (onSearch)="handleSearch($event)" (onClear)="handleClearSearch()"></app-search-bar>
+      </div>
+      <app-header></app-header>
+    </div>
 
-        <div
-          class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
-        >
-          <div class="flex gap-2">
-            <button
-              (click)="delete()"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
-              title="Delete Forever"
-            >
-              <span class="material-symbols-outlined">delete_forever</span>
-            </button>
-
-            <button (click)="undo()"
-                    class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                    [disabled]="Emails.length === 0"
-                    title="Restore to previous folder"
-            >
-              <span class="material-symbols-outlined">undo</span>
-            </button>
-          </div>
-        </div>
-        <div class="flex-1 px-6 py-4 overflow-x-hidden">
-          <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
-            <table class="w-full text-left">
-              <thead class="bg-slate-50">
-                <tr>
-                  <th class="px-4 py-3 w-12">
-                    <input
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                      #checkbox
-                      (click)="addallemails(checkbox.checked)"
-                    />
-                  </th>
-
-                  <th class="py-3 pl-0 pr-4" colspan="5">
-                    <div class="flex items-center w-full">
-                      <div class="px-4 text-slate-800 w-1/4 text-sm font-medium">Sender</div>
-                      <div class="px-4 text-slate-800 w-1/4 text-sm font-medium">Receiver</div>
-                      <div class="px-4 text-slate-800 w-2/5 text-sm font-medium">Subject</div>
-                      <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-center whitespace-nowrap">Date</div>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                @for(item of TrashData; track $index){
-                <tr class="border-t border-t-slate-200 hover:bg-slate-50">
-                  <td class="px-4 py-2">
-                    <input
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                      #checkbox
-                      (change)="toggleEmailsSelected(item, checkbox.checked)"
-                      [checked]="checked(item.mailId)"
-                    />
-                  </td>
-
-                    <td class="py-0 pl-0 pr-4" colspan="5">
-                      <div
-                        class="flex items-center w-full py-2 cursor-pointer"
-                        (click)="goToMailDetails(item)"
-                      >
-                        <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">
-                          {{item.senderDisplayName || item.sender}}
-                        </div>
-
-                        <!-- Receiver: Display first receiverDisplayName -->
-                        <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">
-                          {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0 
-                             ? item.receiverDisplayNames[0] 
-                             : (item.receiverEmails && item.receiverEmails.length > 0 
-                                ? item.receiverEmails[0] 
-                                : '-') }}
-                          <span *ngIf="item.receiverDisplayNames && item.receiverDisplayNames.length > 1" 
-                                class="text-slate-500 text-xs ml-1">
-                            +{{ item.receiverDisplayNames.length - 1 }}
-                          </span>
-                        </div>
-
-                        <div class="px-4 w-2/5">
-                          <span class="text-slate-800 text-sm font-semibold">{{item.subject || '(No Subject)'}}</span>
-                          <span class="text-slate-500 text-sm ml-2 truncate">{{ item.body }}</span>
-                        </div>
-
-                        <div class="px-4 text-slate-500 text-sm text-center w-1/6 whitespace-nowrap">
-                          {{ formatDate(item.date) }}
-                        </div>
-                      </div>
-                    </td>
-                </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto">
-          <a
-            (click)="updatePage(page - 1)"
-            class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_left</span>
-          </a>
-          <a
-            (click)="updatePage(0)"
-            class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary"
-            >1</a
-          >
-          <a
-            (click)="updatePage(1)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >2</a
-          >
-          <a
-            (click)="updatePage(2)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >3</a
-          >
-          <a
-            (click)="updatePage(page + 1)"
-            class="flex  size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_right</span>
-          </a>
-        </div>
-      </main>
-
-      <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
-        <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
-          <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername" />
-          <button (click)="CreateCustomFolder(); CustomFolderPopUp = false">Create</button>
-          <button id="trash-btn" (click)="CustomFolderPopUp = false">Back</button>
-        </div>
+    <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
+      <div class="flex gap-2">
+        <button (click)="delete()"
+                class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                [disabled]="Emails.length === 0"
+                title="Delete Forever">
+          <span class="material-symbols-outlined">delete_forever</span>
+        </button>
+        <button (click)="undo()"
+                class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                [disabled]="Emails.length === 0"
+                title="Restore to previous folder">
+          <span class="material-symbols-outlined">undo</span>
+        </button>
       </div>
     </div>
+
+    <div class="flex-1 px-6 py-4 overflow-x-hidden">
+      <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <table class="w-full text-left">
+          <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="px-4 py-3 w-12">
+              <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+                     type="checkbox"
+                     #checkbox
+                     (click)="addallemails(checkbox.checked)"
+              />
+            </th>
+            <th class="py-3 pl-0 pr-4" colspan="5">
+              <div class="flex items-center w-full">
+                <div class="px-4 text-slate-600 w-1/4 text-xs uppercase tracking-wider font-semibold">Sender</div>
+                <div class="px-4 text-slate-600 w-1/4 text-xs uppercase tracking-wider font-semibold">Receiver</div>
+                <div class="px-4 text-slate-600 w-2/5 text-xs uppercase tracking-wider font-semibold">Subject</div>
+                <div class="px-4 text-slate-600 w-1/6 text-xs uppercase tracking-wider font-semibold text-center">Date</div>
+              </div>
+            </th>
+          </tr>
+          </thead>
+
+          <tbody>
+          @for(item of TrashData; track $index){
+            <tr class="border-t border-t-slate-200 hover:bg-slate-50 transition-colors">
+              <td class="px-4 py-2">
+                <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+                       type="checkbox"
+                       #checkbox
+                       (change)="toggleEmailsSelected(item, checkbox.checked)"
+                       [checked]="checked(item.mailId)"
+                />
+              </td>
+
+              <td class="py-0 pl-0 pr-4" colspan="5">
+                <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
+                  
+                  <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">
+                    {{item.senderDisplayName || item.sender}}
+                  </div>
+
+                  <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">
+                    {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0
+                    ? item.receiverDisplayNames[0]
+                    : (item.receiverEmails && item.receiverEmails.length > 0
+                      ? item.receiverEmails[0]
+                      : '-') }}
+                    <span *ngIf="item.receiverDisplayNames && item.receiverDisplayNames.length > 1"
+                          class="text-slate-500 text-xs ml-1">
+                        +{{ item.receiverDisplayNames.length - 1 }}
+                      </span>
+                  </div>
+
+                  <div class="px-4 w-2/5">
+                    <span class="text-slate-800 text-sm font-semibold">{{item.subject || '(No Subject)'}}</span>
+                    <span class="text-slate-500 text-sm ml-2 truncate">{{ item.body }}</span>
+                  </div>
+
+                  <div class="px-4 text-slate-500 text-sm text-center w-1/6 whitespace-nowrap">
+                    {{ formatDate(item.date) }}
+                  </div>
+                </div>
+              </td>
+            </tr>
+          }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto">
+      <button (click)="updatePage(page - 1)" class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary">
+        <span class="material-symbols-outlined text-lg">chevron_left</span>
+      </button>
+      <button (click)="updatePage(0)" class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary">1</button>
+      <button (click)="updatePage(1)" class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100">2</button>
+      <button (click)="updatePage(2)" class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100">3</button>
+      <button (click)="updatePage(page + 1)" class="flex  size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer">
+        <span class="material-symbols-outlined text-lg">chevron_right</span>
+      </button>
+    </div>
+  </main>
+
+  <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
+    <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
+      <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername" />
+      <button (click)="CreateCustomFolder(); CustomFolderPopUp = false">Create</button>
+      <button id="trash-btn" (click)="CustomFolderPopUp = false">Back</button>
+    </div>
+  </div>
+</div>
   `,
   styles: [
     `

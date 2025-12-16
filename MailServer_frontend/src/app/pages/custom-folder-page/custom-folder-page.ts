@@ -23,210 +23,204 @@ interface MailSearchRequestDto {
   imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent, SidebarComponent],
   template: `
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
-    <div class="flex h-screen w-full">
-    <app-sidebar
-      [username]="folderStateService.userData().username"
-      [userEmail]="folderStateService.userData().email"
-      [customFolders]="CustomFolders"
-      [activeCustomFolderId]="getCurrentFolderId()"
-      (folderClick)="handleFolderClick($event)"
-      (createFolder)="handleCreateFolder()"
-      (renameFolder)="handleRenameFolder($event)"
-      (deleteFolder)="handleDeleteFolder($event)">
-    </app-sidebar>
+<div class="flex h-screen w-full font-inter">
+  <app-sidebar
+    [username]="folderStateService.userData().username"
+    [userEmail]="folderStateService.userData().email"
+    [customFolders]="CustomFolders"
+    [activeCustomFolderId]="getCurrentFolderId()"
+    (folderClick)="handleFolderClick($event)"
+    (createFolder)="handleCreateFolder()"
+    (renameFolder)="handleRenameFolder($event)"
+    (deleteFolder)="handleDeleteFolder($event)">
+  </app-sidebar>
 
-      <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <app-search-bar
-          (onSearch)="handleSearch($event)"
-          (onClear)="handleClearSearch()">
-        </app-search-bar>
+  <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f6f7f8]">
+    <app-search-bar
+      (onSearch)="handleSearch($event)"
+      (onClear)="handleClearSearch()">
+    </app-search-bar>
 
-        <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
-          <div class="flex gap-2">
-            <button (click)="askDelete()"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0">
-              <span class="material-symbols-outlined">delete</span>
+    <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
+      <div class="flex gap-2">
+        <button (click)="askDelete()"
+                class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                [disabled]="Emails.length === 0">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+        <button (click)="tomove = true"
+                class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                [disabled]="Emails.length === 0">
+          <span class="material-symbols-outlined">folder_open</span>
+        </button>
+        <button (click)="getCustom(page)"
+                class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
+                title="Reload Emails">
+          <span class="material-symbols-outlined">refresh</span>
+        </button>
+      </div>
+      <div class="relative inline-block">
+        <button (click)="toggleSortMenu()"
+                class="flex items-center gap-2 px-3 py-2 text-slate-600 text-sm font-medium hover:bg-slate-100 rounded-lg">
+          Sort by: <span [textContent]="currentSort"></span>
+          <span class="material-symbols-outlined text-lg">expand_more</span>
+        </button>
+        <div *ngIf="showSortMenu" class="absolute right-0 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+          <div class="py-1">
+            <button (click)="setSortAndClose('Date (Newest first)')"
+                    [ngClass]="{'bg-blue-50': currentSort === 'Date (Newest first)'}"
+                    class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+              Date (Newest first)
             </button>
-            <button (click)="tomove = true"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0">
-              <span class="material-symbols-outlined">folder_open</span>
+            <button (click)="setSortAndClose('Date (Oldest first)')"
+                    [ngClass]="{'bg-blue-50': currentSort === 'Date (Oldest first)'}"
+                    class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+              Date (Oldest first)
             </button>
-            <button (click)="getCustom(page)"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
-              title="Reload Emails">
-              <span class="material-symbols-outlined">refresh</span>
+            <button (click)="setSortAndClose('Subject (A → Z)')"
+                    [ngClass]="{'bg-blue-50': currentSort === 'Subject (A → Z)'}"
+                    class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+              Subject (A → Z)
             </button>
-          </div>
-          <div class="relative inline-block">
-            <button (click)="toggleSortMenu()"
-              class="flex items-center gap-2 px-3 py-2 text-slate-600 text-sm font-medium hover:bg-slate-100 rounded-lg">
-              Sort by: <span [textContent]="currentSort"></span>
-              <span class="material-symbols-outlined text-lg">expand_more</span>
-            </button>
-            <div *ngIf="showSortMenu" class="absolute right-0 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
-              <div class="py-1">
-                <button (click)="setSortAndClose('Date (Newest first)')"
-                  [ngClass]="{'bg-blue-50': currentSort === 'Date (Newest first)'}"
-                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                  Date (Newest first)
-                </button>
-                <button (click)="setSortAndClose('Date (Oldest first)')"
-                  [ngClass]="{'bg-blue-50': currentSort === 'Date (Oldest first)'}"
-                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                  Date (Oldest first)
-                </button>
-                <button (click)="setSortAndClose('Subject (A → Z)')"
-                  [ngClass]="{'bg-blue-50': currentSort === 'Subject (A → Z)'}"
-                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                  Subject (A → Z)
-                </button>
-              </div>
-            </div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div class="flex-1 px-6 py-4 overflow-x-hidden">
-          <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
-            <table class="w-full text-left">
-              <thead class="bg-slate-50">
-                <tr>
-                  <th class="px-4 py-3 w-12">
-                    <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-0"
-                      type="checkbox"
-                      #checkbox
-                      (click)="addallemails(checkbox.checked)"
-                    />
-                  </th>
+    <div class="flex-1 px-6 py-4 overflow-x-hidden">
+      <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <table class="w-full text-left">
+          <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="px-4 py-3 w-12">
+              <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-0"
+                     type="checkbox"
+                     #checkbox
+                     (click)="addallemails(checkbox.checked)"
+              />
+            </th>
 
-                  <th class="px-4 py-3 text-slate-800 text-sm font-medium">
-                    Sender
-                  </th>
+            <th class="px-4 text-slate-600 w-1/4 text-xs uppercase tracking-wider font-semibold">
+              Sender
+            </th>
 
-                  <th class="px-4 py-3 text-slate-800 text-sm font-medium">
-                    Receiver
-                  </th>
+            <th class="px-4 text-slate-600 w-1/4 text-xs uppercase tracking-wider font-semibold">
+              Receiver
+            </th>
 
-                  <th class="px-4 py-3 text-slate-800 text-sm font-medium">
-                    Subject
-                  </th>
+            <th class="px-4 text-slate-600 w-1/3 text-xs uppercase tracking-wider font-semibold">
+              Subject
+            </th>
 
-                  <th class="px-4 py-3 w-40 text-slate-800 text-sm font-medium text-center">
-                    Date
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                @for(item of InboxData; track $index){
-                  <tr class="border-t border-t-slate-200 hover:bg-slate-50">
-                    <td class="px-4 py-2 w-12">
-                      <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-0"
-                        type="checkbox"
-                        (change)="toggleEmailsSelected(item, $any($event.target).checked)"
-                        [checked]="checked(item.mailId)"
-                      />
-                    </td>
+            <th class="px-4 text-slate-600 w-1/6 text-xs uppercase tracking-wider font-semibold text-center">
+              Date
+            </th>
+          </tr>
+          </thead>
+          <tbody>
+            @for(item of InboxData; track $index){
+              <tr class="border-t border-t-slate-200 hover:bg-slate-50 transition-colors">
+                <td class="px-4 py-2 w-12">
+                  <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-0"
+                         type="checkbox"
+                         (change)="toggleEmailsSelected(item, $any($event.target).checked)"
+                         [checked]="checked(item.mailId)"
+                  />
+                </td>
 
-                    <td class="px-4 py-2 text-slate-800 text-sm font-semibold truncate whitespace-nowrap min-w-0" (click)="goToMailDetails(item)">
-                      {{item.senderDisplayName || item.sender}}
-                    </td>
+                <td class="px-4 py-2 w-1/4 text-slate-800 text-sm font-semibold truncate whitespace-nowrap min-w-0 cursor-pointer" (click)="goToMailDetails(item)">
+                  {{item.senderDisplayName || item.sender}}
+                </td>
 
-                    <td class="px-4 py-2 text-slate-800 text-sm font-semibold truncate whitespace-nowrap min-w-0" (click)="goToMailDetails(item)">
-                      {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0
-                        ? item.receiverDisplayNames[0]
-                        : (item.receiverEmails && item.receiverEmails.length > 0
-                          ? item.receiverEmails[0]
-                          : '-') }}
-                      <span *ngIf="item.receiverDisplayNames && item.receiverDisplayNames.length > 1"
+                <td class="px-4 py-2 w-1/4 text-slate-800 text-sm font-semibold truncate whitespace-nowrap min-w-0 cursor-pointer" (click)="goToMailDetails(item)">
+                  {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0
+                  ? item.receiverDisplayNames[0]
+                  : (item.receiverEmails && item.receiverEmails.length > 0
+                    ? item.receiverEmails[0]
+                    : '-') }}
+                  <span *ngIf="item.receiverDisplayNames && item.receiverDisplayNames.length > 1"
                         class="text-slate-500 text-xs ml-1">
-                        +{{ item.receiverDisplayNames.length - 1 }}
-                      </span>
-                    </td>
+                      +{{ item.receiverDisplayNames.length - 1 }}
+                    </span>
+                </td>
 
-                    <td class="px-4 py-2 cursor-pointer" (click)="goToMailDetails(item)">
-                      <span class="text-slate-800 text-sm font-semibold">{{item.subject || '(No Subject'}}</span>
-                      <span class="text-slate-500 text-sm ml-2 truncate">{{item.body}}</span>
-                    </td>
+                <td class="px-4 py-2 w-1/3 cursor-pointer" (click)="goToMailDetails(item)">
+                  <div class="flex items-center">
+                    <span class="text-slate-800 text-sm font-semibold truncate">{{item.subject || '(No Subject'}}</span>
+                    <span class="text-slate-500 text-xs ml-2 truncate max-w-[200px]">{{ getSanitizedPreview(item.body) }}</span>
+                  </div>
+                </td>
 
-                    <td class="px-4 py-2 w-40 text-slate-500 text-sm text-center" (click)="goToMailDetails(item)">
-                      {{item.date | date:'mediumDate'}}
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto gap-2">
-           <button (click)="updatePage(page-1)" class="flex items-center justify-center text-slate-500 hover:text-primary">
-             <span class="material-symbols-outlined text-lg">chevron_left</span>
-           </button>
-           <button *ngFor="let p of [0,1,2]" (click)="updatePage(p)" [class.bg-primary]="page===p" [class.text-white]="page===p" class="px-3 py-1 rounded-lg text-sm">{{p+1}}</button>
-           <button (click)="updatePage(page+1)" class="flex items-center justify-center text-slate-500 hover:text-primary">
-             <span class="material-symbols-outlined text-lg">chevron_right</span>
-           </button>
-        </div>
-      </main>
-
-
-      <div class="move-conatiner bg-black/50" [class.active]="tomove">
-        <div class="content-container">
-          <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
-
-          <div class="buttons-folders">
-            <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
-
-            <button (click)="move(folderStateService.userData().sentFolderId)">Sent</button>
-
-            @for(folder of CustomFolders; track $index){
-              @if(folder.folderId !== MailDetails.getCustomId()){
-                 <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
-              }
+                <td class="px-4 py-2 w-1/6 text-slate-500 text-sm text-center" (click)="goToMailDetails(item)">
+                  {{item.date | date:'mediumDate'}}
+                </td>
+              </tr>
             }
-          </div>
-
-          <div class="bottom-btn">
-            <button (click)="tomove=false">Back</button>
-            <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
-          </div>
-        </div>
-      </div>
-
-
-    <div class="move-conatiner bg-black/50" [class.active]="showDeleteOptions">
-        <div class="content-container" style="min-height: 250px; gap: 20px;">
-          <span class="text-lg font-bold mt-5 text-red-600">Delete {{Emails.length}} Email(s)</span>
-          <p class="text-slate-600 text-center px-4">Do you want to move these emails to Trash or delete them forever?</p>
-
-          <div class="flex flex-col gap-3 w-3/4">
-            <button (click)="moveToTrash()" class="bg-amber-100 text-amber-800 hover:bg-amber-200" style="border: 1px solid #d97706;">
-              <span class="material-symbols-outlined align-middle mr-1 text-sm">delete</span>
-              Move to Trash
-            </button>
-            <button (click)="deleteForever()" class="bg-red-100 text-red-800 hover:bg-red-200" style="border: 1px solid #dc2626;">
-              <span class="material-symbols-outlined align-middle mr-1 text-sm">delete_forever</span>
-              Delete Forever
-            </button>
-          </div>
-
-          <div class="bottom-btn">
-            <button (click)="showDeleteOptions=false">Cancel</button>
-          </div>
-        </div>
-    </div>
-
-      <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
-        <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
-          <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
-          <button (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
-          <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
-        </div>
+          </tbody>
+        </table>
       </div>
     </div>
+
+    <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto gap-2">
+      <button (click)="updatePage(page-1)" class="flex items-center justify-center text-slate-500 hover:text-primary">
+        <span class="material-symbols-outlined text-lg">chevron_left</span>
+      </button>
+      <button *ngFor="let p of [0,1,2]" (click)="updatePage(p)" [class.bg-primary]="page===p" [class.text-white]="page===p" class="px-3 py-1 rounded-lg text-sm">{{p+1}}</button>
+      <button (click)="updatePage(page+1)" class="flex items-center justify-center text-slate-500 hover:text-primary">
+        <span class="material-symbols-outlined text-lg">chevron_right</span>
+      </button>
+    </div>
+  </main>
+
+  <div class="move-conatiner bg-black/50" [class.active]="tomove">
+    <div class="content-container">
+      <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
+      <div class="buttons-folders">
+        <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
+        <button (click)="move(folderStateService.userData().sentFolderId)">Sent</button>
+        @for(folder of CustomFolders; track $index){
+          @if(folder.folderId !== MailDetails.getCustomId()){
+            <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
+          }
+        }
+      </div>
+      <div class="bottom-btn">
+        <button (click)="tomove=false">Back</button>
+        <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="move-conatiner bg-black/50" [class.active]="showDeleteOptions">
+    <div class="content-container" style="min-height: 250px; gap: 20px;">
+      <span class="text-lg font-bold mt-5 text-red-600">Delete {{Emails.length}} Email(s)</span>
+      <p class="text-slate-600 text-center px-4">Do you want to move these emails to Trash or delete them forever?</p>
+      <div class="flex flex-col gap-3 w-3/4">
+        <button (click)="moveToTrash()" class="bg-amber-100 text-amber-800 hover:bg-amber-200" style="border: 1px solid #d97706;">
+          <span class="material-symbols-outlined align-middle mr-1 text-sm">delete</span>
+          Move to Trash
+        </button>
+        <button (click)="deleteForever()" class="bg-red-100 text-red-800 hover:bg-red-200" style="border: 1px solid #dc2626;">
+          <span class="material-symbols-outlined align-middle mr-1 text-sm">delete_forever</span>
+          Delete Forever
+        </button>
+      </div>
+      <div class="bottom-btn">
+        <button (click)="showDeleteOptions=false">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
+    <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
+      <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
+      <button (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
+      <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
+    </div>
+  </div>
+</div>
   `,
   styles: [`
     /* 1. We define the font-family globally here, assuming the font files can be reached */

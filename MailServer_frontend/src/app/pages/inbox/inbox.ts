@@ -32,7 +32,7 @@ interface MailSearchRequestDto {
   ],
   template: `
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
     <link
@@ -40,178 +40,212 @@ interface MailSearchRequestDto {
       rel="stylesheet"
     />
 
-    <div class="flex h-screen w-full">
-    <app-sidebar
-      [username]="folderStateService.userData().username"
-      [userEmail]="folderStateService.userData().email"
-      [customFolders]="CustomFolders"
-      [activeCustomFolderId]="getCurrentFolderId()"
-      (folderClick)="handleFolderClick($event)"
-      (createFolder)="handleCreateFolder()"
-      (renameFolder)="handleRenameFolder($event)"
-      (deleteFolder)="handleDeleteFolder($event)">
-    </app-sidebar>
+    <div class="flex h-screen w-full font-inter">
+      <app-sidebar
+        [username]="folderStateService.userData().username"
+        [userEmail]="folderStateService.userData().email"
+        [customFolders]="CustomFolders"
+        [activeCustomFolderId]="getCurrentFolderId()"
+        (folderClick)="handleFolderClick($event)"
+        (createFolder)="handleCreateFolder()"
+        (renameFolder)="handleRenameFolder($event)"
+        (deleteFolder)="handleDeleteFolder($event)">
+      </app-sidebar>
 
-      <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+      <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f6f7f8]">
         <div
           class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50"
         >
           <div class="flex-1 mr-4">
-          <app-search-bar
-            (onSearch)="handleSearch($event)"
-            (onClear)="handleClearSearch()">
-          </app-search-bar>
+            <app-search-bar
+              (onSearch)="handleSearch($event)"
+              (onClear)="handleClearSearch()">
+            </app-search-bar>
           </div>
 
-          <!-- Avatar dropdown -->
           <app-header></app-header>
         </div>
 
         <div
           class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
         >
-          <div class="flex gap-2">
-            <button
-              (click)="askDelete()"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
-            >
-              <span class="material-symbols-outlined">delete</span>
-            </button>
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 text-slate-700 font-semibold">
+              <span class="material-symbols-outlined text-primary">inbox</span>
+              <span>Inbox</span>
+              <span *ngIf="unreadCount > 0" class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                {{ unreadCount }}
+              </span>
+            </div>
+            
+            <div class="h-6 w-px bg-slate-300 mx-2"></div>
 
-            <button
-              (click)="tomove = true"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
-            >
-              <span class="material-symbols-outlined">folder_open</span>
-            </button>
-            <button (click)="refreshData()"
-            class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
-            title="Reload Emails">
-      <span class="material-symbols-outlined">refresh</span>
-    </button>
+            <div class="flex gap-2">
+              <button
+                (click)="askDelete()"
+                class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                [disabled]="Emails.length === 0"
+                title="Delete"
+              >
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+
+              <button
+                (click)="tomove = true"
+                class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                [disabled]="Emails.length === 0"
+                title="Move to Folder"
+              >
+                <span class="material-symbols-outlined">folder_open</span>
+              </button>
+              <button (click)="refreshData()"
+                      class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
+                      title="Reload Emails">
+                <span class="material-symbols-outlined">refresh</span>
+              </button>
+            </div>
           </div>
+
           <div class="relative inline-block">
             <button (click)="toggleSortMenu()"
-              class="flex items-center gap-2 px-3 py-2 text-slate-600 text-sm font-medium hover:bg-slate-100 rounded-lg">
+                    class="flex items-center gap-2 px-3 py-2 text-slate-600 text-sm font-medium hover:bg-slate-100 rounded-lg">
               Sort by: <span [textContent]="currentSort"></span>
               <span class="material-symbols-outlined text-lg">expand_more</span>
             </button>
             <div *ngIf="showSortMenu" class="absolute right-0 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
               <div class="py-1">
                 <button (click)="setSortAndClose('Date (Newest first)')"
-                  [ngClass]="{'bg-blue-50': currentSort === 'Date (Newest first)'}"
-                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                        [ngClass]="{'bg-blue-50': currentSort === 'Date (Newest first)'}"
+                        class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
                   Date (Newest first)
                 </button>
                 <button (click)="setSortAndClose('Date (Oldest first)')"
-                  [ngClass]="{'bg-blue-50': currentSort === 'Date (Oldest first)'}"
-                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                        [ngClass]="{'bg-blue-50': currentSort === 'Date (Oldest first)'}"
+                        class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
                   Date (Oldest first)
                 </button>
                 <button (click)="setSortAndClose('Sender (A → Z)')"
-                  [ngClass]="{'bg-blue-50': currentSort === 'Sender (A → Z)'}"
-                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                        [ngClass]="{'bg-blue-50': currentSort === 'Sender (A → Z)'}"
+                        class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
                   Sender (A → Z)
                 </button>
                 <button (click)="setSortAndClose('Subject (A → Z)')"
-                  [ngClass]="{'bg-blue-50': currentSort === 'Subject (A → Z)'}"
-                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                        [ngClass]="{'bg-blue-50': currentSort === 'Subject (A → Z)'}"
+                        class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
                   Subject (A → Z)
                 </button>
                 <button (click)="setSortAndClose('Priority')"
-                  [ngClass]="{'bg-blue-50': currentSort === 'Priority'}"
-                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                        [ngClass]="{'bg-blue-50': currentSort === 'Priority'}"
+                        class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
                   Priority
                 </button>
               </div>
             </div>
           </div>
         </div>
+
         <div class="flex-1 px-6 py-4 overflow-x-hidden">
-          <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
             <table class="w-full text-left">
-              <thead class="bg-slate-50">
-                <tr>
-                  <th class="px-4 py-3 w-12">
-                    <input
-                      class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                      type="checkbox"
-                      #checkbox
-                      (click)="addallemails(checkbox.checked)"
-                    />
-                  </th>
-                  <th class="py-3 pl-0 pr-4" colspan="5">
-                    <div class="flex items-center w-full">
-                      <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">Sender</div>
-                      <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">Receiver</div>
-                      <div class="px-4 text-slate-800 w-1/3 text-sm font-medium">Subject</div>
-                      <div class="px-4 text-slate-800 w-1/12 text-sm font-medium">Priority</div>
-                      <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-right">
-                        Date
-                      </div>
+              <thead class="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-3 w-12">
+                  <input
+                    class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+                    type="checkbox"
+                    #checkbox
+                    (click)="addallemails(checkbox.checked)"
+                  />
+                </th>
+                <th class="py-3 pl-0 pr-4" colspan="5">
+                  <div class="flex items-center w-full">
+                    <div class="px-4 text-slate-600 w-1/6 text-xs uppercase tracking-wider font-semibold">Sender</div>
+                    <div class="px-4 text-slate-600 w-1/6 text-xs uppercase tracking-wider font-semibold">Receiver</div>
+                    <div class="px-4 text-slate-600 w-1/3 text-xs uppercase tracking-wider font-semibold">Subject</div>
+                    <div class="px-4 text-slate-600 w-1/12 text-xs uppercase tracking-wider font-semibold">Priority</div>
+                    <div class="px-4 text-slate-600 w-1/6 text-xs uppercase tracking-wider font-semibold text-right">
+                      Date
                     </div>
-                  </th>
-                </tr>
+                  </div>
+                </th>
+              </tr>
               </thead>
               <tbody>
-                @for(item of InboxData; track $index){
-                  <tr class="border-t border-t-slate-200 hover:bg-slate-50">
-                    <td class="px-4 py-2">
-                      <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                        type="checkbox"
-                             #checkbox
-                             (change)="toggleEmailsSelected(item,checkbox.checked)"
-                             [checked]="checked(item.mailId)" />
-                    </td>
-                    <td class="py-0 pl-0 pr-4" colspan="5">
-                      <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">{{ item.senderDisplayName || item.sender }}</div>
-                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">me</div>
-                        <div class="px-4 w-1/3">
-                          <span class="text-sm">{{item.subject || '(No Subject)'}}</span>
-                          <span class="text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
-                        </div>
-                        <div class="px-4 w-1/12">
-                           <span class="text-xs font-semibold px-2 py-1 rounded"
-                             [ngClass]="{'bg-red-100 text-red-700': item.priority === 1, 'bg-orange-100 text-orange-700': item.priority === 2, 'bg-yellow-100 text-yellow-700': item.priority === 3, 'bg-blue-100 text-blue-700': item.priority === 4}">
+              @for(item of InboxData; track $index){
+                <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
+                    [ngClass]="{'bg-white': item.isRead, 'bg-slate-50/50': !item.isRead}">
+                  <td class="px-4 py-2">
+                    <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
+                           type="checkbox"
+                           #checkbox
+                           (change)="toggleEmailsSelected(item,checkbox.checked)"
+                           [checked]="checked(item.mailId)"
+                           (click)="$event.stopPropagation()" />
+                  </td>
+                  <td class="py-0 pl-0 pr-4" colspan="5">
+                    <div class="flex items-center w-full py-3" (click)="goToMailDetails(item)">
+                      
+                      <div class="px-4 w-1/6 text-sm truncate"
+                           [ngClass]="{'font-bold text-black': !item.isRead, 'font-medium text-slate-800': item.isRead}">
+                        {{ item.senderDisplayName || item.sender }}
+                      </div>
+
+                      <div class="px-4 text-slate-500 w-1/6 text-sm truncate">me</div>
+                      
+                      <div class="px-4 w-1/3 flex items-center">
+                        <span class="text-sm truncate"
+                              [ngClass]="{'font-bold text-black': !item.isRead, 'font-medium text-slate-800': item.isRead}">
+                          {{item.subject || '(No Subject)'}}
+                        </span>
+                        <span class="text-sm text-slate-500 ml-2 truncate hidden sm:inline" 
+                              [innerHTML]="getSanitizedPreview(item.body)">
+                        </span>
+                      </div>
+
+                      <div class="px-4 w-1/12">
+                           <span class="text-[10px] uppercase font-bold px-2 py-1 rounded shadow-sm"
+                                 [ngClass]="{
+                                   'bg-red-100 text-red-700': item.priority === 1, 
+                                   'bg-orange-100 text-orange-700': item.priority === 2, 
+                                   'bg-yellow-100 text-yellow-700': item.priority === 3, 
+                                   'bg-blue-100 text-blue-700': item.priority === 4
+                                 }">
                              {{ getPriorityLabel(item.priority) }}
                            </span>
-                        </div>
-                        <div class="px-4 text-sm text-right w-1/6">{{ formatDate(item.date)}}</div>
                       </div>
+                      
+                      <div class="px-4 text-sm text-right w-1/6"
+                           [ngClass]="{'font-bold text-black': !item.isRead, 'font-medium text-slate-500': item.isRead}">
+                        {{ formatDate(item.date)}}
+                      </div>
+                    </div>
                   </td>
                 </tr>
-                }
+              }
               </tbody>
             </table>
           </div>
         </div>
 
         <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto">
-          <a
-            (click)="updatePage(page - 1)"
-            class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary"
-          >
+          <button (click)="updatePage(page - 1)"
+             class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary">
             <span class="material-symbols-outlined text-lg">chevron_left</span>
-          </a>
-          <a
-            (click)="updatePage(0)"
-            class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary"
-            >1</a
-          >
-          <a
-            (click)="updatePage(1)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >2</a
-          >
-          <a
-            (click)="updatePage(page + 1)"
-            class="flex size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer"
-          >
+          </button>
+          <button (click)="updatePage(0)"
+             [ngClass]="{'bg-primary text-white': page === 0, 'bg-slate-100 text-slate-600': page !== 0}"
+             class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center rounded-lg">
+            1
+          </button>
+          <button (click)="updatePage(1)"
+                  [ngClass]="{'bg-primary text-white': page === 1, 'bg-slate-100 text-slate-600': page !== 1}"
+             class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center rounded-lg hover:bg-slate-100">
+            2
+          </button>
+          <button (click)="updatePage(page + 1)"
+             class="flex size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer">
             <span class="material-symbols-outlined text-lg">chevron_right</span>
-          </a>
+          </button>
         </div>
       </main>
 
@@ -219,9 +253,8 @@ interface MailSearchRequestDto {
         <div class="content-container">
           <span class="text-lg font-bold mt-5">Move {{ Emails.length }} Email(s) To</span>
           <div class="buttons-folders">
-            
             @for(folder of CustomFolders; track $index){
-            <button (click)="move(folder.folderId)">{{ folder.folderName }}</button>
+              <button (click)="move(folder.folderId)">{{ folder.folderName }}</button>
             }
           </div>
           <div class="bottom-btn">
@@ -233,34 +266,24 @@ interface MailSearchRequestDto {
 
       <div class="move-conatiner bg-black/50" [class.active]="showDeleteOptions">
         <div class="content-container" style="min-height: 250px; gap: 20px;">
-          <span class="text-lg font-bold mt-5 text-red-600"
-            >Delete {{ Emails.length }} Email(s)</span
-          >
+          <span class="text-lg font-bold mt-5 text-red-600">Delete {{ Emails.length }} Email(s)</span>
           <p class="text-slate-600 text-center px-4">
             Do you want to move these emails to Trash or delete them forever?
           </p>
-
           <div class="flex flex-col gap-3 w-3/4">
-            <button
-              (click)="moveToTrash()"
+            <button (click)="moveToTrash()"
               class="bg-amber-100 text-amber-800 hover:bg-amber-200"
-              style="border: 1px solid #d97706;"
-            >
+              style="border: 1px solid #d97706;">
               <span class="material-symbols-outlined align-middle mr-1 text-sm">delete</span>
               Move to Trash
             </button>
-            <button
-              (click)="deleteForever()"
+            <button (click)="deleteForever()"
               class="bg-red-100 text-red-800 hover:bg-red-200"
-              style="border: 1px solid #dc2626;"
-            >
-              <span class="material-symbols-outlined align-middle mr-1 text-sm"
-                >delete_forever</span
-              >
+              style="border: 1px solid #dc2626;">
+              <span class="material-symbols-outlined align-middle mr-1 text-sm">delete_forever</span>
               Delete Forever
             </button>
           </div>
-
           <div class="bottom-btn">
             <button (click)="showDeleteOptions = false">Cancel</button>
           </div>
@@ -434,6 +457,9 @@ export class Inbox implements OnInit {
     this.dataFile = mail;
     this.isRead = mail.isRead;
   }
+  get unreadCount(): number {
+    return this.InboxData.filter(mail => !mail.isRead).length;
+  } //count
   togglePriority:boolean=false;
   showDeleteOptions: boolean = false;
   CustomFolderPopUp: boolean = false;
@@ -517,32 +543,30 @@ export class Inbox implements OnInit {
     });
   }
   goToMailDetails(details: Datafile) {
+    
     if (!details.isRead) {
-      details.isRead = true;
-      this.markMailAsRead(details.mailId);
-
-      const index = this.InboxData.findIndex((e) => e.mailId === details.mailId);
-      if (index !== -1) {
-        this.InboxData[index].isRead = true;
-      }
+    
+    const index = this.InboxData.findIndex((e) => e.mailId === details.mailId);
+    if (index !== -1) {
+      this.InboxData[index].isRead = true;
     }
-    this.MailDetails.setMailData(details);
-    this.MailDetails.setFromId(this.folderStateService.userData().inboxFolderId);
-    this.router.navigate(['/mail']);
+    
+    this.markMailAsRead(details.mailId);
+    details.isRead = true;
+  }
+  
+  this.MailDetails.setMailData(details);
+  this.MailDetails.setFromId(this.folderStateService.userData().inboxFolderId);
+  this.router.navigate(['/mail']);
   }
 
   markMailAsRead(mailId: string) {
-    const url = `http://localhost:8080/api/mails/read/${mailId}`;
+    
+    const url = `http://localhost:8080/api/mails/${mailId}/read-status`;
 
     this.http.patch(url, {}, { responseType: 'text' }).subscribe({
-      next: () => {
-        console.log('Mail marked as read');
-
-        // Update InboxData after confirmation
-        const index = this.InboxData.findIndex((e) => e.mailId === mailId);
-        if (index !== -1) {
-          this.InboxData[index].isRead = true;
-        }
+      next: (response) => {
+        console.log('Mail marked as read:', response);
       },
       error: (err) => {
         console.error('Failed to mark mail as read', err);
