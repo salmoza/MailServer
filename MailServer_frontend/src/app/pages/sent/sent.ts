@@ -27,12 +27,17 @@ interface MailSearchRequestDto {
     <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
       <div class="flex h-full flex-col justify-between">
         <div class="flex flex-col gap-6">
-          <div class="flex items-center gap-3 px-3">
-            <h1 class="text-slate-800 text-base font-medium leading-normal">
-              {{folderStateService.userData().username}}
-            </h1>
+          <div class="flex items-center gap-3 px-2">
+            <div class="flex flex-col">
+              <!-- Text Color Fix: Ensure text is dark -->
+              <h1 class="text-gray-900 text-base font-medium leading-normal">
+                {{folderStateService.userData().username}}
+              </h1>
+              <p class="text-gray-500 text-sm font-normal leading-normal">
+                {{folderStateService.userData().email}}
+              </p>
+            </div>
           </div>
-
           <button [routerLink]="['/compose']"
                   class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold">
             Compose
@@ -92,12 +97,12 @@ interface MailSearchRequestDto {
   <main class="flex-1 flex flex-col h-screen overflow-y-auto">
     <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
       <div class="flex-1 mr-4">
-        <app-search-bar 
+        <app-search-bar
           (onSearch)="handleSearch($event)"
           (onClear)="handleClearSearch()">
         </app-search-bar>
       </div>
-      
+
       <app-header></app-header>
     </div>
 
@@ -108,7 +113,7 @@ interface MailSearchRequestDto {
                   [disabled]="Emails.length === 0">
             <span class="material-symbols-outlined">delete</span>
           </button>
-          
+
           <button (click)="tomove = true"
                   class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50"
                   [disabled]="Emails.length === 0">
@@ -167,30 +172,37 @@ interface MailSearchRequestDto {
       </thead>
 
       <tbody>
-        <tr *ngFor="let item of SentData" class="border-t border-t-slate-200 hover:bg-slate-50">
-          <td class="px-4 py-2">
-            <input type="checkbox"
-                   class="h-5 w-5 rounded border-slate-300 text-primary"
-                   (change)="toggleEmailsSelected(item, $any($event.target).checked)"
-                   [checked]="checked(item.mailId)"/>
-          <td class="py-0 pl-0 pr-4" colspan="5">
-            <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-              <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
-                me
-              </div>
+      <tr *ngFor="let item of SentData" class="border-t border-t-slate-200 hover:bg-slate-50 transition-colors">
+        <td class="px-4 py-2">
+          <input type="checkbox"
+                 class="h-5 w-5 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]"
+                 (change)="toggleEmailsSelected(item, $any($event.target).checked)"
+                 [checked]="checked(item.mailId)"/>
+        </td>
+        <!-- Data Row Container -->
+        <td class="py-0 pl-0 pr-4" colspan="5">
+          <div class="flex items-center w-full py-3 cursor-pointer" (click)="goToMailDetails(item)">
 
-              <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
-                {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0 ? item.receiverDisplayNames[0] : '-' }}
-              </div>
+            <!-- 1. Sender (1/6): Fixed as 'me' for Sent folder -->
+            <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
+              me
+            </div>
 
-              <div class="px-4 w-1/3">
-                <span class="text-slate-800 text-sm font-semibold">{{ item.subject }}</span>
-                <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
-              </div>
+            <!-- 2. Receiver (1/6): Display first receiver or dash -->
+            <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
+              {{ item.receiverEmails && item.receiverEmails.length > 0 ? item.receiverEmails[0] : '-' }}
+            </div>
 
-              <div class="px-4 w-1/12">
-                <span 
-                  class="text-xs font-semibold px-2 py-1 rounded"
+            <!-- 3. Subject + Preview (1/3) -->
+            <div class="px-4 w-1/3 flex items-center overflow-hidden">
+              <span class="text-slate-800 text-sm font-semibold truncate mr-2">{{ item.subject || '(No Subject)' }}</span>
+              <span class="text-slate-500 text-sm truncate flex-1 block">{{ getSanitizedPreview(item.body) }}</span>
+            </div>
+
+            <!-- 4. Priority (1/12) -->
+            <div class="px-4 w-1/12">
+                <span
+                  class="text-xs font-semibold px-2 py-1 rounded whitespace-nowrap"
                   [ngClass]="{
                     'bg-red-100 text-red-700': item.priority === 1,
                     'bg-orange-100 text-orange-700': item.priority === 2,
@@ -199,14 +211,16 @@ interface MailSearchRequestDto {
                   }">
                   {{ getPriorityLabel(item.priority) }}
                 </span>
-              </div>
-
-              <div class="px-4 text-slate-500 text-sm text-right w-1/6">
-                {{ item.date | date:'mediumDate' }}
-              </div>
             </div>
-          </td>
-        </tr>
+
+            <!-- 5. Date (1/6) -->
+            <div class="px-4 text-slate-500 text-sm text-right w-1/6">
+              {{ item.date | date:'mediumDate' }}
+            </div>
+
+          </div>
+        </td>
+      </tr>
       </tbody>
     </table>
   </div>
@@ -229,10 +243,10 @@ interface MailSearchRequestDto {
     <div class="move-conatiner bg-black/50" [class.active]="tomove">
       <div class="content-container">
         <span class="text-lg font-bold mt-5">Move {{Emails.length}} Email(s) To</span>
-        
+
         <div class="buttons-folders">
           <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
-          
+
           @for(folder of CustomFolders; track $index){
              <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
           }
@@ -249,7 +263,7 @@ interface MailSearchRequestDto {
         <div class="content-container" style="min-height: 250px; gap: 20px;">
           <span class="text-lg font-bold mt-5 text-red-600">Delete {{Emails.length}} Email(s)</span>
           <p class="text-slate-600 text-center px-4">Do you want to move these emails to Trash or delete them forever?</p>
-          
+
           <div class="flex flex-col gap-3 w-3/4">
             <button (click)="moveToTrash()" class="bg-amber-100 text-amber-800 hover:bg-amber-200" style="border: 1px solid #d97706;">
               <span class="material-symbols-outlined align-middle mr-1 text-sm">delete</span>
@@ -321,7 +335,7 @@ export class Sent implements OnInit {
       return;
     }
     this.page = page;
-    
+
     if (this.currentSort !== 'Date (Newest first)') {
       const sortByMap: { [key: string]: string } = {
         'Date (Newest first)': 'date_desc',
@@ -385,11 +399,11 @@ export class Sent implements OnInit {
     const url = `http://localhost:8080/api/mails/${this.folderStateService.userData().sentFolderId}`;
     let params = new HttpParams();
     ids.forEach(id => params = params.append('ids', id));
-    
+
     this.http.delete(url, {params: params, responseType: 'text'}).subscribe({
-      next:()=>{ 
-        this.SentData = this.SentData.filter(e => !ids.includes(e.mailId)); 
-        this.Emails=[]; 
+      next:()=>{
+        this.SentData = this.SentData.filter(e => !ids.includes(e.mailId));
+        this.Emails=[];
       },
       error:()=>alert("Failed to delete emails")
     });
@@ -397,9 +411,9 @@ export class Sent implements OnInit {
 
   move(targetFolderId: string) {
     if (this.Emails.length === 0) return;
-    
+
     const currentFolderId = this.folderStateService.userData().sentFolderId;
-    
+
     if (!currentFolderId || !targetFolderId) {
        alert("Error: Folder ID missing.");
        return;
@@ -429,16 +443,16 @@ export class Sent implements OnInit {
     const url = "http://localhost:8080/api/folders";
     const payload = {
       folderName: this.foldername,
-      
+
       folderId: this.folderStateService.userData().inboxFolderId,
-      
+
       userId: this.folderStateService.userData().userId,
     };
-    
+
     this.http.post(url, payload).subscribe({
       next: () => {
         this.CustomFolderPopUp = false;
-        this.getCustomFolders(); 
+        this.getCustomFolders();
       },
       error: () => alert("Failed to create custom folder")
     });
@@ -446,7 +460,7 @@ export class Sent implements OnInit {
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
     this.page = 0;
-    
+
     if (criteria.keywords) {
       // Quick keyword search
       this.isSearchActive = true;
@@ -465,7 +479,7 @@ export class Sent implements OnInit {
   performQuickSearch(page: number) {
     const userData = this.folderStateService.userData();
     const folderId = userData.sentFolderId;
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;
@@ -491,7 +505,7 @@ export class Sent implements OnInit {
   performAdvancedSearch(page: number) {
     const userData: UserData = this.folderStateService.userData();
     const folderId = userData.sentFolderId;
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;
@@ -537,16 +551,16 @@ export class Sent implements OnInit {
     this.currentSort = sortOption;
     this.showSortMenu = false;
     this.page = 0; // Reset to first page
-    
+
     // Map the display text to backend sortBy parameter
     const sortByMap: { [key: string]: string } = {
       'Date (Newest first)': 'date_desc',
       'Date (Oldest first)': 'date_asc',
       'Subject (A → Z)': 'subject'
     };
-    
+
     const sortBy = sortByMap[sortOption];
-    
+
     // Call the sort endpoint
     this.applySorting(sortBy, 0);
   }
@@ -555,7 +569,7 @@ export class Sent implements OnInit {
     const userData = this.folderStateService.userData();
     const folderId = userData.sentFolderId;
     const userId = userData.userId;
-    
+
     if (!folderId || !userId) {
       console.error('folderId or userId is missing');
       return;
@@ -599,30 +613,30 @@ export class Sent implements OnInit {
     }
   }
 
-  
+
   moveToTrash(){
     if(!this.Emails.length) return;
     const ids = this.Emails.map(e => e.mailId);
     const url = `http://localhost:8080/api/mails/${this.folderStateService.userData().sentFolderId}`;
     let params = new HttpParams();
     ids.forEach(id => params = params.append('ids', id));
-    
+
     this.http.delete(url, {params: params, responseType: 'text'}).subscribe({
-      next:()=>{ 
-        this.SentData = this.SentData.filter(e => !ids.includes(e.mailId)); 
-        this.Emails=[]; 
+      next:()=>{
+        this.SentData = this.SentData.filter(e => !ids.includes(e.mailId));
+        this.Emails=[];
         this.showDeleteOptions = false;
       },
       error:()=>alert("Failed to move emails to Trash")
     });
   }
 
-  
+
   deleteForever() {
     if (this.Emails.length === 0) return;
     const ids = this.Emails.map(e => e.mailId);
-    
-    const url = `http://localhost:8080/api/mails`; 
+
+    const url = `http://localhost:8080/api/mails`;
 
     this.http.request('delete', url, { body: ids, responseType: 'text' }).subscribe({
       next: () => {
@@ -635,5 +649,5 @@ export class Sent implements OnInit {
       error: (err) => alert("Failed to delete emails forever")
     });
   }
-  
+
 }

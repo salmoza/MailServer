@@ -30,14 +30,14 @@ import { Router } from '@angular/router';
           <p class="text-sm font-semibold text-gray-800">
             {{ folderStateService.userData()?.username?.trim() || folderStateService.userData()?.email }}
           </p>
-          <p 
+          <p
             class="text-xs text-gray-500 truncate"
             *ngIf="folderStateService.userData()?.username?.trim()"
           >
             {{ folderStateService.userData()?.email }}
           </p>
         </div>
-
+        <div class="flex flex-col p-1">
         <button
           class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm cursor-pointer"
           (click)="addAccount()"
@@ -50,6 +50,7 @@ import { Router } from '@angular/router';
         >
           Sign out
         </button>
+        </div>
       </div>
     </div>
   `,

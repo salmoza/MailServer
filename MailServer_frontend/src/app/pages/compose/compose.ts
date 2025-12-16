@@ -189,9 +189,7 @@ export interface att {
               <div class="flex items-center border border-gray-300 rounded-lg">
                 <button
                   (click)="priority = 4"
-                  [class]="
-                    priority === 4 ? 'px-2 py-1 bg-gray-200 rounded-l-md border-r' : 'px-2 py-1'
-                  "
+                  [class]="priority === 4 ? 'px-2 py-1 bg-gray-200 rounded-l-md border-r' : 'px-2 py-1'"
                 >
                   4
                 </button>
@@ -459,7 +457,7 @@ export class Compose {
       this.attachments.map((att) => {
         const fd = new FormData();
         fd.append('file', att.fileData, att.name);
-        fd.append('Ids', mailId);
+        fd.append('mailIds', mailId);
         return this.http.post('http://localhost:8080/api/attachments', fd).toPromise();
       })
     );

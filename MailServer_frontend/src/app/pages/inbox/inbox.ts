@@ -28,8 +28,16 @@ interface MailSearchRequestDto {
       <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
         <div class="flex h-full flex-col justify-between">
           <div class="flex flex-col gap-6">
-            <div class="flex items-center gap-3 px-3">
-              <h1 class="text-slate-800 text-base font-medium leading-normal">{{folderStateService.userData().username}}</h1>
+            <div class="flex items-center gap-3 px-2">
+              <div class="flex flex-col">
+                <!-- Text Color Fix: Ensure text is dark -->
+                <h1 class="text-gray-900 text-base font-medium leading-normal">
+                  {{folderStateService.userData().username}}
+                </h1>
+                <p class="text-gray-500 text-sm font-normal leading-normal">
+                  {{folderStateService.userData().email}}
+                </p>
+              </div>
             </div>
             <button [routerLink]="['/compose']" class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
               <span class="truncate">Compose</span>
@@ -81,8 +89,13 @@ interface MailSearchRequestDto {
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
           <div class="flex-1 mr-4">
-            <app-search-bar (onSearch)="handleSearch($event)" (onClear)="handleClearSearch()"></app-search-bar>
+          <app-search-bar
+            (onSearch)="handleSearch($event)"
+            (onClear)="handleClearSearch()">
+          </app-search-bar>
           </div>
+
+          <!-- Avatar dropdown -->
           <app-header></app-header>
         </div>
 
@@ -99,9 +112,11 @@ interface MailSearchRequestDto {
               [disabled]="Emails.length === 0">
               <span class="material-symbols-outlined">folder_open</span>
             </button>
-            <button (click)="refreshData()" class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer" title="Reload Emails">
-              <span class="material-symbols-outlined">refresh</span>
-            </button>
+            <button (click)="refreshData()"
+            class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
+            title="Reload Emails">
+      <span class="material-symbols-outlined">refresh</span>
+    </button>
           </div>
           <div class="relative inline-block">
             <button (click)="toggleSortMenu()"
@@ -140,7 +155,6 @@ interface MailSearchRequestDto {
             </div>
           </div>
         </div>
-
         <div class="flex-1 px-6 py-4 overflow-x-hidden">
           <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
             <table class="w-full text-left">
@@ -166,11 +180,14 @@ interface MailSearchRequestDto {
                   <tr class="border-t border-t-slate-200 hover:bg-slate-50">
                     <td class="px-4 py-2">
                       <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                        type="checkbox" #checkbox (change)="toggleEmailsSelected(item,checkbox.checked)" [checked]="checked(item.mailId)" />
+                        type="checkbox"
+                             #checkbox
+                             (change)="toggleEmailsSelected(item,checkbox.checked)"
+                             [checked]="checked(item.mailId)" />
                     </td>
                     <td class="py-0 pl-0 pr-4" colspan="5">
                       <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">{{ item.senderDisplayName }}</div>
+                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">{{ item.senderDisplayName || item.sender }}</div>
                         <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">me</div>
                         <div class="px-4 w-1/3">
                           <span class="text-sm">{{ item.subject }}</span>
@@ -421,7 +438,7 @@ export class Inbox implements OnInit{
       return;
     }
     this.page = page;
-    
+
     if (this.currentSort !== 'Date (Newest first)') {
       const sortByMap: { [key: string]: string } = {
         'Date (Newest first)': 'date_desc',
@@ -702,7 +719,7 @@ export class Inbox implements OnInit{
 
   refreshData() {
     console.log("Refreshing Inbox Data...");
-    this.Emails = []; 
+    this.Emails = [];
     if (this.isSearchActive) {
       if (this.isAdvancedSearch) {
         this.performAdvancedSearch(this.page);
@@ -790,7 +807,7 @@ export class Inbox implements OnInit{
     this.currentSort = sortOption;
     this.showSortMenu = false;
     this.page = 0; // Reset to first page
-    
+
     // Map the display text to backend sortBy parameter
     const sortByMap: { [key: string]: string } = {
       'Date (Newest first)': 'date_desc',
@@ -799,9 +816,9 @@ export class Inbox implements OnInit{
       'Subject (A → Z)': 'subject',
       'Priority': 'priority'
     };
-    
+
     const sortBy = sortByMap[sortOption];
-    
+
     // Call the sort endpoint
     this.applySorting(sortBy, 0);
   }
@@ -810,7 +827,7 @@ export class Inbox implements OnInit{
     const userData: UserData = this.folderStateService.userData();
     const folderId = userData.inboxFolderId;
     const userId = userData.userId;
-    
+
     if (!folderId || !userId) {
       console.error('folderId or userId is missing');
       return;

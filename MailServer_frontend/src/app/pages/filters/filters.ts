@@ -46,7 +46,6 @@ interface MailFilter {
               >
                 <span class="material-symbols-outlined text-slate-600">inbox</span>
                 <p class="text-slate-600 text-sm font-medium leading-normal">Inbox</p>
-                <span class="ml-auto text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">3</span>
               </a>
               <a [routerLink]="['/sent']"
                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
@@ -127,7 +126,7 @@ interface MailFilter {
                   <p class="text-slate-700 text-sm font-medium leading-normal pb-2">
                     If the message...
                   </p>
-                  <select 
+                  <select
                     [(ngModel)]="newFilter.field"
                     class="form-select w-full rounded-lg text-slate-800 border-slate-300 bg-[#f6f7f8] focus:border-[#137fec] focus:ring-[#137fec] h-12">
                     <option value="subject">Subject</option>
@@ -149,7 +148,7 @@ interface MailFilter {
                   <p class="text-slate-700 text-sm font-medium leading-normal pb-2">
                     Then move it to...
                   </p>
-                  <select 
+                  <select
                     [(ngModel)]="newFilter.targetFolder"
                     class="form-select w-full rounded-lg text-slate-800 border-slate-300 bg-[#f6f7f8] focus:border-[#137fec] focus:ring-[#137fec] h-12">
                     @if (customFolders.length === 0) {
@@ -163,13 +162,13 @@ interface MailFilter {
               </div>
               <div class="mt-6 flex justify-end gap-3">
                 @if (editingFilter) {
-                  <button 
+                  <button
                     (click)="cancelEdit()"
                     class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-slate-200 text-slate-700 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-slate-300 transition-colors">
                     <span class="truncate">Cancel</span>
                   </button>
                 }
-                <button 
+                <button
                   (click)="editingFilter ? updateFilter() : createFilter()"
                   class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-[#137fec] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#137fec]/90 transition-colors">
                   <span class="truncate">{{editingFilter ? 'Update Filter' : 'Create Filter'}}</span>
@@ -209,12 +208,12 @@ interface MailFilter {
                             </td>
                             <td class="p-4">
                               <div class="flex items-center justify-end gap-2">
-                                <button 
+                                <button
                                   (click)="editFilter(filter)"
                                   class="flex items-center justify-center size-9 rounded-lg hover:bg-slate-200/60 text-slate-600 transition-colors">
                                   <span class="material-symbols-outlined text-lg">edit</span>
                                 </button>
-                                <button 
+                                <button
                                   (click)="deleteFilter(filter.filterId!)"
                                   class="flex items-center justify-center size-9 rounded-lg hover:bg-red-100 text-red-500 transition-colors">
                                   <span class="material-symbols-outlined text-lg">delete</span>
@@ -273,7 +272,7 @@ interface MailFilter {
   `],
 })
 export class Filters implements OnInit {
-  
+
   filters: MailFilter[] = [];
   customFolders: CustomFolderData[] = [];
   newFilter: MailFilter = {
@@ -304,7 +303,7 @@ export class Filters implements OnInit {
     let params = new HttpParams();
     params = params.set("type", "custom");
     params = params.set("userId", this.folderStateService.userData().userId);
-    
+
     this.http.get<CustomFolderData[]>(url, { params }).subscribe({
       next: (data) => {
         this.customFolders = data;
@@ -341,7 +340,7 @@ export class Filters implements OnInit {
     }
 
     console.log('Creating filter with data:', this.newFilter);
-    
+
     this.http.post<MailFilter>(this.apiUrl, this.newFilter).subscribe({
       next: (data) => {
         console.log('Filter created successfully:', data);
@@ -354,7 +353,7 @@ export class Filters implements OnInit {
         console.error('Error status:', err.status);
         console.error('Error message:', err.message);
         console.error('Error details:', err.error);
-        
+
         let errorMsg = 'Failed to create filter';
         if (err.error?.message) {
           errorMsg += ': ' + err.error.message;
