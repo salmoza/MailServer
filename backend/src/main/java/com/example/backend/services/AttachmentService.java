@@ -7,6 +7,8 @@ import com.example.backend.mappers.AttachmentFactory;
 import com.example.backend.repo.AttachmentsRepo;
 import com.example.backend.repo.MailRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -120,5 +122,19 @@ public class AttachmentService {
         }
 
         return duplicatedAttachments;
+    }
+    public Resource loadFileAsResource(String attachmentId) throws IOException{
+        Attachment attachment = attachmentsRepo.findById(attachmentId).orElseThrow(()->new RuntimeException("file not found"));
+        Path filePath = Paths.get(attachment.getFilePath());
+        Resource resource = new UrlResource(filePath.toUri());
+        if(resource.exists() && resource.isReadable()){
+            return resource;
+        }
+        else{
+            throw new RuntimeException("could not read file: "+attachment.getFilename());
+        }
+    }
+    public Attachment getAttachmentMeta(String id){
+        return attachmentsRepo.findById(id).orElseThrow(()-> new RuntimeException("Not Found"));
     }
 }

@@ -1,14 +1,19 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dtos.AttachmentDto;
+import com.example.backend.model.Attachment;
 import com.example.backend.services.AttachmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jackson.autoconfigure.JacksonProperties;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.Resource;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,5 +49,24 @@ public class AttachmentController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteAtt(@PathVariable("id") String id){
         return ResponseEntity.ok(attachmentService.DeleteAttachment(id));
+    }
+    @GetMapping("/download/{id}")
+    public ResponseEntity<Resource> download(@PathVariable("id") String id){
+        try{
+            Resource resource = attachmentService.loadFileAsResource(id);
+            Attachment attachment = attachmentService.getAttachmentMeta(id);
+            String contentType = attachment.getFiletype();
+            if(contentType == null){
+                contentType = "application";
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\""+attachment.getFilename()+"\"")
+                    .body(resource);
+        }
+        catch (Exception e){
+            return ResponseEntity.notFound().build();
+        }
+
     }
 }

@@ -459,7 +459,7 @@ export class Compose {
       this.attachments.map((att) => {
         const fd = new FormData();
         fd.append('file', att.fileData, att.name);
-        fd.append('Ids', mailId);
+        fd.append('mailIds', mailId);
         return this.http.post('http://localhost:8080/api/attachments', fd).toPromise();
       })
     );

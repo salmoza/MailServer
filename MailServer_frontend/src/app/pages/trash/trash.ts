@@ -31,11 +31,15 @@ interface MailSearchRequestDto {
       >
         <div class="flex h-full flex-col justify-between">
           <div class="flex flex-col gap-6">
-            <div class="flex items-center gap-3 px-3">
-
-              <h1 class="text-slate-800 text-base font-medium leading-normal">
-                {{folderStateService.userData().username}}
-              </h1>
+            <div class="flex items-center gap-3 px-2">
+              <div class="flex flex-col">
+                <h1 class="text-gray-900 text-base font-medium leading-normal">
+                  {{folderStateService.userData().username}}
+                </h1>
+                <p class="text-gray-500 text-sm font-normal leading-normal">
+                  {{folderStateService.userData().email}}
+                </p>
+              </div>
             </div>
             <button [routerLink]="['/compose']"
                     class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
@@ -52,10 +56,6 @@ interface MailSearchRequestDto {
                 <p class="text-slate-800 text-sm font-medium leading-normal">
                   Inbox
                 </p>
-                <span
-                  class="ml-auto text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5"
-                >3</span
-                >
               </a>
               <a [routerLink]="['/sent']"
                  class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
@@ -136,12 +136,12 @@ interface MailSearchRequestDto {
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
           <div class="flex-1 mr-4">
-            <app-search-bar 
+            <app-search-bar
               (onSearch)="handleSearch($event)"
               (onClear)="handleClearSearch()">
             </app-search-bar>
           </div>
-          
+
           <app-header></app-header>
         </div>
 
@@ -156,7 +156,7 @@ interface MailSearchRequestDto {
             >
               <span class="material-symbols-outlined">delete_forever</span>
             </button>
-            
+
             <button (click)="undo()"
                     class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     [disabled]="Emails.length === 0"
@@ -220,7 +220,7 @@ interface MailSearchRequestDto {
                         (click)="goToMailDetails(item)"
                       >
                         <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
-                          {{item.sender}}
+                          {{item.senderDisplayName}}
                         </div>
 
                         <div class="px-4 w-1/2">
@@ -270,7 +270,7 @@ interface MailSearchRequestDto {
           </a>
         </div>
       </main>
-      
+
       <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
         <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
           <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
@@ -426,14 +426,14 @@ export class Trash implements OnInit{
   TrashData:Datafile[]=[];
   page: number = 0;
   CustomFolders:CustomFolderData[]=[];
-  
-  
-  
+
+
+
   isSearchActive = false;
   isAdvancedSearch = false;
   currentSearchKeyword = '';
   currentAdvancedFilters: MailSearchRequestDto = {};
-  
+
   ngOnInit() {
     this.getTrash(0);
     this.getCustomFolders();
@@ -531,20 +531,20 @@ export class Trash implements OnInit{
   }
   delete() {
     if (this.Emails.length == 0) return;
-    
-    
+
+
     const ids = this.Emails.map(email => email.mailId);
 
-    
-    const url = `http://localhost:8080/api/mails`; 
 
-    
+    const url = `http://localhost:8080/api/mails`;
+
+
     ids.forEach(id => {
       const emailIndex = this.TrashData.findIndex(e => e.mailId === id);
       if(emailIndex > -1) this.toggleEmailsSelected(this.TrashData[emailIndex], false);
     });
 
-    
+
     this.http.request('delete', url, { body: ids, responseType: 'text' }).subscribe({
       next: (response) => {
         const deletedIdsSet = new Set(ids);
@@ -558,25 +558,25 @@ export class Trash implements OnInit{
       }
     })
   }
-  
-  
+
+
   undo() {
     if (this.Emails.length === 0) {
       return;
     }
-    
-    
-    const url = `http://localhost:8080/api/mails`; 
-    
+
+
+    const url = `http://localhost:8080/api/mails`;
+
     const ids = this.Emails.map(email => email.mailId);
-    
+
     this.http.patch(url, ids , {responseType : "text"} ).subscribe({
       next: (response) => {
         console.log("Undo successful", response);
-        
+
         const restoredIdsSet = new Set(ids);
         this.TrashData = this.TrashData.filter(email => !restoredIdsSet.has(email.mailId));
-        
+
         this.Emails = [];
       },
       error: (error) => {
@@ -585,8 +585,8 @@ export class Trash implements OnInit{
       }
     });
   }
-  
-  
+
+
 
   goToCustomFolder(Id:string){
     this.MailDetails.setCustom(Id);

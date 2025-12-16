@@ -28,8 +28,16 @@ interface MailSearchRequestDto {
       <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
         <div class="flex h-full flex-col justify-between">
           <div class="flex flex-col gap-6">
-            <div class="flex items-center gap-3 px-3">
-              <h1 class="text-slate-800 text-base font-medium leading-normal">{{folderStateService.userData().username}}</h1>
+            <div class="flex items-center gap-3 px-2">
+              <div class="flex flex-col">
+                <!-- Text Color Fix: Ensure text is dark -->
+                <h1 class="text-gray-900 text-base font-medium leading-normal">
+                  {{folderStateService.userData().username}}
+                </h1>
+                <p class="text-gray-500 text-sm font-normal leading-normal">
+                  {{folderStateService.userData().email}}
+                </p>
+              </div>
             </div>
             <button [routerLink]="['/compose']" class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
               <span class="truncate">Compose</span>
@@ -81,8 +89,13 @@ interface MailSearchRequestDto {
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
           <div class="flex-1 mr-4">
-            <app-search-bar (onSearch)="handleSearch($event)" (onClear)="handleClearSearch()"></app-search-bar>
+          <app-search-bar
+            (onSearch)="handleSearch($event)"
+            (onClear)="handleClearSearch()">
+          </app-search-bar>
           </div>
+
+          <!-- Avatar dropdown -->
           <app-header></app-header>
         </div>
 
@@ -99,15 +112,19 @@ interface MailSearchRequestDto {
               [disabled]="Emails.length === 0">
               <span class="material-symbols-outlined">folder_open</span>
             </button>
-            <button (click)="refreshData()" class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer" title="Reload Emails">
-              <span class="material-symbols-outlined">refresh</span>
-            </button>
+            <button (click)="refreshData()"
+            class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
+            title="Reload Emails">
+      <span class="material-symbols-outlined">refresh</span>
+    </button>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-slate-600">Priority Mode</span>
             <label class="relative inline-flex items-center cursor-pointer">
               <input class="sr-only peer" type="checkbox" value="" />
-              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+              <div
+                class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"
+              ></div>
             </label>
           </div>
         </div>
@@ -137,11 +154,14 @@ interface MailSearchRequestDto {
                   <tr class="border-t border-t-slate-200 hover:bg-slate-50">
                     <td class="px-4 py-2">
                       <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                        type="checkbox" #checkbox (change)="toggleEmailsSelected(item,checkbox.checked)" [checked]="checked(item.mailId)" />
+                        type="checkbox"
+                             #checkbox
+                             (change)="toggleEmailsSelected(item,checkbox.checked)"
+                             [checked]="checked(item.mailId)" />
                     </td>
                     <td class="py-0 pl-0 pr-4" colspan="5">
                       <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">{{ item.senderDisplayName }}</div>
+                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">{{ item.senderDisplayName || item.sender }}</div>
                         <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">me</div>
                         <div class="px-4 w-1/3">
                           <span class="text-sm">{{ item.subject }}</span>

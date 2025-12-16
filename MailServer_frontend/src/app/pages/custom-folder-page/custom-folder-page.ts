@@ -130,7 +130,7 @@ interface MailSearchRequestDto {
                   />
                 </th>
 
-                <th class="py-3 pl-0 pr-4" colspan="6">
+                <th class="py-3 pl-0 pr-4" colspan="4">
                   <div class="flex items-center w-full">
                     <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">
                       Sender
@@ -161,23 +161,12 @@ interface MailSearchRequestDto {
                         [checked]="checked(item.mailId)"
                       />
                     </td>
-
-                    <td class="py-0 pl-0 pr-4" colspan="6">
-                      <div
-                        class="flex items-center w-full py-2 cursor-pointer"
-                        (click)="goToMailDetails(item)"
-                      >
-                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
-                          {{ item.senderDisplayName }}
-                        </div>
-
-                        <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
-                          {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0 ? item.receiverDisplayNames[0] : '-' }}
-                        </div>
-
-                        <div class="px-4 w-1/3">
+                    <td class="py-0 pl-0 pr-4" colspan="4">
+                      <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
+                        <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">{{item.sender}}</div>
+                        <div class="px-4 w-1/2">
                           <span class="text-slate-800 text-sm font-semibold">{{item.subject}}</span>
-                          <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
+                          <span class="text-slate-500 text-sm ml-2 truncate">{{item.body}}</span>
                         </div>
                         <div class="px-4 w-1/12">
                            <span *ngIf="item.priority"
@@ -194,7 +183,11 @@ interface MailSearchRequestDto {
 
                         <div class="px-4 text-slate-500 text-sm text-right w-1/6">
                           {{ item.date | date:'mediumDate' }}
+                        <div class="px-4 text-right w-auto">
+                           <span *ngIf="item.attachments && item.attachments.length > 0" class="material-symbols-outlined text-slate-400 text-lg">attachment</span>
                         </div>
+                        <div class="px-4 text-slate-500 text-sm text-right w-1/6">{{item.date | date:'mediumDate'}}</div>
+                      </div>
                       </div>
                     </td>
                   </tr>
@@ -214,6 +207,7 @@ interface MailSearchRequestDto {
            </button>
         </div>
       </main>
+
 
       <div class="move-conatiner bg-black/50" [class.active]="tomove">
         <div class="content-container">
@@ -237,6 +231,7 @@ interface MailSearchRequestDto {
           </div>
         </div>
       </div>
+
 
     <div class="move-conatiner bg-black/50" [class.active]="showDeleteOptions">
         <div class="content-container" style="min-height: 250px; gap: 20px;">
