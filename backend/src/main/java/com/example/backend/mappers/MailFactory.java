@@ -52,7 +52,7 @@ public class MailFactory {
                 .receiverEmails(dto.getReceivers() != null ? new ArrayList<>(dto.getReceivers()) : new ArrayList<>())
                 .subject(dto.getSubject())
                 .body(dto.getBody())
-                .priority(dto.getPriority())
+                .priority(dto.getPriority() == 0 ? 2 : dto.getPriority())
                 .status(MailStatus.DRAFT)
                 .date(Timestamp.valueOf(LocalDateTime.now()))
                 .isRead(true)
