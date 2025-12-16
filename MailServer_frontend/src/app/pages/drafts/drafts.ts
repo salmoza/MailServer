@@ -5,7 +5,7 @@ import {MailDetail} from '../mail-detail/mail-detail';
 import {MailShuttleService} from '../../Dtos/MailDetails';
 import {attachment, CustomFolderData, Datafile} from '../../Dtos/datafile';
 import {FolderStateService} from '../../Dtos/FolderStateService';
-import {HttpClient, HttpClientModule, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpClientModule, HttpParams , HttpHeaders} from '@angular/common/http';
 import {att} from '../compose/compose';
 import {FormsModule} from '@angular/forms';
 import {lastValueFrom} from 'rxjs';
@@ -98,11 +98,12 @@ import { HeaderComponent } from '../../header';
           </div>
           <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
             <div class="flex gap-2">
-              <button (click)="delete()"
-                      class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                      [disabled]="Emails.length === 0">
-                <span class="material-symbols-outlined">delete</span>
-              </button>
+            <button (click)="deleteForever()"
+          class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          [disabled]="Emails.length === 0"
+          title="Delete Forever">
+    <span class="material-symbols-outlined">delete_forever</span>
+  </button>
 
               <button (click)="getDraftData()"
                       class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
@@ -682,8 +683,7 @@ export class Drafts implements OnInit {
     this.currentEmailInput='';
     this.http.get<Datafile>(`http://localhost:8080/api/mails/${this.folderStateService.userData().draftsFolderId}/${id}`).subscribe({
       next: (mail) => {
-        console.log(mail);
-        this.recipients=mail.receivers || [];
+        this.recipients=mail.receiverEmails || [];
         this.subject=mail.subject;
         this.body=mail.body;
         this.priority=mail.priority;
@@ -812,7 +812,6 @@ export class Drafts implements OnInit {
   SaveDraft() {
     if (this.attachments.length > 0) {
       this.uploadAndSaveDraft();
-      console.log(this.DraftId);
     } else {
       this.UpdateDraftBase();
     }
@@ -835,6 +834,7 @@ export class Drafts implements OnInit {
 
   private async uploadAndSaveDraft() {
     try {
+
       await this.UpdateDraftBase();
       await this.DraftUploadAtt(this.DraftId);
     } catch (error) {
@@ -940,28 +940,37 @@ export class Drafts implements OnInit {
       }
     });
   }
+
   deleteForever() {
-    if (this.Emails.length === 0) return;
+    if (this.Emails.length == 0) return;
 
 
-    const ids = this.Emails.map(e => e.mailId);
+    const ids = this.Emails.map(email => email.mailId);
 
 
-    const url = `http://localhost:8080/api/mails/${this.folderStateService.userData().draftsFolderId}`;
+    const url = `http://localhost:8080/api/drafts`;
+
+
+    ids.forEach(id => {
+      const emailIndex = this.DraftData.findIndex(e => e.mailId === id);
+      if(emailIndex > -1) this.toggleEmailsSelected(this.DraftData[emailIndex], false);
+    });
+
 
     this.http.request('delete', url, { body: ids, responseType: 'text' }).subscribe({
-      next: () => {
-
+      next: (response) => {
         const deletedIdsSet = new Set(ids);
         this.DraftData = this.DraftData.filter(email => !deletedIdsSet.has(email.mailId));
         this.Emails = [];
+        console.log("Deleted Forever from Drafts");
       },
       error: (err) => {
-        console.error("Delete Forever failed", err);
-        alert("Failed to delete emails forever");
+        console.error(err);
+        alert("Failed to delete forever");
       }
-    });
+    })
   }
+
   protected readonly MailDetail = MailDetail;
   protected readonly MailShuttleService = MailShuttleService;
   protected readonly FolderStateService = FolderStateService;

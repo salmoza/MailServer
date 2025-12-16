@@ -7,6 +7,7 @@ import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.MailSnapshotRepo;
 import com.example.backend.repo.UserRepo;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,9 @@ public class DraftService {
 
     @Autowired
     private FolderRepo folderRepo ;
+
+    @Autowired
+    private MailSnapshotRepo mailSnapshotRepo ;
 
 
     public Mail saveDraft(MailDto dto) {
@@ -112,4 +116,21 @@ public class DraftService {
         folderService.addMail(null , sender.getSentFolderId(), draft);
     }
 
+    @Transactional
+    public void deleteForever(List<String> ids) {
+        Mail mail = mailRepo.findByMailId(ids.get(0))
+                .orElseThrow(() -> new RuntimeException("Mail not found"));
+        Folder folder = mail.getFolders().get(0);
+
+        for (String i : ids) {
+
+            mailSnapshotRepo.deleteAllByMail(mailRepo.findByMailId(i).orElseThrow(() -> new RuntimeException("Mail not found")));
+
+            Mail deletedMail = mailRepo.findByMailId(i)
+                    .orElseThrow(() -> new RuntimeException("Mail not found"));
+            folder.deleteMail(deletedMail);
+            mailRepo.delete(deletedMail);
+        }
+        folderRepo.save(folder) ;
+    }
 }

@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface MailSnapshotRepo extends JpaRepository<MailSnapshot, String> {
     List<MailSnapshot> findByMail(Mail mail);
+    void deleteAllByMail(Mail mail);
 }
