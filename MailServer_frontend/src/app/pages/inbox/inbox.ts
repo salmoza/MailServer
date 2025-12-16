@@ -250,7 +250,7 @@ interface MailSearchRequestDto {
                         <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">{{ item.senderDisplayName || item.sender }}</div>
                         <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">me</div>
                         <div class="px-4 w-1/3">
-                          <span class="text-sm">{{ item.subject }}</span>
+                          <span class="text-sm">{{item.subject || '(No Subject)'}}</span>
                           <span class="text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
                         </div>
                         <div class="px-4 w-1/12">

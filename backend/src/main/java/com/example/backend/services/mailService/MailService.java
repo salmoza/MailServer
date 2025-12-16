@@ -57,7 +57,7 @@ public class MailService {
 
         String senderId = senderUser.getUserId();
 
-        // Build the complete receiver display names list FIRST
+        // Build the complete receiver display names list
         List<String> receiverDisplayNames = new ArrayList<>();
         for (String receiverEmail : dto.getReceivers()) {
             User receiverUser = userRepo.findByEmail(receiverEmail);

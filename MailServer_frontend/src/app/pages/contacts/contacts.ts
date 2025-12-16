@@ -5,12 +5,12 @@ import { ContactDto } from '../../Dtos/ContactDto';
 import { ContactService } from '../../services/contact.services';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../header';
-import { SearchBarComponent } from '../../components/search-bar/search-bar';
+// import { SearchBarComponent } from '../../components/search-bar/search-bar';
 
 @Component({
   selector: 'app-contacts',
   standalone: true,
-  imports: [CommonModule, RouterLink , FormsModule , DatePipe, HeaderComponent, SearchBarComponent],
+  imports: [CommonModule, RouterLink , FormsModule , DatePipe, HeaderComponent],
   template: `<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-10 py-3 bg-white sticky top-0 z-10">
   <div class="flex items-center gap-8">
   <a [routerLink]="['/inbox']" class="flex items-center justify-center size-10 rounded-full hover:bg-slate-100 text-slate-600 transition cursor-pointer" title="Back to Inbox">
@@ -37,17 +37,16 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
 
 
      <!-- Top bar: Search + Avatar -->
-      <div class="flex items-center justify-between bg-white border-b border-gray-200 sticky top-0 z-50 px-6 py-3">
-        <!-- Search bar stretches -->
-        <div class="flex-1 mr-4">
+      <!-- <div class="flex items-center justify-between bg-white border-b border-gray-200 sticky top-0 z-50 px-6 py-3"> -->
+        <!-- <div class="flex-1 mr-4">
           <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
-        </div>
+        </div> -->
 
         <!-- Avatar dropdown -->
-        <div class="flex-shrink-0">
+        <!-- <div class="flex-shrink-0">
           <app-header></app-header>
-        </div>
-      </div>
+        </div> -->
+      <!-- </div> -->
 
 
       <!-- Rest of inbox content below -->
@@ -117,10 +116,10 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
                     <th class="px-4 py-3 w-[5%]">
                         <input type="checkbox" (change)="toggleAll($event)" class="size-4 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]">
                     </th>
-                    <th class="px-4 py-3 text-left text-slate-600 w-[30%] text-sm font-medium">Name</th>
-                    <th class="px-4 py-3 text-left text-slate-600 w-[30%] text-sm font-medium">Contact Info</th>
-                    <th class="px-4 py-3 text-left text-slate-600 w-[20%] text-sm font-medium">Activity</th>
+                    <th class="px-4 py-3 text-left text-slate-600 w-[35%] text-sm font-medium">Name</th>
+                    <th class="px-4 py-3 text-left text-slate-600 w-[35%] text-sm font-medium">Contact Info</th>
                     <th class="px-4 py-3 text-left text-slate-600 w-[15%] text-sm font-medium">Actions</th>
+
                  </tr>
               </thead>
               <tbody>
@@ -138,7 +137,7 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
                         >
                     </td>
 
-                    <td class="h-[72px] px-4 py-2 w-[30%] text-slate-800 text-sm font-normal leading-normal">
+                    <td class="h-[72px] px-4 py-2 w-[35%] text-slate-800 text-sm font-normal leading-normal">
                        <div class="flex items-center gap-3">
                           <div class="flex size-10 items-center justify-center rounded-full bg-[#137fec]/20 text-[#137fec] font-bold">
                              {{ contact.name?.charAt(0) | uppercase }}
@@ -155,7 +154,7 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
                        </div>
                     </td>
 
-                    <td class="h-[72px] px-4 py-2 w-[30%] text-slate-500 text-sm font-normal leading-normal">
+                    <td class="h-[72px] px-4 py-2 w-[35%] text-slate-500 text-sm font-normal leading-normal">
                        <div>{{ contact.phoneNumber || 'No Phone' }}</div>
                        <div class="text-xs text-slate-400 mt-1">
                            {{ contact.emailAddresses ? contact.emailAddresses[0] : 'No Email' }}
@@ -163,14 +162,14 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
                        </div>
                     </td>
 
-                    <td class="h-[72px] px-4 py-2 w-[20%] text-slate-500 text-xs font-normal leading-normal">
+                    <!-- <td class="h-[72px] px-4 py-2 w-[20%] text-slate-500 text-xs font-normal leading-normal">
                        <div class="flex flex-col gap-1">
                            <span title="Created At">Created: {{ contact.createdAt | date:'shortDate' }}</span>
                            <span *ngIf="contact.updatedAt" title="Updated At" class="text-slate-400">
                                Updated: {{ contact.updatedAt | date:'shortDate' }}
                            </span>
                        </div>
-                    </td>
+                    </td> -->
 
                     <td class="h-[72px] px-4 py-2 w-[15%] text-sm font-bold leading-normal tracking-[0.015em]">
                        <div class="flex items-center gap-2" (click)="$event.stopPropagation()">

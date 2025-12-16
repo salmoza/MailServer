@@ -221,7 +221,7 @@ interface MailSearchRequestDto {
                         </div>
 
                       <div class="px-4 w-1/2">
-                        <span class="text-slate-800 text-sm font-semibold">{{ item.subject }}</span>
+                        <span class="text-slate-800 text-sm font-semibold">{{item.subject || '(No Subject)'}}</span>
                         <span class="text-slate-500 text-sm ml-2 truncate">{{ item.body }}</span>
                       </div>
 

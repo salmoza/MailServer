@@ -148,7 +148,8 @@ interface MailSearchRequestDto {
         </div>
       </div>
 
-     <div class="flex-1 px-6 py-4 overflow-x-hidden">
+
+<div class="flex-1 px-6 py-4 overflow-x-hidden">
   <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
     <table class="w-full text-left">
       <thead class="bg-slate-50">
@@ -159,12 +160,11 @@ interface MailSearchRequestDto {
                    (change)="addallemails($any($event.target).checked)"
                    [checked]="Emails.length > 0 && Emails.length===SentData.length"/>
           </th>
-          <th class="py-3 pl-0 pr-4" colspan="5">
+          <th class="py-3 pl-0 pr-4" colspan="4">
             <div class="flex items-center w-full">
-              <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">Sender</div>
-              <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">Receiver</div>
-              <div class="px-4 text-slate-800 w-1/3 text-sm font-medium">Subject</div>
-              <div class="px-4 text-slate-800 w-1/12 text-sm font-medium">Priority</div>
+              <div class="px-4 text-slate-800 w-1/4 text-sm font-medium">Sender</div>
+              <div class="px-4 text-slate-800 w-1/4 text-sm font-medium">Receiver</div>
+              <div class="px-4 text-slate-800 w-2/5 text-sm font-medium">Subject</div>
               <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-right">Date</div>
             </div>
           </th>
@@ -172,47 +172,45 @@ interface MailSearchRequestDto {
       </thead>
 
       <tbody>
-      <tr *ngFor="let item of SentData" class="border-t border-t-slate-200 hover:bg-slate-50 transition-colors">
-        <td class="px-4 py-2">
-          <input type="checkbox"
-                 class="h-5 w-5 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]"
-                 (change)="toggleEmailsSelected(item, $any($event.target).checked)"
-                 [checked]="checked(item.mailId)"/>
-        </td>
-        <!-- Data Row Container -->
-        <td class="py-0 pl-0 pr-4" colspan="5">
-          <div class="flex items-center w-full py-3 cursor-pointer" (click)="goToMailDetails(item)">
+        <tr *ngFor="let item of SentData" class="border-t border-t-slate-200 hover:bg-slate-50 transition-colors">
+          <td class="px-4 py-2">
+            <input type="checkbox"
+                   class="h-5 w-5 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]"
+                   (change)="toggleEmailsSelected(item, $any($event.target).checked)"
+                   [checked]="checked(item.mailId)"/>
+          </td>
+          
+          <td class="py-0 pl-0 pr-4" colspan="4">
+            <div class="flex items-center w-full py-3 cursor-pointer" (click)="goToMailDetails(item)">
+   
+              <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">
+                me
+              </div>
 
-            <!-- 1. Sender (1/6): Fixed as 'me' for Sent folder -->
-            <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
-              me
-            </div>
-
-            <!-- 2. Receiver (1/6): Display first receiver or dash -->
-            <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
-              {{ item.receiverEmails && item.receiverEmails.length > 0 ? item.receiverEmails[0] : '-' }}
-            </div>
-
-            <!-- 3. Subject + Preview (1/3) -->
-            <div class="px-4 w-1/3 flex items-center overflow-hidden">
-              <span class="text-slate-800 text-sm font-semibold truncate mr-2">{{ item.subject || '(No Subject)' }}</span>
-              <span class="text-slate-500 text-sm truncate flex-1 block">{{ getSanitizedPreview(item.body) }}</span>
-            </div>
-
-            <!-- 4. Priority (1/12) -->
-            <div class="px-4 w-1/12">
-                <span
-                  class="text-xs font-semibold px-2 py-1 rounded whitespace-nowrap"
-                  [ngClass]="{
-                    'bg-red-100 text-red-700': item.priority === 1,
-                    'bg-orange-100 text-orange-700': item.priority === 2,
-                    'bg-yellow-100 text-yellow-700': item.priority === 3,
-                    'bg-blue-100 text-blue-700': item.priority === 4
-                  }">
-                  {{ getPriorityLabel(item.priority) }}
+              <!-- Receiver: Display first receiverDisplayName -->
+              <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">
+                {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0 
+                   ? item.receiverDisplayNames[0] 
+                   : (item.receiverEmails && item.receiverEmails.length > 0 
+                      ? item.receiverEmails[0] 
+                      : '-') }}
+                <span *ngIf="item.receiverDisplayNames && item.receiverDisplayNames.length > 1" 
+                      class="text-slate-500 text-xs ml-1">
+                  +{{ item.receiverDisplayNames.length - 1 }}
                 </span>
-            </div>
+              </div>
 
+              <!-- Subject + Preview -->
+              <div class="px-4 w-2/5 flex items-center overflow-hidden">
+                <span class="text-slate-800 text-sm font-semibold truncate mr-2">
+                  {{ item.subject || '(No Subject)' }}
+                </span>
+                <span class="text-slate-500 text-sm truncate flex-1 block">
+                  {{ getSanitizedPreview(item.body) }}
+                </span>
+              </div>
+
+              <!-- Date -->
               <div class="px-4 text-slate-500 text-sm text-right w-1/6">
                 {{ formatDate(item.date) }}
               </div>

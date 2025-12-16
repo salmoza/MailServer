@@ -140,74 +140,66 @@ interface MailSearchRequestDto {
           <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
             <table class="w-full text-left">
               <thead class="bg-slate-50">
-              <tr>
-                <th class="px-4 py-3 w-12">
-                  <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-0"
-                    type="checkbox"
-                    #checkbox
-                    (click)="addallemails(checkbox.checked)"
-                  />
-                </th>
+                <tr>
+                  <th class="px-4 py-3 w-12">
+                    <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-0"
+                      type="checkbox"
+                      #checkbox
+                      (click)="addallemails(checkbox.checked)"
+                    />
+                  </th>
 
-                <th class="py-3 pl-0 pr-4" colspan="4">
-                  <div class="flex items-center w-full">
-                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">
-                      Sender
-                    </div>
-                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium">
-                      Receiver
-                    </div>
-                    <div class="px-4 text-slate-800 w-1/3 text-sm font-medium">
-                      Subject
-                    </div>
-                    <div class="px-4 text-slate-800 w-1/12 text-sm font-medium">
-                      Priority
-                    </div>
-                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-right">
-                      Date
-                    </div>
-                  </div>
-                </th>
-              </tr>
+                  <th class="px-4 py-3 text-slate-800 text-sm font-medium">
+                    Sender
+                  </th>
+
+                  <th class="px-4 py-3 text-slate-800 text-sm font-medium">
+                    Receiver
+                  </th>
+
+                  <th class="px-4 py-3 text-slate-800 text-sm font-medium">
+                    Subject
+                  </th>
+
+                  <th class="px-4 py-3 w-40 text-slate-800 text-sm font-medium text-right">
+                    Date
+                  </th>
+                </tr>
               </thead>
               <tbody>
                 @for(item of InboxData; track $index){
                   <tr class="border-t border-t-slate-200 hover:bg-slate-50">
-                    <td class="px-4 py-2">
+                    <td class="px-4 py-2 w-12">
                       <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-0"
                         type="checkbox"
                         (change)="toggleEmailsSelected(item, $any($event.target).checked)"
                         [checked]="checked(item.mailId)"
                       />
                     </td>
-                    <td class="py-0 pl-0 pr-4" colspan="4">
-                      <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-                        <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">{{item.sender}}</div>
-                        <div class="px-4 w-1/2">
-                          <span class="text-slate-800 text-sm font-semibold">{{item.subject}}</span>
-                          <span class="text-slate-500 text-sm ml-2 truncate">{{item.body}}</span>
-                        </div>
-                        <div class="px-4 w-1/12">
-                           <span *ngIf="item.priority"
-                            class="text-xs font-semibold px-2 py-1 rounded"
-                            [ngClass]="{
-                              'bg-red-100 text-red-700': item.priority === 1,
-                              'bg-orange-100 text-orange-700': item.priority === 2,
-                              'bg-yellow-100 text-yellow-700': item.priority === 3,
-                              'bg-blue-100 text-blue-700': item.priority === 4
-                            }">
-                            {{ getPriorityLabel(item.priority) }}
-                          </span>
-                        </div>
 
-                        <div class="px-4 text-slate-500 text-sm text-right w-1/6">
-                          {{ item.date | date:'mediumDate' }}
-                        <div class="px-4 text-right w-auto">
-                           <span *ngIf="item.attachments && item.attachments.length > 0" class="material-symbols-outlined text-slate-400 text-lg">attachment</span>
-                        </div>
-                        <div class="px-4 text-slate-500 text-sm text-right w-1/6">{{item.date | date:'mediumDate'}}</div>
-                      </div>
-                      </div>
+                    <td class="px-4 py-2 text-slate-800 text-sm font-semibold truncate whitespace-nowrap min-w-0" (click)="goToMailDetails(item)">
+                      {{item.senderDisplayName || item.sender}}
+                    </td>
+
+                    <td class="px-4 py-2 text-slate-800 text-sm font-semibold truncate whitespace-nowrap min-w-0" (click)="goToMailDetails(item)">
+                      {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0
+                        ? item.receiverDisplayNames[0]
+                        : (item.receiverEmails && item.receiverEmails.length > 0
+                          ? item.receiverEmails[0]
+                          : '-') }}
+                      <span *ngIf="item.receiverDisplayNames && item.receiverDisplayNames.length > 1"
+                        class="text-slate-500 text-xs ml-1">
+                        +{{ item.receiverDisplayNames.length - 1 }}
+                      </span>
+                    </td>
+
+                    <td class="px-4 py-2 cursor-pointer" (click)="goToMailDetails(item)">
+                      <span class="text-slate-800 text-sm font-semibold">{{item.subject || '(No Subject)'}}</span>
+                      <span class="text-slate-500 text-sm ml-2 truncate">{{item.body}}</span>
+                    </td>
+
+                    <td class="px-4 py-2 w-40 text-slate-500 text-sm text-right" (click)="goToMailDetails(item)" (click)="goToMailDetails(item)">
+                      {{item.date | date:'mediumDate'}}
                     </td>
                   </tr>
                 }
