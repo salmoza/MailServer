@@ -213,14 +213,12 @@ interface MailSearchRequestDto {
                 </span>
             </div>
 
-            <!-- 5. Date (1/6) -->
-            <div class="px-4 text-slate-500 text-sm text-right w-1/6">
-              {{ item.date | date:'mediumDate' }}
+              <div class="px-4 text-slate-500 text-sm text-right w-1/6">
+                {{ formatDate(item.date) }}
+              </div>
             </div>
-
-          </div>
-        </td>
-      </tr>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -649,5 +647,23 @@ export class Sent implements OnInit {
       error: (err) => alert("Failed to delete emails forever")
     });
   }
+
+  isToday(date: string | Date): boolean {
+    const givenDate = new Date(date);
+    const today = new Date();
+    return givenDate.toDateString() === today.toDateString();
+  }
+
+  formatDate(itemDate: string | Date): string {
+    const date = new Date(itemDate);
+    if (this.isToday(date)) {
+      // Show only time
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else {
+      // Show day and month
+      return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+    }
+  }
+
 
 }
