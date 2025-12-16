@@ -11,6 +11,7 @@ import com.example.backend.services.FolderService;
 import com.example.backend.services.filter.*;
 import com.example.backend.services.mailService.strategy.*;
 import jakarta.transaction.Transactional;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +31,11 @@ public class MailService {
     @Autowired
     private MailRepo mailRepo;
 
-    @Autowired
     private FolderService folderService;
+    @Autowired
+    public void setFolderService(@Lazy FolderService folderService) {
+        this.folderService = folderService;
+    }
 
     @Autowired
     private UserRepo userRepo;

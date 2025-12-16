@@ -8,6 +8,8 @@ import { MailShuttleService } from '../../Dtos/MailDetails';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SearchBarComponent } from '../../components/search-bar/search-bar';
 import { HeaderComponent } from '../../header';
+import { SidebarComponent } from '../../components/side-bar/side-bar';
+import { FolderSidebarService } from '../../services/folder-sidebar.service';
 
 interface MailSearchRequestDto {
   sender?: string;
@@ -27,6 +29,7 @@ interface MailSearchRequestDto {
     FormsModule,
     SearchBarComponent,
     HeaderComponent,
+    SidebarComponent
   ],
   template: `
     <link
@@ -39,102 +42,16 @@ interface MailSearchRequestDto {
     />
 
     <div class="flex h-screen w-full">
-      <aside
-        class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0"
-      >
-        <div class="flex h-full flex-col justify-between">
-          <div class="flex flex-col gap-6">
-            <div class="flex items-center gap-3 px-2">
-              <div class="flex flex-col">
-                <h1 class="text-gray-900 text-base font-medium leading-normal">
-                  {{folderStateService.userData().username}}
-                </h1>
-                <p class="text-gray-500 text-sm font-normal leading-normal">
-                  {{folderStateService.userData().email}}
-                </p>
-              </div>
-            </div>
-            <button
-              [routerLink]="['/compose']"
-              class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
-            >
-              <span class="truncate">Compose</span>
-            </button>
-            <div class="flex flex-col gap-1">
-              <a
-                [routerLink]="['/inbox']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-800 fill"
-                >inbox</span
-                >
-                <p class="text-slate-800 text-sm font-medium leading-normal">
-                  Inbox
-                </p>
-              </a>
-              <a
-                [routerLink]="['/sent']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600">send</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">Sent</p>
-              </a>
-              <a
-                [routerLink]="['/drafts']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600">draft</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">Drafts</p>
-              </a>
-              <a
-                [routerLink]="['/trash']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 "
-              >
-                <span class="material-symbols-outlined text-slate-600">delete</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">Trash</p>
-              </a>
-              <a
-                [routerLink]="['/contacts']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600">contacts</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">Contacts</p>
-              </a>
-              <a
-                [routerLink]="['/filters']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600">filter_alt</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">Filters</p>
-              </a>
-            </div>
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center justify-between px-3 py-2">
-                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Custom Folders
-                </h2>
-                <button
-                  (click)="CustomFolderPopUp = true"
-                  class="text-slate-500 hover:text-primary cursor-pointer "
-                >
-                  <span class="material-symbols-outlined text-base cursor-pointer">add</span>
-                </button>
-              </div>
-              @for(custom of CustomFolders; track $index) {
-              <a
-                (click)="goToCustomFolder(custom.folderId)"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600">folder</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  {{ custom.folderName }}
-                </p>
-              </a>
-              }
-            </div>
-          </div>
-        </div>
-      </aside>
+    <app-sidebar
+      [username]="folderStateService.userData().username"
+      [userEmail]="folderStateService.userData().email"
+      [customFolders]="CustomFolders"
+      [activeCustomFolderId]="getCurrentFolderId()"
+      (folderClick)="handleFolderClick($event)"
+      (createFolder)="handleCreateFolder()"
+      (renameFolder)="handleRenameFolder($event)"
+      (deleteFolder)="handleDeleteFolder($event)">
+    </app-sidebar>
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         <div
           class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50"
@@ -185,14 +102,12 @@ interface MailSearchRequestDto {
                     />
                   </th>
 
-                  <th class="py-3 pl-0 pr-4" colspan="4">
+                  <th class="py-3 pl-0 pr-4" colspan="5">
                     <div class="flex items-center w-full">
                       <div class="px-4 text-slate-800 w-1/4 text-sm font-medium">Sender</div>
-                      <div class="px-4 text-slate-800 w-1/2 text-sm font-medium">Subject</div>
-                      <div class="px-4 text-slate-800 w-auto text-sm font-medium"></div>
-                      <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-right">
-                        Date
-                      </div>
+                      <div class="px-4 text-slate-800 w-1/4 text-sm font-medium">Receiver</div>
+                      <div class="px-4 text-slate-800 w-2/5 text-sm font-medium">Subject</div>
+                      <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-center whitespace-nowrap">Date</div>
                     </div>
                   </th>
                 </tr>
@@ -211,25 +126,38 @@ interface MailSearchRequestDto {
                     />
                   </td>
 
-                    <td class="py-0 pl-0 pr-4" colspan="4">
+                    <td class="py-0 pl-0 pr-4" colspan="5">
                       <div
                         class="flex items-center w-full py-2 cursor-pointer"
                         (click)="goToMailDetails(item)"
                       >
-                        <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
+                        <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">
                           {{item.senderDisplayName || item.sender}}
                         </div>
 
-                      <div class="px-4 w-1/2">
-                        <span class="text-slate-800 text-sm font-semibold">{{item.subject || '(No Subject)'}}</span>
-                        <span class="text-slate-500 text-sm ml-2 truncate">{{ item.body }}</span>
-                      </div>
+                        <!-- Receiver: Display first receiverDisplayName -->
+                        <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">
+                          {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0 
+                             ? item.receiverDisplayNames[0] 
+                             : (item.receiverEmails && item.receiverEmails.length > 0 
+                                ? item.receiverEmails[0] 
+                                : '-') }}
+                          <span *ngIf="item.receiverDisplayNames && item.receiverDisplayNames.length > 1" 
+                                class="text-slate-500 text-xs ml-1">
+                            +{{ item.receiverDisplayNames.length - 1 }}
+                          </span>
+                        </div>
 
-                      <div class="px-4 text-slate-500 text-sm text-right w-1/6">
-                        {{ formatDate(item.date) }}
+                        <div class="px-4 w-2/5">
+                          <span class="text-slate-800 text-sm font-semibold">{{item.subject || '(No Subject)'}}</span>
+                          <span class="text-slate-500 text-sm ml-2 truncate">{{ item.body }}</span>
+                        </div>
+
+                        <div class="px-4 text-slate-500 text-sm text-center w-1/6 whitespace-nowrap">
+                          {{ formatDate(item.date) }}
+                        </div>
                       </div>
-                    </div>
-                  </td>
+                    </td>
                 </tr>
                 }
               </tbody>
@@ -421,7 +349,8 @@ export class Trash implements OnInit {
     private MailDetails: MailShuttleService,
     protected folderStateService: FolderStateService,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private folderSidebarService: FolderSidebarService,
   ) {}
   foldername: string = '';
   CustomFolderPopUp: boolean = false;
@@ -702,14 +631,8 @@ export class Trash implements OnInit {
       const isSender = mail.sender === currentUserEmail;
       return {
         ...mail,
-        sender: isSender
-          ? currentUserEmail
-          : mail.receivers && mail.receivers.length > 0
-          ? mail.receivers[0]
-          : '',
-        receivers: isSender ? mail.receivers : [currentUserEmail],
         senderDisplayName: isSender ? 'me' : mail.senderDisplayName,
-        receiverDisplayNames: isSender ? mail.receiverDisplayNames : ['me'],
+        receiverDisplayNames: mail.receiverDisplayNames,
       };
     });
   }
@@ -729,5 +652,25 @@ export class Trash implements OnInit {
       // Show day and month
       return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
     }
+  }
+
+  handleFolderClick(folderId: string) {
+    this.folderSidebarService.navigateToCustomFolder(folderId);
+  }
+
+  handleCreateFolder() {
+    this.CustomFolderPopUp = this.folderSidebarService.openCreateFolderModal();
+  }
+
+  handleRenameFolder(data: { folderId: string; newName: string }) {
+    this.folderSidebarService.renameFolder(data.folderId, data.newName, () => this.getCustomFolders());
+  }
+
+  handleDeleteFolder(folderId: string) {
+    this.folderSidebarService.deleteFolder(folderId, () => this.getCustomFolders());
+  }
+
+  getCurrentFolderId(): string {
+    return this.folderSidebarService.getActiveCustomFolderId();
   }
 }

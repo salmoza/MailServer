@@ -164,7 +164,7 @@ import { HeaderComponent } from '../../header';
                       <th
                         class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal w-1/4"
                       >
-                        Recipient
+                        Receiver
                       </th>
                       <th
                         class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal w-1/2"
@@ -974,4 +974,8 @@ export class Drafts implements OnInit {
   protected readonly MailDetail = MailDetail;
   protected readonly MailShuttleService = MailShuttleService;
   protected readonly FolderStateService = FolderStateService;
+
+  
+
+  
 }
