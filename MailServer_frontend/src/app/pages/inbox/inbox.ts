@@ -179,7 +179,7 @@ interface MailSearchRequestDto {
                              {{ getPriorityLabel(item.priority) }}
                            </span>
                         </div>
-                        <div class="px-4 text-sm text-right w-1/6">{{ item.date | date:'mediumDate' }}</div>
+                        <div class="px-4 text-sm text-right w-1/6">{{ formatDate(item.date)}}</div>
                       </div>
                   </td>
                 </tr>
