@@ -345,7 +345,7 @@ import { HeaderComponent } from '../../header';
                       >
                       <span class="text-xs text-gray-500 dark:text-gray-400">{{item.fileSize}}</span>
                     </div>
-                    <button (click)="removeoldAttachment(item.attachmentId)"
+                    <button (click)="removeoldAttachment(item.id)"
                             class="cursor-pointer p-1 inline-flex items-center rounded-full align-middle text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-red-700"
                     >
                       <span class="material-symbols-outlined text-lg">close</span>
@@ -366,7 +366,7 @@ import { HeaderComponent } from '../../header';
                 >
                   <span>Send</span>
                 </button>
-                <button (click)="SaveDraft()"
+                <button (click)="SaveDraft();"
                         class="cursor-pointer px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD]   "
                 >
                   Save Draft
@@ -676,16 +676,18 @@ export class Drafts implements OnInit {
     })
   }
   openEdit(id:string){
+    this.DraftId = id;
     this.attachments=[];
     this.oldattachments=[];
     this.currentEmailInput='';
     this.http.get<Datafile>(`http://localhost:8080/api/mails/${this.folderStateService.userData().draftsFolderId}/${id}`).subscribe({
       next: (mail) => {
-        this.recipients=mail.receiverEmails || [];
+        console.log(mail);
+        this.recipients=mail.receivers || [];
         this.subject=mail.subject;
         this.body=mail.body;
         this.priority=mail.priority;
-        this.oldattachments = mail.attachmentMetadata;
+        this.oldattachments = mail.attachments;
         this.maildId=mail.mailId;
         this.isopen=true;
         this.attachments=[];
@@ -705,7 +707,18 @@ export class Drafts implements OnInit {
     const email = this.currentEmailInput;
     if (email && this.isVaildEmail(email)) {
       if (!this.recipients.includes(email)) {
-        this.recipients.push(email);
+        this.http.get<boolean>(`http://localhost:8080/api/mails/valid/${email}`,).subscribe({
+          next: (r:boolean) => {
+            if(r){
+              this.recipients.push(email);}
+            else{
+              alert(`Email doesn't exist: ${email}`);
+            }
+          },
+          error: e => {
+            alert(e.error.error);
+          }
+        })
       }
       this.currentEmailInput = '';
     }
@@ -799,6 +812,7 @@ export class Drafts implements OnInit {
   SaveDraft() {
     if (this.attachments.length > 0) {
       this.uploadAndSaveDraft();
+      console.log(this.DraftId);
     } else {
       this.UpdateDraftBase();
     }
@@ -821,7 +835,6 @@ export class Drafts implements OnInit {
 
   private async uploadAndSaveDraft() {
     try {
-
       await this.UpdateDraftBase();
       await this.DraftUploadAtt(this.DraftId);
     } catch (error) {
@@ -849,7 +862,7 @@ export class Drafts implements OnInit {
   removeoldAttachment(id: string) {
     const url = `http://localhost:8080/api/attachments/delete/${id}`;
     const previousAtt = [...this.oldattachments];
-    this.oldattachments = this.oldattachments.filter(att => att.attachmentId !== id);
+    this.oldattachments = this.oldattachments.filter(att => att.id !== id);
     this.http.delete(url, {responseType:'text'}).subscribe({
       next: (response) => {
         console.log("att deleted");
