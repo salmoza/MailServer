@@ -1,12 +1,14 @@
-import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, Subscription, debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { FolderStateService } from '../../Dtos/FolderStateService';
 import { Datafile } from '../../Dtos/datafile';
 import { MailShuttleService } from '../../Dtos/MailDetails';
+import { ContactService } from '../../services/contact.services';
+import { ContactDto } from '../../Dtos/ContactDto';
 
 export interface att {
   id: string;
@@ -54,14 +56,14 @@ export interface att {
         <!-- Form -->
         <div class="flex flex-col p-4 sm:p-6 space-y-4 bg-white">
           <!-- Recipients -->
-          <div class="flex items-center border-b border-gray-200 pb-2">
+          <div class="relative flex items-center border-b border-gray-200 pb-2">
             <label class="w-16 text-sm font-medium text-gray-600" for="to">To</label>
-            <div class="flex-1 flex items-center space-x-2">
+            <div class="flex-1 flex flex-wrap items-center gap-2 min-h-[44px]">
               @for(email of recipients; track email){
               <span
                 class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
               >
-                {{ email }}
+                {{ getDisplayName(email) || email }}
                 <button
                   (click)="removeRecipient(email)"
                   class="ml-2 text-red-600 hover:text-red-900 cursor-pointer"
@@ -70,15 +72,52 @@ export interface att {
                 </button>
               </span>
               }
-              <input
-                class="form-input w-full flex-1 border-none bg-transparent p-2 placeholder:text-gray-400 focus:outline-0"
-                id="to"
-                placeholder="Recipients"
-                type="email"
-                [(ngModel)]="currentEmailInput"
-                (keydown.enter)="addRecipient($event)"
-                (keydown.tab)="addRecipient($event)"
-              />
+              <div class="relative flex-1 min-w-[200px]">
+                <input
+                  class="form-input w-full border-none bg-transparent p-2 placeholder:text-gray-400 focus:outline-0"
+                  id="to"
+                  placeholder="Recipients"
+                  type="text"
+                  [(ngModel)]="currentEmailInput"
+                  (keydown.enter)="addRecipientFromInput($event)"
+                  (keydown.tab)="addRecipientFromInput($event)"
+                  (keydown)="handleKeydown($event)"
+                  (input)="onSearchInput()"
+                  (focus)="onInputFocus()"
+                  (blur)="onInputBlur()"
+                />
+
+                <!-- Contact Suggestions Dropdown -->
+                @if(showSuggestions && filteredContacts.length > 0){
+                <div
+                  class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-auto"
+                >
+                  @for(contact of filteredContacts; track contact.contactId; let i = $index){
+                  <div
+                    [class.bg-blue-50]="selectedSuggestionIndex === i"
+                    class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    (click)="selectContact(contact)"
+                    (mouseenter)="selectedSuggestionIndex = i"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <div class="font-medium text-gray-900">{{ contact.name }}</div>
+                        <div class="text-sm text-gray-600">{{ contact.emailAddresses[0] }}</div>
+                        @if(contact.emailAddresses.length > 1){
+                        <div class="text-xs text-gray-500 mt-1">
+                          Also: {{ contact.emailAddresses.slice(1).join(', ') }}
+                        </div>
+                        }
+                      </div>
+                      @if(contact.starred){
+                      <span class="material-symbols-outlined text-yellow-500">star</span>
+                      }
+                    </div>
+                  </div>
+                  }
+                </div>
+                }
+              </div>
             </div>
           </div>
 
@@ -245,7 +284,7 @@ export interface att {
       }
       [contenteditable] a {
         cursor: pointer !important;
-        color: #0d6efd !important; /* Gmail-style blue */
+        color: #0d6efd !important;
         text-decoration: underline !important;
         pointer-events: auto !important;
       }
@@ -265,28 +304,48 @@ export interface att {
     `,
   ],
 })
-export class Compose {
+export class Compose implements OnInit, OnDestroy {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('bodyEditor') bodyEditor!: ElementRef<HTMLDivElement>;
   dataFile?: Datafile;
-  isRead! : boolean;
+  isRead!: boolean;
 
-  constructor(private route: Router, private http: HttpClient, private mailShuttle: MailShuttleService,) {
+  inputHasFocus = false;
+  hasUserTyped = false;
+
+  // New properties for contacts
+  allContacts: ContactDto[] = [];
+  filteredContacts: ContactDto[] = [];
+  showSuggestions = false;
+  selectedSuggestionIndex = -1;
+  private searchSubject = new Subject<string>();
+  private searchSubscription?: Subscription;
+
+  // Map for quick email to name lookup
+  emailToNameMap: Map<string, string> = new Map();
+
+  constructor(
+    private route: Router,
+    private http: HttpClient,
+    private mailShuttle: MailShuttleService,
+    private contactService: ContactService
+  ) {
     this.folderStateService = inject(FolderStateService);
     this.sender = this.folderStateService.userData().email;
     const mail = this.mailShuttle.getMailData();
 
-    if (!mail) {
-      console.error('No mail data found');
-      return;
+    if (mail) {
+      this.dataFile = mail;
+      this.isRead = mail.isRead;
+      // Pre-populate recipients if replying/forwarding
+      if (mail.receiverEmails?.length) {
+        this.recipients = [...mail.receiverEmails];
+      }
     }
-    this.dataFile = mail;
-    this.isRead = mail.isRead ;
   }
-  // isRead: boolean = this.dataFile.isRead ;
 
   recipients: string[] = [];
-  folderStateService;
+  folderStateService: FolderStateService;
   currentEmailInput: string = '';
   sender: string;
   subject: string = '';
@@ -294,8 +353,259 @@ export class Compose {
   attachments: att[] = [];
   mailId: string = '';
 
+  ngOnInit() {
+    // Load all contacts on init
+    this.loadAllContacts();
+
+    // Setup debounced search
+    this.searchSubscription = this.searchSubject
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((query) => this.searchContacts(query));
+  }
+
+  onInputFocus() {
+    this.inputHasFocus = true;
+    // Only show suggestions if user has already typed something
+    if (this.currentEmailInput.trim().length > 0) {
+      this.searchContacts(this.currentEmailInput);
+    } else {
+      this.showSuggestions = false;
+    }
+  }
+
+  onInputBlur() {
+    this.inputHasFocus = false;
+    // Hide suggestions with a slight delay to allow click events
+    setTimeout(() => {
+      if (!this.inputHasFocus) {
+        this.showSuggestions = false;
+      }
+    }, 200);
+  }
+
+  ngOnDestroy() {
+    this.searchSubscription?.unsubscribe();
+  }
+
+  private loadAllContacts() {
+    this.contactService.getContacts('', 'name', 'asc').subscribe({
+      next: (contacts) => {
+        this.allContacts = contacts;
+        this.buildEmailNameMap();
+        // Initial filtering
+        this.searchContacts('');
+      },
+      error: (err) => console.error('Failed to load contacts:', err),
+    });
+  }
+
+  private buildEmailNameMap() {
+    this.emailToNameMap.clear();
+    this.allContacts.forEach((contact) => {
+      contact.emailAddresses.forEach((email) => {
+        this.emailToNameMap.set(email, contact.name);
+      });
+    });
+  }
+
+  getDisplayName(email: string): string {
+    return this.emailToNameMap.get(email) || '';
+  }
+
+  onSearchInput() {
+    const query = this.currentEmailInput.trim();
+    this.hasUserTyped = query.length > 0;
+
+    // Only search if user has typed something
+    if (query.length > 0) {
+      this.searchSubject.next(query);
+    } else {
+      this.showSuggestions = false;
+      this.selectedSuggestionIndex = -1;
+    }
+  }
+
+  searchContacts(query: string = '') {
+    const searchTerm = query.toLowerCase().trim();
+
+    // Don't show suggestions for empty query
+    if (searchTerm.length === 0) {
+      this.showSuggestions = false;
+      this.filteredContacts = [];
+      this.selectedSuggestionIndex = -1;
+      return;
+    }
+
+    this.filteredContacts = this.allContacts.filter((contact) => {
+      const nameStartsWith = contact.name.toLowerCase().startsWith(searchTerm);
+
+      const emailStartsWith = contact.emailAddresses.some(
+        (email) => email.toLowerCase().startsWith(searchTerm) && !this.recipients.includes(email)
+      );
+
+      const nameContains = contact.name.toLowerCase().includes(searchTerm);
+
+      const emailContains = contact.emailAddresses.some(
+        (email) => email.toLowerCase().includes(searchTerm) && !this.recipients.includes(email)
+      );
+
+      return (
+        (nameStartsWith || emailStartsWith || nameContains || emailContains) &&
+        contact.emailAddresses.some((email) => !this.recipients.includes(email))
+      );
+    });
+
+    this.filteredContacts.sort((a, b) => {
+      const aNameStarts = a.name.toLowerCase().startsWith(searchTerm);
+      const bNameStarts = b.name.toLowerCase().startsWith(searchTerm);
+
+      const aEmailStarts = a.emailAddresses.some((email) =>
+        email.toLowerCase().startsWith(searchTerm)
+      );
+      const bEmailStarts = b.emailAddresses.some((email) =>
+        email.toLowerCase().startsWith(searchTerm)
+      );
+
+      if (aNameStarts && !bNameStarts) return -1;
+      if (!aNameStarts && bNameStarts) return 1;
+
+      if (aEmailStarts && !bEmailStarts) return -1;
+      if (!aEmailStarts && bEmailStarts) return 1;
+
+      return a.name.localeCompare(b.name);
+    });
+
+    this.showSuggestions = this.filteredContacts.length > 0;
+    this.selectedSuggestionIndex = this.filteredContacts.length > 0 ? 0 : -1;
+  }
+
+  selectContact(contact: ContactDto) {
+    contact.emailAddresses.forEach((email) => {
+      if (!this.recipients.includes(email)) {
+        this.addRecipient(email);
+      }
+    });
+
+    this.currentEmailInput = '';
+    this.showSuggestions = false;
+    this.selectedSuggestionIndex = -1;
+    this.hasUserTyped = false;
+
+    setTimeout(() => {
+      const input = document.getElementById('to') as HTMLInputElement;
+      if (input) input.focus();
+    });
+  }
+
+  addRecipientFromInput(e: Event) {
+    e.preventDefault();
+
+    if (
+      this.showSuggestions &&
+      this.selectedSuggestionIndex >= 0 &&
+      this.selectedSuggestionIndex < this.filteredContacts.length
+    ) {
+      this.selectContact(this.filteredContacts[this.selectedSuggestionIndex]);
+      return;
+    }
+
+    const input = this.currentEmailInput.trim();
+
+    if (!input) return;
+
+    const matchedContact = this.allContacts.find((contact) =>
+      contact.emailAddresses.some(
+        (email) =>
+          email.toLowerCase() === input.toLowerCase() ||
+          contact.name.toLowerCase() === input.toLowerCase()
+      )
+    );
+
+    if (matchedContact) {
+      this.selectContact(matchedContact);
+    } else {
+      this.addRecipient(input);
+    }
+
+    this.currentEmailInput = '';
+    this.showSuggestions = false;
+    this.hasUserTyped = false;
+  }
+
+  handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      this.navigateSuggestions(event);
+    }
+  }
+
+  navigateSuggestions(event: KeyboardEvent) {
+    if (!this.showSuggestions || this.filteredContacts.length === 0) return;
+
+    event.preventDefault();
+
+    switch (event.key) {
+      case 'ArrowDown':
+        this.selectedSuggestionIndex =
+          (this.selectedSuggestionIndex + 1) % this.filteredContacts.length;
+        break;
+      case 'ArrowUp':
+        this.selectedSuggestionIndex =
+          this.selectedSuggestionIndex <= 0
+            ? this.filteredContacts.length - 1
+            : this.selectedSuggestionIndex - 1;
+        break;
+    }
+
+    setTimeout(() => {
+      const selectedElement = document.querySelector('[class*="bg-blue-50"]');
+      if (selectedElement) {
+        selectedElement.scrollIntoView({ block: 'nearest' });
+      }
+    });
+  }
+
   isVaildEmail(email: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  addRecipient(email: string) {
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail || this.recipients.includes(trimmedEmail)) return;
+
+    if (!this.isVaildEmail(trimmedEmail)) {
+      alert(`Invalid email format: ${trimmedEmail}`);
+      return;
+    }
+
+    if (!this.emailToNameMap.has(trimmedEmail)) {
+      this.http.get<boolean>(`http://localhost:8080/api/mails/valid/${trimmedEmail}`).subscribe({
+        next: (r: boolean) => {
+          if (r) {
+            this.recipients.push(trimmedEmail);
+          } else {
+            alert(`Email doesn't exist: ${trimmedEmail}`);
+          }
+        },
+        error: (e) => {
+          alert(e.error?.error || 'Error validating email');
+        },
+      });
+    } else {
+      this.recipients.push(trimmedEmail);
+    }
+
+    this.currentEmailInput = '';
+    this.showSuggestions = false;
+    this.hasUserTyped = false;
+  }
+
+  removeRecipient(email: string) {
+    this.recipients = this.recipients.filter((e) => e !== email);
+
+    if (this.currentEmailInput.trim().length > 0) {
+      this.searchContacts(this.currentEmailInput);
+    }
   }
 
   close() {
@@ -395,29 +705,6 @@ export class Compose {
     this.route.navigate(['/inbox']);
   }
 
-  addRecipient(e: Event | null) {
-    if (e) e.preventDefault();
-    const em = this.currentEmailInput;
-    if (em && this.isVaildEmail(em) && !this.recipients.includes(em)) {
-      this.http.get<boolean>(`http://localhost:8080/api/mails/valid/${em}`,).subscribe({
-        next: (r:boolean) => {
-          if(r){
-          this.recipients.push(em);}
-          else{
-            alert(`Email doesn't exist: ${em}`);
-          }
-        },
-        error: e => {
-          alert(e.error.error);
-        }
-      })
-    }
-    this.currentEmailInput = '';
-  }
-  removeRecipient(email: string) {
-    this.recipients = this.recipients.filter((e) => e !== email);
-  }
-
   SaveDraft() {
     if (this.attachments.length) {
       this.uploadAndSaveDraft();
@@ -487,29 +774,25 @@ export class Compose {
 
     const text = prompt('Text to display:') || url;
 
-    // Use proper anchor element with style
     const a = document.createElement('a');
     a.href = url;
     a.target = '_blank';
     a.textContent = text;
-    a.style.color = '#0D6EFD'; // Gmail-like blue
+    a.style.color = '#0D6EFD';
     a.style.textDecoration = 'underline';
 
-    // Insert the link at the current cursor position
     const selection = window.getSelection();
     if (!selection || !selection.rangeCount) return;
 
     const range = selection.getRangeAt(0);
-    range.deleteContents(); // remove selected text if any
+    range.deleteContents();
     range.insertNode(a);
 
-    // Move cursor after inserted link
     range.setStartAfter(a);
     range.setEndAfter(a);
     selection.removeAllRanges();
     selection.addRange(range);
 
-    // Focus back to editor
     this.bodyEditor.nativeElement.focus();
   }
 
@@ -519,13 +802,12 @@ export class Compose {
     editor.addEventListener('click', (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target.tagName === 'A') {
-        e.stopPropagation(); // stop contenteditable handling
-        e.preventDefault(); // prevent text selection
+        e.stopPropagation();
+        e.preventDefault();
         window.open((target as HTMLAnchorElement).href, '_blank');
       }
     });
 
-    // Optional: change cursor dynamically when hovering links
     editor.addEventListener('mousemove', (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target.tagName === 'A') {
@@ -534,11 +816,24 @@ export class Compose {
         editor.style.cursor = 'text';
       }
     });
+
+    // Close suggestions when clicking outside
+    document.addEventListener('click', (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput = target.id === 'to' || target.closest('#to');
+      const isSuggestion =
+        target.closest('[class*="bg-blue-50"]') || target.closest('.absolute.top-full');
+
+      if (!isInput && !isSuggestion) {
+        this.showSuggestions = false;
+      }
+    });
   }
 
   getBodyContent(): string {
     return this.bodyEditor.nativeElement.innerHTML;
   }
+
   setBodyContent(content: string) {
     this.bodyEditor.nativeElement.innerHTML = content;
   }

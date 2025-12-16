@@ -154,7 +154,7 @@ interface MailSearchRequestDto {
               </div>
 
               <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
-                {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0 ? item.receiverDisplayNames[0] : '-' }}
+                {{ (item.receiverDisplayNames?.[0]?.trim() || '') !== '' ? item.receiverDisplayNames[0] : item.receiverEmails[0] }}
               </div>
 
               <div class="px-4 w-1/3">
@@ -176,7 +176,7 @@ interface MailSearchRequestDto {
               </div>
 
               <div class="px-4 text-slate-500 text-sm text-right w-1/6">
-                {{ item.date | date:'mediumDate' }}
+                {{ formatDate(item.date) }}
               </div>
             </div>
           </td>
@@ -546,5 +546,23 @@ export class Sent implements OnInit {
       error: (err) => alert("Failed to delete emails forever")
     });
   }
+
+  isToday(date: string | Date): boolean {
+    const givenDate = new Date(date);
+    const today = new Date();
+    return givenDate.toDateString() === today.toDateString();
+  }
+
+  formatDate(itemDate: string | Date): string {
+    const date = new Date(itemDate);
+    if (this.isToday(date)) {
+      // Show only time
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else {
+      // Show day and month
+      return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+    }
+  }
+
   
 }

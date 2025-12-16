@@ -1,12 +1,12 @@
-import {Component, inject, OnInit} from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {ActivatedRoute, Router, RouterLink} from '@angular/router';
-import {HttpClient, HttpClientModule, HttpParams} from '@angular/common/http';
-import {CustomFolderData, Datafile} from '../../Dtos/datafile';
-import {FolderStateService} from '../../Dtos/FolderStateService';
-import {take} from 'rxjs';
-import {MailShuttleService} from '../../Dtos/MailDetails';
-import {FormsModule} from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HttpClient, HttpClientModule, HttpParams } from '@angular/common/http';
+import { CustomFolderData, Datafile } from '../../Dtos/datafile';
+import { FolderStateService } from '../../Dtos/FolderStateService';
+import { take } from 'rxjs';
+import { MailShuttleService } from '../../Dtos/MailDetails';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 // @ts-ignore
@@ -18,9 +18,14 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   imports: [CommonModule, RouterLink, HttpClientModule, FormsModule],
   template: `
     <!-- Global resource loading added for robustness -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-          rel="stylesheet"/>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
 
     <div class="flex h-screen w-full flex-col bg-[#f6f7f8] font-display">
       <!-- TopNavBar -->
@@ -82,33 +87,38 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
           class="hidden md:flex w-64 flex-col justify-between bg-white p-4 border-r border-gray-200 shrink-0"
         >
           <div class="flex flex-col gap-6">
-            <button [routerLink]="['/compose']"
-                    class="flex w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-[#137fec] text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2 shadow-sm hover:opacity-90"
+            <button
+              [routerLink]="['/compose']"
+              class="flex w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-[#137fec] text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2 shadow-sm hover:opacity-90"
             >
               <span class="material-symbols-outlined">edit</span>
               <span class="truncate">Compose</span>
             </button>
             <div class="flex flex-col gap-1">
-              <a [routerLink]="['/inbox']"
-                 class="flex items-center gap-4 px-3 py-2 rounded-lg bg-[#137fec]/10 text-[#137fec]"
+              <a
+                [routerLink]="['/inbox']"
+                class="flex items-center gap-4 px-3 py-2 rounded-lg bg-[#137fec]/10 text-[#137fec]"
               >
                 <span class="material-symbols-outlined">inbox</span>
                 <p class="text-sm font-medium leading-normal">Inbox</p>
               </a>
-              <a [routerLink]="['/sent']"
-                 class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+              <a
+                [routerLink]="['/sent']"
+                class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
               >
                 <span class="material-symbols-outlined">send</span>
                 <p class="text-sm font-medium leading-normal">Sent</p>
               </a>
-              <a [routerLink]="['/drafts']"
-                 class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+              <a
+                [routerLink]="['/drafts']"
+                class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
               >
                 <span class="material-symbols-outlined">draft</span>
                 <p class="text-sm font-medium leading-normal">Drafts</p>
               </a>
-              <a [routerLink]="['/trash']"
-                 class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
+              <a
+                [routerLink]="['/trash']"
+                class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
               >
                 <span class="material-symbols-outlined">delete</span>
                 <p class="text-sm font-medium leading-normal">Trash</p>
@@ -117,34 +127,32 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
             <div class="flex flex-col gap-1">
               <div class="flex items-center justify-between px-3 py-2">
-                <h2
-                  class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
-                >
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Custom Folders
                 </h2>
-                <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp=true">
+                <button
+                  class="text-slate-500 hover:text-primary cursor-pointer"
+                  (click)="CustomFolderPopUp = true"
+                >
                   <span class="material-symbols-outlined text-base">add</span>
                 </button>
               </div>
               @for(custom of CustomFolders; track $index) {
-                <a (click)="goToCustomFolder(custom.folderId)"
-                   class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-                >
-                <span class="material-symbols-outlined text-slate-600"
-                >folder</span
-                >
-                  <p class="text-slate-600 text-sm font-medium leading-normal">
-                    {{custom.folderName}}
-                  </p>
-                </a>
+              <a
+                (click)="goToCustomFolder(custom.folderId)"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+              >
+                <span class="material-symbols-outlined text-slate-600">folder</span>
+                <p class="text-slate-600 text-sm font-medium leading-normal">
+                  {{ custom.folderName }}
+                </p>
+              </a>
               }
             </div>
           </div>
         </aside>
         <!-- Main Content Area -->
-        <main
-          class="flex-1 flex flex-col bg-[#f6f7f8] overflow-y-auto"
-        >
+        <main class="flex-1 flex flex-col bg-[#f6f7f8] overflow-y-auto">
           <div class="p-4 sm:p-6 flex-1 flex flex-col">
             <!-- PageHeading and Toolbar -->
             <div
@@ -156,18 +164,14 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                 >
                   {{ mail?.subject }}
                 </p>
-                <p class="text-gray-500 text-sm font-normal leading-normal">
-                  Inbox
-                </p>
+                <p class="text-gray-500 text-sm font-normal leading-normal">Inbox</p>
               </div>
               <div class="flex gap-1 sm:gap-2">
-                <button
-                  class="p-2 rounded-lg text-gray-700 hover:bg-gray-200"
-                  title="Move to"
-                >
+                <button class="p-2 rounded-lg text-gray-700 hover:bg-gray-200" title="Move to">
                   <span class="material-symbols-outlined">drive_file_move</span>
                 </button>
-                <button (click)="deleteMail()"
+                <button
+                  (click)="deleteMail()"
                   class="p-2 rounded-lg text-gray-700 hover:bg-gray-200"
                   title="Delete"
                 >
@@ -186,7 +190,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
               ></div>
               <div class="flex flex-col justify-center flex-1">
                 <p class="text-gray-900 text-base font-medium leading-normal">
-                  {{mail?.senderDisplayName}}
+                  {{ mail?.senderDisplayName }}
                 </p>
                 <p class="text-gray-500 text-sm font-normal leading-normal">
                   <span class="font-medium">From:</span> {{ mail?.sender }}
@@ -194,50 +198,45 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
                 <p class="text-gray-500 text-sm font-normal leading-normal">
                   <span class="font-medium">To:</span>
                   @for (mail of mail?.receivers; track $index){
-                  <span>
-                  {{mail}},
-                    </span>
-                }
+                  <span> {{ mail }}, </span>
+                  }
                 </p>
               </div>
               <div class="px-4 text-slate-500 text-sm text-right w-1/6">
-                {{ mail?.date | date:'mediumDate' }}
+                {{ formatDate(mail?.date) }}
               </div>
             </div>
             <!-- Email Body -->
             <div
               class="prose prose-sm sm:prose-base max-w-none text-gray-800 leading-relaxed flex-1"
             >
-       
-                <div [innerHTML]="sanitizedBody"></div>
+              <div [innerHTML]="sanitizedBody"></div>
 
-              <br/>
+              <br />
             </div>
             <!-- Attachments -->
             <div class="mt-8 pt-6 border-t border-gray-200">
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Attachment Card 1 -->
                 @for (item of mail?.attachments; track $index) {
+                <div class="flex items-center gap-4 p-3 border border-gray-200 rounded-xl bg-white">
                   <div
-                    class="flex items-center gap-4 p-3 border border-gray-200 rounded-xl bg-white"
-                  >
-                    <div
-                      class="flex items-center justify-center size-10 bg-[#137fec]/10 rounded-lg text-[#137fec]"
-                    >
-                    </div>
-                    <div class="flex-1">
-                      <p class="text-sm font-medium text-gray-900 truncate">
-                        {{ item.filetype }}
-                      </p>
-                      <p class="text-xs text-gray-500">{{ item.fileSize }}</p>
-                    </div>
-                    <button (click)="getDownloadUrl(item.attachmentId)"
-                            class="p-2 text-gray-500 hover:text-[#137fec]"
-                            title="Download"
-                    >
-                      <span class="material-symbols-outlined">download</span>
-                    </button>
+                    class="flex items-center justify-center size-10 bg-[#137fec]/10 rounded-lg text-[#137fec]"
+                  ></div>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-900 truncate">
+                      {{ item.filetype }}
+                    </p>
+                    <p class="text-xs text-gray-500">{{ item.fileSize }}</p>
                   </div>
+                  <button
+                    (click)="getDownloadUrl(item.attachmentId)"
+                    class="p-2 text-gray-500 hover:text-[#137fec]"
+                    title="Download"
+                  >
+                    <span class="material-symbols-outlined">download</span>
+                  </button>
+                </div>
                 }
               </div>
             </div>
@@ -249,197 +248,201 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
             <div class="buttons-folders">
               <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
               @for(folder of CustomFolders; track $index){
-                <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
+              <button (click)="move(folder.folderId)">{{ folder.folderName }}</button>
               }
             </div>
             <div class="bottom-btn">
-              <button (click)="tomove=false">Back</button>
-              <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
+              <button (click)="tomove = false">Back</button>
+              <button (click)="CustomFolderPopUp = true">make new custom Folder</button>
             </div>
           </div>
         </div>
         <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
           <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
-            <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
-            <button  (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
-            <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
+            <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername" />
+            <button (click)="CreateCustomFolder(); CustomFolderPopUp = false">Create</button>
+            <button id="trash-btn" (click)="CustomFolderPopUp = false">Back</button>
           </div>
         </div>
       </div>
     </div>
   `,
-  styles: [`
-    /* 1. We define the font-family globally here, assuming the font files can be reached */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap](https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+  styles: [
+    `
+      /* 1. We define the font-family globally here, assuming the font files can be reached */
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap](https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
-    /* 2. Base styles */
-    :host {
-      /* Apply font to the host element */
-      font-family: 'Inter', sans-serif;
-      /* FIX: Ensure host takes full height and background */
-      min-height: 100vh;
-      display: block;
-      background-color: #f6f7f8; /* background-light hex */
-    }
-    .move-conatiner {
-      visibility: hidden;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      position: fixed;
-      transition: all 0.2s ease-in;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
+      /* 2. Base styles */
+      :host {
+        /* Apply font to the host element */
+        font-family: 'Inter', sans-serif;
+        /* FIX: Ensure host takes full height and background */
+        min-height: 100vh;
+        display: block;
+        background-color: #f6f7f8; /* background-light hex */
+      }
+      .move-conatiner {
+        visibility: hidden;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        position: fixed;
+        transition: all 0.2s ease-in;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
 
-    .move-conatiner.active {
-      visibility: visible;
-      opacity: 1;
-      cursor: auto;
-    }
+      .move-conatiner.active {
+        visibility: visible;
+        opacity: 1;
+        cursor: auto;
+      }
 
-    .content-container {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      min-height: 500px;
-      min-width: 400px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-      background-color: #e8e8e8;
-    }
-    .buttons-folders {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    #Custom-container {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap:60px;
-      height: 300px;
-    }
-    .content-container input{
-      border-radius: 15px;
-      padding: 10px;
-      border:2px solid black;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.1s ease-in;
-    }
-    .content-container input:focus{
-      border:3px solid #3e8cf4;
-      outline: none;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-      transform: scale(1.05);
-    }
-    .content-container button{
-      display: flex;
-      padding: 15px;
-      border-radius: 30px;
-      background-color: #f9f9f9;
-      cursor: pointer;
-      border: 3px solid transparent;
-      transition: all 0.1s ease-in-out;
-    }
+      .content-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 500px;
+        min-width: 400px;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        background-color: #e8e8e8;
+      }
+      .buttons-folders {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      #Custom-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 60px;
+        height: 300px;
+      }
+      .content-container input {
+        border-radius: 15px;
+        padding: 10px;
+        border: 2px solid black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.1s ease-in;
+      }
+      .content-container input:focus {
+        border: 3px solid #3e8cf4;
+        outline: none;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        transform: scale(1.05);
+      }
+      .content-container button {
+        display: flex;
+        padding: 15px;
+        border-radius: 30px;
+        background-color: #f9f9f9;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.1s ease-in-out;
+      }
 
-    .content-container button:hover,content-container2 button:hover {
-      transform: scale(1.05);
-      background-color: #3e8cf4;
-      border: 3px solid rgba(62, 140, 244, 0.88);
-      color: #fff;
-    }
+      .content-container button:hover,
+      content-container2 button:hover {
+        transform: scale(1.05);
+        background-color: #3e8cf4;
+        border: 3px solid rgba(62, 140, 244, 0.88);
+        color: #fff;
+      }
 
-    #trash-btn:hover {
-      border: 3px solid rgba(243, 53, 53, 0.87);
-      background-color: #f6f7f8;
-      color: black;
-      /* box-shadow: 5px 5px 5px rgba(255, 0, 0, 0.55);*/
-    }
+      #trash-btn:hover {
+        border: 3px solid rgba(243, 53, 53, 0.87);
+        background-color: #f6f7f8;
+        color: black;
+        /* box-shadow: 5px 5px 5px rgba(255, 0, 0, 0.55);*/
+      }
 
-    .content-container button:active {
-      transform: scale(0.95);
-    }
+      .content-container button:active {
+        transform: scale(0.95);
+      }
 
-    .bottom-btn {
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-around;
-      margin-bottom: 20px;
-    }
-    .material-symbols-outlined {
-      /* Ensure icons are correctly rendered */
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      line-height: 1;
-    }
+      .bottom-btn {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        margin-bottom: 20px;
+      }
+      .material-symbols-outlined {
+        /* Ensure icons are correctly rendered */
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        line-height: 1;
+      }
 
-    /* FIX: Re-enforcing primary color styles */
-    .text-primary, .hover\\:text-primary { color: #137fec !important; }
+      /* FIX: Re-enforcing primary color styles */
+      .text-primary,
+      .hover\\:text-primary {
+        color: #137fec !important;
+      }
 
-    .bg-primary {
-      background-color: #137fec !important;
-    }
+      .bg-primary {
+        background-color: #137fec !important;
+      }
 
-    .border-primary {
-      border-color: #137fec !important;
-    }
+      .border-primary {
+        border-color: #137fec !important;
+      }
 
-    /* FIX: Corrected selector for bg-primary/20 (20% opacity) */
-    .bg-primary\\/20 {
-      background-color: rgba(19, 127, 236, 0.2) !important;
-    }
+      /* FIX: Corrected selector for bg-primary/20 (20% opacity) */
+      .bg-primary\\/20 {
+        background-color: rgba(19, 127, 236, 0.2) !important;
+      }
 
-    /* FIX: Neutralize text colors to ensure they are dark in light mode */
-    :host .dark\\:text-gray-200,
-    :host .dark\\:text-white,
-    :host .dark\\:text-gray-300,
-    :host .dark\\:text-gray-400 {
+      /* FIX: Neutralize text colors to ensure they are dark in light mode */
+      :host .dark\\:text-gray-200,
+      :host .dark\\:text-white,
+      :host .dark\\:text-gray-300,
+      :host .dark\\:text-gray-400 {
         color: #1f2937 !important; /* Default dark text color */
-    }
+      }
 
-    /* FIX: Neutralize dark mode backgrounds */
-    :host .dark\\:bg-background-dark,
-    :host .dark\\:bg-gray-800,
-    :host .dark\\:bg-gray-700 {
+      /* FIX: Neutralize dark mode backgrounds */
+      :host .dark\\:bg-background-dark,
+      :host .dark\\:bg-gray-800,
+      :host .dark\\:bg-gray-700 {
         background-color: transparent !important;
-    }
+      }
 
-    /* FIX: Ensure the link backgrounds are neutral in light mode */
-    .dark\\:hover\\:bg-gray-800 {
+      /* FIX: Ensure the link backgrounds are neutral in light mode */
+      .dark\\:hover\\:bg-gray-800 {
         background-color: transparent !important;
-    }
-
-  `],
+      }
+    `,
+  ],
 })
-export class MailDetail implements OnInit{
-
+export class MailDetail implements OnInit {
   // Data structures
   constructor(
     protected folderStateService: FolderStateService,
     private http: HttpClient,
     private router: Router,
     private route: ActivatedRoute,
-    private MailDetails:MailShuttleService,// Used to read URL parameters
-    private sanitizer: DomSanitizer,
+    private MailDetails: MailShuttleService, // Used to read URL parameters
+    private sanitizer: DomSanitizer
   ) {}
-  goToCustomFolder(Id:string){
+  goToCustomFolder(Id: string) {
     this.MailDetails.setCustom(Id);
     this.router.navigate([`/Custom`]);
   }
-  foldername:string='';
-  tomove:boolean=false;
-  CustomFolderPopUp:boolean = false;
-  CustomFolders:CustomFolderData[]=[];
+  foldername: string = '';
+  tomove: boolean = false;
+  CustomFolderPopUp: boolean = false;
+  CustomFolders: CustomFolderData[] = [];
   MailDetails2 = inject(MailShuttleService);
   mail: Datafile | null = this.MailDetails2.getMailData();
   mailId: string | undefined = this.MailDetails2.getMailData()?.mailId;
@@ -447,42 +450,42 @@ export class MailDetail implements OnInit{
 
   error: string | null = null;
   ngOnInit() {
-    console.log("FROM ID:", this.MailDetails2.getFromId());
-    console.log("MAIL ID:", this.MailDetails2.getMailData()?.mailId);
+    console.log('FROM ID:', this.MailDetails2.getFromId());
+    console.log('MAIL ID:', this.MailDetails2.getMailData()?.mailId);
 
-    this.getCustomFolders()
-    const id = this.MailDetails2.getMailData()?.mailId
-    this.http.get<Datafile>(`http://localhost:8080/api/mails/${this.MailDetails2.getFromId()}/${id}`).subscribe({
-      next: (res) => {
-        console.log(res);
-        this.mail = res;
-      },
-      error: (err) => {
-        alert("failed to get data");
-      }
-    })
+    this.getCustomFolders();
+    const id = this.MailDetails2.getMailData()?.mailId;
+    this.http
+      .get<Datafile>(`http://localhost:8080/api/mails/${this.MailDetails2.getFromId()}/${id}`)
+      .subscribe({
+        next: (res) => {
+          console.log(res);
+          this.mail = res;
+        },
+        error: (err) => {
+          alert('failed to get data');
+        },
+      });
   }
-  getCustomFolders(){
-    const url = "http://localhost:8080/api/folders";
-    let param = new HttpParams;
-    param = param.set("userId", this.folderStateService.userData().userId)
-    .set("type", "custom");
-    this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
-      next: data => {
+  getCustomFolders() {
+    const url = 'http://localhost:8080/api/folders';
+    let param = new HttpParams();
+    param = param.set('userId', this.folderStateService.userData().userId).set('type', 'custom');
+    this.http.get<CustomFolderData[]>(url, { params: param }).subscribe({
+      next: (data) => {
         this.CustomFolders = data;
         console.log(data);
       },
-      error: err => {
+      error: (err) => {
         console.log(err);
-        alert("failed to fetch custom folders");
-      }
-    })
+        alert('failed to fetch custom folders');
+      },
+    });
   }
   deleteMail(): void {
     if (!this.mailId) return;
     console.log(`Deleting mail ID: ${this.mailId}`);
     const url = `http://localhost:8080/api/mails/${this.MailDetails2.getFromId()}`;
-
   }
 
   reply(): void {
@@ -494,33 +497,32 @@ export class MailDetail implements OnInit{
     const attachmentApiUrl = 'http://localhost:8080/api/attachments';
     return `${attachmentApiUrl}/${attachmentId}/download`;
   }
-  CreateCustomFolder(){
-    const url = "http://localhost:8080/api/folders"
-    const payload={
-      folderName:this.foldername,
-      folderId:this.folderStateService.userData().inboxFolderId,
-    }
+  CreateCustomFolder() {
+    const url = 'http://localhost:8080/api/folders';
+    const payload = {
+      folderName: this.foldername,
+      folderId: this.folderStateService.userData().inboxFolderId,
+    };
     this.http.post(url, payload).subscribe({
-      next:(respones) => {
+      next: (respones) => {
         console.log(respones);
       },
-      error:(respones) => {
-        alert("failed to create custom folder");
-      }
-    })
-  }
-  move(moveMailToFolderId:string){
-    const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.MailDetails.getCustomId()}`;
-    const payload={
-      ids:this.MailDetails2.getMailData()?.mailId
-    }
-    this.http.patch(url, payload).subscribe({
-      next:(respones) => {
+      error: (respones) => {
+        alert('failed to create custom folder');
       },
-      error:(respones) => {
-        console.log("failed to move");
-      }
-    })
+    });
+  }
+  move(moveMailToFolderId: string) {
+    const url = `http://localhost:8080/api/mails/${moveMailToFolderId}/${this.MailDetails.getCustomId()}`;
+    const payload = {
+      ids: this.MailDetails2.getMailData()?.mailId,
+    };
+    this.http.patch(url, payload).subscribe({
+      next: (respones) => {},
+      error: (respones) => {
+        console.log('failed to move');
+      },
+    });
   }
 
   get sanitizedBody(): SafeHtml {
@@ -528,4 +530,14 @@ export class MailDetail implements OnInit{
     return this.sanitizer.bypassSecurityTrustHtml(this.mail.body);
   }
 
+  formatDate(itemDate: string | Date | null | undefined): string {
+    if (!itemDate) return '';
+
+    const date = new Date(itemDate);
+    const today = new Date();
+
+    return date.toDateString() === today.toDateString()
+      ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+  }
 }
