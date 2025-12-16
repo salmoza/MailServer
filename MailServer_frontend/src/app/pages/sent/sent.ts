@@ -241,7 +241,6 @@ interface MailSearchRequestDto {
         <span class="text-lg font-bold mt-5">Move {{Emails.length}} Email(s) To</span>
 
         <div class="buttons-folders">
-          <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
 
           @for(folder of CustomFolders; track $index){
              <button (click)="move(folder.folderId)">{{folder.folderName}}</button>

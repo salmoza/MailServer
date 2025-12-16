@@ -12,33 +12,30 @@ import {lastValueFrom} from 'rxjs';
 import {SearchBarComponent} from '../../components/search-bar/search-bar';
 import { HeaderComponent } from '../../header';
 
+// Interface for Advanced Search
+interface MailSearchRequestDto {
+  sender?: string;
+  receiver?: string;
+  subject?: string;
+  body?: string;
+}
+
 @Component({
   selector: 'app-drafts',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule, SearchBarComponent, HeaderComponent],
   template: `
-    <!-- Global resource loading added for robustness -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-      rel="stylesheet"
-    />
-    <!-- Main Container: Removed dark:bg classes -->
-    <div
-      class="relative flex min-h-screen w-full flex-col bg-[#f6f7f8] font-display group/design-root overflow-x-hidden">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    
+    <div class="relative flex min-h-screen w-full flex-col bg-[#f6f7f8] font-display group/design-root overflow-x-hidden">
 
       <div class="flex flex-grow">
-        <!-- SideNavBar -->
-        <aside
-          class="flex h-screen min-h-full w-64 flex-col border-r border-gray-200 bg-white p-4 sticky top-0 z-10">
+        <aside class="flex h-screen min-h-full w-64 flex-col border-r border-gray-200 bg-white p-4 sticky top-0 z-10">
           <div class="flex h-full flex-col justify-between">
             <div class="flex flex-col gap-6">
               <div class="flex items-center gap-3 px-2">
                 <div class="flex flex-col">
-                  <!-- Text Color Fix: Ensure text is dark -->
                   <h1 class="text-gray-900 text-base font-medium leading-normal">
                     {{folderStateService.userData().username}}
                   </h1>
@@ -77,6 +74,24 @@ import { HeaderComponent } from '../../header';
                 </a>
               </div>
             </div>
+            <div class="flex flex-col gap-1 mt-4">
+              <div class="flex items-center justify-between px-3 py-2">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Custom Folders
+                </h2>
+                <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp = true">
+                  <span class="material-symbols-outlined text-base">add</span>
+                </button>
+              </div>
+              @for(custom of CustomFolders; track $index) {
+                <a (click)="goToCustomFolder(custom.folderId)" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 cursor-pointer">
+                  <span class="material-symbols-outlined text-slate-600">folder</span>
+                  <p class="text-slate-600 text-sm font-medium leading-normal">
+                    {{ custom.folderName }}
+                  </p>
+                </a>
+              }
+            </div>
           </div>
           <button [routerLink]="['/compose']"
                   class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 mt-auto bg-[#137fec] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#137fec]/90"
@@ -85,27 +100,29 @@ import { HeaderComponent } from '../../header';
           </button>
         </aside>
 
-        <!-- Main Content -->
         <main class="flex-1 flex flex-col h-screen overflow-y-auto">
           <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
-            <!-- Search bar stretches -->
             <div class="flex-1 mr-4">
-              <app-search-bar (onSearch)="handleSearch($event)"></app-search-bar>
+              <app-search-bar 
+                (onSearch)="handleSearch($event)"
+                (onClear)="handleClearSearch()">
+              </app-search-bar>
             </div>
 
-            <!-- Avatar dropdown -->
             <app-header></app-header>
           </div>
           <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
             <div class="flex gap-2">
-            <button (click)="deleteForever()"
-          class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          [disabled]="Emails.length === 0"
-          title="Delete Forever">
-    <span class="material-symbols-outlined">delete_forever</span>
-  </button>
+            <button
+              (click)="delete()"
+              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              [disabled]="Emails.length === 0"
+              title="Delete Forever"
+            >
+              <span class="material-symbols-outlined">delete_forever</span>
+            </button>
 
-              <button (click)="getDraftData()"
+              <button (click)="refreshData()"
                       class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
                       title="Reload Emails">
                 <span class="material-symbols-outlined">refresh</span>
@@ -144,10 +161,8 @@ import { HeaderComponent } from '../../header';
             </div>
           </div>
 
-          <div class="w-full max-w-7xl mx-auto mt-5">
-            <div
-              class="bg-white rounded-lg border border-gray-200"
-            >
+          <div class="flex-1 px-6 py-4 overflow-x-hidden">
+            <div class="bg-white rounded-lg border border-gray-200">
               <div class="px-4 py-3 @container">
                 <div class="flex overflow-hidden">
                   <table class="w-full">
@@ -161,72 +176,55 @@ import { HeaderComponent } from '../../header';
                           (click)="addallemails(checkbox.checked)"
                         />
                       </th>
-                      <th
-                        class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal w-1/4"
-                      >
+                      <th class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal w-1/4">
                         Recipient
                       </th>
-                      <th
-                        class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal w-1/2"
-                      >
+                      <th class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal w-1/2">
                         Subject
                       </th>
-                      <th
-                        class="px-4 py-3 text-left text-gray-500 text-sm font-medium leading-normal"
-                      >
+                      <th class="px-4 py-3 text-left text-gray-500 text-sm font-medium leading-normal">
                         Actions
                       </th>
                     </tr>
                     </thead>
                     <tbody>
                     @for(item of DraftData ; track $index) {
-                    <tr
-                      class="border-b bg-blend-color  group items-center "
-                    >
-                      <td class="h-[72px] px-4 py-2">
-                        <input
-                          class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
-                          type="checkbox"
-                          #checkbox
-                          (change)="toggleEmailsSelected(item,checkbox.checked)"
-                          [checked]="checked(item.mailId)"
-                        />
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-900 text-sm font-normal leading-normal"
-                      >
-                        <div style="display: flex ; flex-direction: column; gap:2px;width: 100%">
-                        @for(email of item.receiverEmails; track $index) {
-                          <span style="; border-radius: 10px; display: flex;padding: 5px">
+                      <tr class="border-b bg-blend-color  group items-center ">
+                        <td class="h-[72px] px-4 py-2">
+                          <input
+                            class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
+                            type="checkbox"
+                            #checkbox
+                            (change)="toggleEmailsSelected(item,checkbox.checked)"
+                            [checked]="checked(item.mailId)"
+                          />
+                        </td>
+                        <td class="h-[72px] px-4 py-2 text-gray-900 text-sm font-normal leading-normal">
+                          <div style="display: flex ; flex-direction: column; gap:2px;width: 100%">
+                            @for(email of item.receiverEmails; track $index) {
+                              <span style="; border-radius: 10px; display: flex;padding: 5px">
                         {{email}}
                           </span>
-                        }
-                        </div>
-                      </td>
-                      <td
-                        class="h-[72px] px-4 py-2 text-gray-500 text-sm font-normal leading-normal"
-                      >
-                        {{item.subject}}
-                      </td>
-                      <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
-                        <div
-                          class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <button (click)="openEdit(item.mailId)"
-                                  class="p-2 flex items-center text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-4xl transition-transform duration-100 hover:scale-105"
-                                  title="Edit Draft"
+                            }
+                          </div>
+                        </td>
+                        <td class="h-[72px] px-4 py-2 text-gray-500 text-sm font-normal leading-normal">
+                          {{item.subject || '(No Subject)'}}
+                        </td>
+                        <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+                          <div
+                            class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <span class="material-symbols-outlined text-xl">edit</span>
-                          </button>
-                          <button (click)="deleteMail(item.mailId)"
-                                  class="p-2 flex items-center text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-4xl transition-transform duration-100 hover:scale-105"
-                                  title="delete Draft"
-                          >
-                            <span class="material-symbols-outlined text-xl">delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                            <button (click)="openEdit(item.mailId)"
+                                    class="p-2 flex items-center text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-4xl transition-transform duration-100 hover:scale-105"
+                                    title="Edit Draft"
+                            >
+                              <span class="material-symbols-outlined text-xl">edit</span>
+                            </button>
+                            
+                          </div>
+                        </td>
+                      </tr>
                     }
                     </tbody>
                   </table>
@@ -234,16 +232,34 @@ import { HeaderComponent } from '../../header';
               </div>
             </div>
           </div>
+          
+          <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto">
+            <a (click)="updatePage(page - 1)"
+               class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary">
+              <span class="material-symbols-outlined text-lg">chevron_left</span>
+            </a>
+            <a (click)="updatePage(0)"
+               class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary">
+              1
+            </a>
+            <a (click)="updatePage(1)"
+               class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100">
+              2
+            </a>
+            <a (click)="updatePage(page + 1)"
+               class="flex size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer">
+              <span class="material-symbols-outlined text-lg">chevron_right</span>
+            </a>
+          </div>
         </main>
+        
         <div class="popup" [class.active]="isopen">
         <div
           class="relative flex h-full w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8"
         >
-          <!-- Main Compose Modal Card -->
           <div
             class="flex w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-gray-900/10 dark:bg-[#101922] dark:ring-white/10"
           >
-            <!-- Header -->
             <header
               class="flex items-center justify-between border-b border-gray-200  bg-gray-100  px-4 py-3"
             >
@@ -254,9 +270,7 @@ import { HeaderComponent } from '../../header';
                 <span class="material-symbols-outlined text-xl">close</span>
               </button>
             </header>
-            <!-- Form Content -->
             <div class="flex flex-col p-4 sm:p-6 space-y-4 bg-white">
-              <!-- To Field -->
               <div class="flex items-center border-b border-gray-200 dark:border-gray-700 pb-2">
                 <label class="w-16 text-sm font-medium text-gray-600 dark:text-gray-400" for="to"
                 >To</label
@@ -281,7 +295,6 @@ import { HeaderComponent } from '../../header';
                   />
                 </div>
               </div>
-              <!-- Subject Field -->
               <div class="flex items-center border-b border-gray-200 dark:border-gray-700">
                 <label class="w-16 text-sm font-medium text-gray-600 dark:text-gray-400" for="subject"
                 >Subject</label
@@ -295,7 +308,6 @@ import { HeaderComponent } from '../../header';
                   [(ngModel)]="subject"
                 />
               </div>
-              <!-- Rich Text Editor -->
               <div>
                 <div class="bord border-gray-600 border-2 rounded-2xl ">
                   <textarea
@@ -304,7 +316,6 @@ import { HeaderComponent } from '../../header';
                     [(ngModel)]="body"></textarea>
                 </div>
               </div>
-              <!-- Attachment Area -->
               <div (click)="openFileUpload()"
                    class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer"
               >
@@ -313,7 +324,6 @@ import { HeaderComponent } from '../../header';
                 </p>
               </div>
               <input #fileInput type="file" (change)="handleFileupload($event)" hidden name="upload_file_input" />
-              <!-- Attached Files List -->
               @for(item of attachments;track item){
                 <div class="space-y-2">
                   <div
@@ -355,13 +365,10 @@ import { HeaderComponent } from '../../header';
               }
               </div>
             </div>
-            <!-- Footer / Action Bar -->
             <footer
               class="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-200  bg-gray-50 "
             >
               <div class="flex items-center space-x-2 mb-4 sm:mb-0">
-                <!-- Send Button -->
-                <!-- FIX: Use hex code for primary color -->
                 <button (click)="SentDraft()"
                         class="cursor-pointer flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#0D6EFD] rounded-lg shadow-sm hover:bg-[#0D6EFD]/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D6EFD]"
                 >
@@ -376,7 +383,6 @@ import { HeaderComponent } from '../../header';
               <div class="flex items-center space-x-2">
                 <div class="flex items-center gap-1">
                   <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Priority:</span>
-                  <!-- Priority Buttons -->
                   <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
                     <button (click)="priority=4"
                             class="px-2 py-1 text-sm cursor-pointer   text-gray-800 dark:text-gray-200 rounded-l-md border-r border-gray-300 dark:border-gray-600"
@@ -429,15 +435,24 @@ import { HeaderComponent } from '../../header';
           </div>
         </div>
       </div>
+      </div>
     </div>
+    
+    <div class="popup" [class.active]="CustomFolderPopUp" style="background-color: rgba(0,0,0,0.5);">
+      <div class="bg-amber-50 rounded-xl p-8 flex flex-col gap-5 shadow-xl w-96">
+          <h2 class="text-xl font-bold text-center text-gray-800">New Folder</h2>
+          <input type="text" placeholder="Folder Name..." [(ngModel)]="foldername" class="p-3 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:outline-none"/>
+          <div class="flex justify-between mt-4">
+            <button (click)="CustomFolderPopUp = false" class="px-5 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-100">Cancel</button>
+            <button (click)="CreateCustomFolder()" class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Create</button>
+          </div>
+      </div>
     </div>
   `,
   styles: [`
-    /* 1. We define the font-family globally here, assuming the font files can be reached */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap)');
-    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap](https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap)');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
-    /* 2. Base styles */
     :host {
       font-family: 'Inter', sans-serif;
       min-height: 100vh;
@@ -471,7 +486,7 @@ import { HeaderComponent } from '../../header';
       width: 100%;
       height: 100%;
       position: fixed;
-      background-color: #cccc;
+      background-color: rgba(0,0,0,0.4);
       top: 0;
       left: 0;
       display: flex;
@@ -486,7 +501,6 @@ import { HeaderComponent } from '../../header';
       opacity: 1;
     }
     .material-symbols-outlined {
-      /* Ensure icons are correctly rendered */
       font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
       line-height: 1;
     }
@@ -497,48 +511,18 @@ import { HeaderComponent } from '../../header';
       --tw-ring-color: transparent !important;
       border-radius: 20px;
     }
-
-    /* FIX: Re-enforcing primary color styles */
     .text-primary, .hover\\:text-primary { color: #137fec !important; }
-
-    .bg-primary {
-      background-color: #137fec !important;
-    }
-
-    .border-primary {
-      border-color: #137fec !important;
-    }
-
-    /* FIX: Corrected selector for bg-primary/20 (20% opacity) */
-    .bg-primary\\/20 {
-      background-color: rgba(19, 127, 236, 0.2) !important;
-    }
-
-    /* FIX: Neutralize dark mode effects by setting light mode defaults */
-    /* This overrides the global dark: rules that might be leaking through */
-    :host * {
-      color: inherit !important; /* Ensure text color respects light context */
-    }
-
-    /* Target dark background classes and set them to light/transparent */
-    .dark\\:bg-\\[\\#101922\\], .dark\\:bg-gray-700, .dark\\:bg-gray-800, .dark\\:bg-gray-900, .dark\\:bg-slate-800 {
-      background-color: transparent !important; /* Neutralize dark backgrounds */
-      color: inherit !important;
-    }
-
-    .dark\\:border-gray-700 {
-      border-color: #e5e7eb !important; /* Light border color */
-    }
-
-    .dark\\:text-white {
-      color: #1f2937 !important; /* Force dark text color */
-    }
+    .bg-primary { background-color: #137fec !important; }
+    .border-primary { border-color: #137fec !important; }
+    .bg-primary\\/20 { background-color: rgba(19, 127, 236, 0.2) !important; }
   `],
 })
 export class Drafts implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  
   constructor(private http:HttpClient,protected folderStateService: FolderStateService,private route:Router,private Shuffler:MailShuttleService) {
   }
+  
   page=0;
   showSortMenu = false;
   currentSort = 'Date (Newest first)';
@@ -556,22 +540,188 @@ export class Drafts implements OnInit {
   CustomFolderPopUp:boolean = false;
   CustomFolders:CustomFolderData[]=[];
   DraftData:Datafile[]=[];
+  foldername: string = '';
+
+  
+  isSearchActive = false;
+  isAdvancedSearch = false;
+  currentSearchKeyword = '';
+  currentAdvancedFilters: MailSearchRequestDto = {};
+
   ngOnInit() {
-    this.getDraftData();
+    this.refreshData(); 
     this.getCustomFolders();
   }
-  getDraftData():void {
-    const url = `http://localhost:8080/api/drafts/${this.folderStateService.userData().userId}`;
-    this.http.get<Datafile[]>(url).subscribe({
-      next:(respones) => {
-        console.log(respones);
-        this.DraftData = respones;
-      },
-      error:(respones) => {
-        alert("failed to get Drafts");
+
+  
+  
+  updatePage(page: number) {
+    if (page < 0) {
+      return;
+    }
+    this.page = page;
+
+    if (this.currentSort !== 'Date (Newest first)') {
+      const sortByMap: { [key: string]: string } = {
+        'Date (Newest first)': 'date_desc',
+        'Date (Oldest first)': 'date_asc',
+        'Sender (A → Z)': 'sender',
+        'Subject (A → Z)': 'subject',
+        'Priority': 'priority'
+      };
+      this.applySorting(sortByMap[this.currentSort], this.page);
+    } 
+    
+    else if (this.isSearchActive) {
+      if (this.isAdvancedSearch) {
+        this.performAdvancedSearch(this.page);
+      } else {
+        this.performQuickSearch(this.page);
       }
-    })
+    }
+    else {
+      
+      this.applySorting('date_desc', this.page);
+    }
   }
+
+  refreshData() {
+    
+    this.updatePage(this.page);
+  }
+
+  
+
+  handleSearch(criteria: any) {
+    console.log('Search criteria:', criteria);
+    this.page = 0; 
+
+    if (criteria.keywords) {
+      
+      this.isSearchActive = true;
+      this.isAdvancedSearch = false;
+      this.currentSearchKeyword = criteria.keywords;
+      this.performQuickSearch(0);
+    } else if (criteria.advancedSearch) {
+      
+      this.isSearchActive = true;
+      this.isAdvancedSearch = true;
+      this.currentAdvancedFilters = criteria.advancedSearch;
+      this.performAdvancedSearch(0);
+    }
+  }
+
+  performQuickSearch(page: number) {
+    const userData: UserData = this.folderStateService.userData();
+    
+    const folderId = userData.draftsFolderId;
+
+    if (!folderId) {
+      console.error('folderId is missing');
+      return;
+    }
+
+    let params = new HttpParams()
+      .set('folderId', folderId)
+      .set('keyword', this.currentSearchKeyword)
+      .set('page', page);
+
+    this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
+      next: (response) => {
+        this.DraftData = response;
+        this.Emails = [];
+        console.log('Search results:', response);
+      },
+      error: (error) => {
+        console.error('Search failed:', error);
+        alert('Failed to search drafts');
+      },
+    });
+  }
+
+  performAdvancedSearch(page: number) {
+    const userData: UserData = this.folderStateService.userData();
+    
+    const folderId = userData.draftsFolderId;
+
+    if (!folderId) {
+      console.error('folderId is missing');
+      return;
+    }
+
+    let params = new HttpParams().set('folderId', folderId).set('page', page);
+
+    this.http
+      .post<Datafile[]>('http://localhost:8080/api/mails/filter', this.currentAdvancedFilters, {
+        params,
+      })
+      .subscribe({
+        next: (response) => {
+          this.DraftData = response;
+          this.Emails = []; 
+          console.log('Filter results:', response);
+        },
+        error: (error) => {
+          console.error('Filter failed:', error);
+          alert('Failed to filter drafts');
+        },
+      });
+  }
+
+  handleClearSearch() {
+    this.isSearchActive = false;
+    this.isAdvancedSearch = false;
+    this.currentSearchKeyword = '';
+    this.currentAdvancedFilters = {};
+    this.page = 0;
+    this.currentSort = 'Date (Newest first)';
+    this.refreshData(); 
+  }
+
+  
+
+  applySorting(sortBy: string, page: number) {
+    const userData: UserData = this.folderStateService.userData();
+    const folderId = userData.draftsFolderId; 
+    const userId = userData.userId;
+
+    if (!folderId || !userId) {
+      console.error('folderId or userId is missing');
+      return;
+    }
+
+    let params = new HttpParams()
+      .set('userId', userId)
+      .set('folderId', folderId)
+      .set('sortBy', sortBy)
+      .set('page', page);
+
+    
+    this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
+      next: (response) => {
+        this.DraftData = response;
+        console.log('Drafts loaded:', response);
+      },
+      error: (error) => {
+        console.error('Failed to load drafts:', error);
+        alert('Failed to load drafts');
+      }
+    });
+  }
+
+  toggleSortMenu() {
+    this.showSortMenu = !this.showSortMenu;
+  }
+
+  setSortAndClose(sortOption: string) {
+    this.currentSort = sortOption;
+    this.showSortMenu = false;
+    this.page = 0; 
+    this.updatePage(0); 
+  }
+  
+  
+
   getCustomFolders(){
     const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
@@ -580,48 +730,39 @@ export class Drafts implements OnInit {
     this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
       next: data => {
         this.CustomFolders = data;
-        console.log(data);
       },
       error: err => {
-        console.log(err);
         alert("failed to fetch custom folders");
       }
     })
   }
+
   goToCustomFolder(Id:string){
     this.Shuffler.setCustom(Id);
     this.route.navigate([`/Custom`]);
   }
-  delete(){
-    const userData: UserData = this.folderStateService.userData();
-    const inboxId = userData.draftsFolderId;
-    const url = `http://localhost:8080/api/mails/${inboxId}`
-    if(this.Emails.length == 0){
-      return
-    }
-    let ids:string[]=[];
-    for(let i:number=0; i<this.Emails.length;i++){
-      ids.push(this.Emails[i].mailId);
-      const emailIndex = this.DraftData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.DraftData[emailIndex],false)
-    }
-    let params = new HttpParams();
-    ids.forEach((id) => {
-      params = params.append('ids', id);
-    });
-    this.http.delete(url, {params:params,  responseType: 'text'}).subscribe({
-      next:(respones) => {
-        console.log(respones);
-        const deletedIds = new Set(ids);
-        this.DraftData = this.DraftData.filter(email => !deletedIds.has(email.mailId));
-        this.Emails = [];
+
+  CreateCustomFolder() {
+    const url = 'http://localhost:8080/api/folders';
+    const payload = {
+      folderName: this.foldername,
+      folderId: this.folderStateService.userData().inboxFolderId,
+      userId: this.folderStateService.userData().userId,
+    };
+    this.http.post(url, payload).subscribe({
+      next: (respones) => {
+        this.getCustomFolders(); // Refresh list
+        this.CustomFolderPopUp = false;
+        this.foldername = '';
       },
-      error:(respones) => {
-        console.log(respones);
-        alert("Failed to delete emails");
-      }
-    })
+      error: (respones) => {
+        alert('failed to create custom folder');
+      },
+    });
   }
+
+  
+
   toggleEmailsSelected(email:Datafile,ischecked:boolean){
     if(ischecked){
       if(!this.Emails.includes(email)) {
@@ -635,47 +776,23 @@ export class Drafts implements OnInit {
       }
     }
   }
+
   addallemails(check:boolean){
     if(check){
-      console.log("added")
-      this.Emails = this.DraftData;
+      this.Emails = [...this.DraftData];
     }
     else{
-      console.log("removed");
       this.Emails=[];
     }
   }
+
   checked(id:string){
     const emailIndex = this.Emails.findIndex(e => e.mailId === id);
-    if (emailIndex != -1) {
-      return true;
-    }
-    else{
-      return false;
-    }
+    return emailIndex != -1;
   }
-  deleteMail(id:string){
-    const userData: UserData = this.folderStateService.userData();
-    const inboxId = userData.draftsFolderId;
-    const url = `http://localhost:8080/api/mails/${inboxId}`
 
-    let params = new HttpParams();
-    params = params.append('ids', id);
-    this.http.delete(url, {params:params, responseType: 'text'}).subscribe({
-      next:(respones) => {
-        console.log(respones);
-        const emailIndex = this.DraftData.findIndex(e => e.mailId === id);
+  
 
-        if (emailIndex > -1) {
-          this.DraftData.splice(emailIndex, 1);
-          this.DraftData = [...this.DraftData];
-        }
-      },
-      error:(respones) => {
-        console.log(respones);
-      }
-    })
-  }
   openEdit(id:string){
     this.DraftId = id;
     this.attachments=[];
@@ -697,9 +814,11 @@ export class Drafts implements OnInit {
       }
     });
   }
+
   removeRecipient(toremoveemail: string): void {
     this.recipients = this.recipients.filter(email => email !== toremoveemail);
   }
+
   addRecipient(event: Event | null): void {
     if (event) {
       event.preventDefault();
@@ -723,13 +842,16 @@ export class Drafts implements OnInit {
       this.currentEmailInput = '';
     }
   }
+
   isVaildEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   }
+
   openFileUpload() {
     this.fileInput.nativeElement.click();
   }
+
   handleFileupload(event: Event) {
     const target = event.target as HTMLInputElement;
     const files = target.files;
@@ -747,6 +869,7 @@ export class Drafts implements OnInit {
       target.value = '';
     }
   }
+
   private formatFileSize(bytes: number) {
     const KB = bytes / 1024;
     if (KB < 1024) {
@@ -755,9 +878,11 @@ export class Drafts implements OnInit {
     const MB = KB / 1024;
     return `${MB.toFixed(2)} MB`;
   }
+
   removeNewAttachment(attId: string) {
     this.attachments = this.attachments.filter(att => att.id !== attId);
   }
+
   SentDraft() {
     if (this.attachments.length > 0) {
       this.uploadAndSend();
@@ -772,7 +897,6 @@ export class Drafts implements OnInit {
     try {
       await this.UpdateDraftBase();
       const mailIds = this.DraftId;
-      console.log(mailIds);
       await this.delay(500);
       await this.uploadAttachments(mailIds);
       await this.Sent();
@@ -785,29 +909,30 @@ export class Drafts implements OnInit {
       console.log(error);
     }
   }
-  private Sent(): Promise<string> {
 
-    return lastValueFrom(
-      this.http.post<string>(`http://localhost:8080/api/drafts/${this.DraftId}/send`,null)
+  private Sent(): Promise<string> {
+    const p = lastValueFrom(
+      this.http.post(`http://localhost:8080/api/drafts/${this.DraftId}/send` , {} ,
+        { responseType: 'text' })
     );
+    
     let emailIndex = this.DraftData.findIndex(e => e.mailId === this.DraftId);
     if(emailIndex > -1) {
       this.DraftData.splice(emailIndex, 1);
       this.DraftData = [...this.DraftData];
     }
+    return p;
   }
-  private uploadAttachments(mailId: string) {
 
+  private uploadAttachments(mailId: string) {
     const uploadPromises = this.attachments.map(att => {
       const formData = new FormData();
       formData.append('file', att.fileData, att.name);
       formData.append('mailIds', mailId);
-      console.log(formData);
       return this.http.post("http://localhost:8080/api/attachments", formData,{responseType:'text'}).toPromise();
     });
     return Promise.all(uploadPromises);
   }
-
 
   SaveDraft() {
     if (this.attachments.length > 0) {
@@ -834,143 +959,83 @@ export class Drafts implements OnInit {
 
   private async uploadAndSaveDraft() {
     try {
-
       await this.UpdateDraftBase();
       await this.DraftUploadAtt(this.DraftId);
     } catch (error) {
       console.log(error);
     }
   }
-  private DraftUploadAtt(mailId: string) {
 
+  private DraftUploadAtt(mailId: string) {
     const uploadPromises = this.attachments.map(att => {
       const formData = new FormData();
       formData.append('file', att.fileData, att.name);
       formData.append('mailIds', mailId);
-      console.log(formData);
       return this.http.post("http://localhost:8080/api/attachments", formData).toPromise();
     });
     return Promise.all(uploadPromises);
   }
+
   private delay(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
-  handleSearch(criteria: any) {
-    console.log('Search criteria:', criteria);
-    // TODO: Implement search functionality
-  }
+
   removeoldAttachment(id: string) {
     const url = `http://localhost:8080/api/attachments/delete/${id}`;
     const previousAtt = [...this.oldattachments];
     this.oldattachments = this.oldattachments.filter(att => att.id !== id);
     this.http.delete(url, {responseType:'text'}).subscribe({
       next: (response) => {
-        console.log("att deleted");
         this.updateDraftDataCache(this.DraftId,this.oldattachments)
       },
       error: (error) => {
-        console.log(error);
         alert("failed to remove attachment");
         this.oldattachments = previousAtt;
       }
     });
   }
+
   private updateDraftDataCache(mailId: string, updatedAttachments: attachment[]) {
     const draftIndex = this.DraftData.findIndex(d => d.mailId === mailId);
     if (draftIndex > -1) {
-      // 1. Clone the draft object
       const updatedDraft = { ...this.DraftData[draftIndex] };
-
-      // 2. Update its metadata list
       updatedDraft.attachmentMetadata = updatedAttachments;
-
-      // 3. Put it back in the master array
       this.DraftData[draftIndex] = updatedDraft;
-
-      // 4. Trigger change detection
       this.DraftData = [...this.DraftData];
     }
   }
-  toggleSortMenu() {
-    this.showSortMenu = !this.showSortMenu;
-  }
-  setSortAndClose(sortOption: string) {
-    this.currentSort = sortOption;
-    this.showSortMenu = false;
-    this.page = 0; // Reset to first page
-
-    // Map the display text to backend sortBy parameter
-    const sortByMap: { [key: string]: string } = {
-      'Date (Newest first)': 'date_desc',
-      'Date (Oldest first)': 'date_asc',
-      'Sender (A → Z)': 'sender',
-      'Subject (A → Z)': 'subject',
-      'Priority': 'priority'
-    };
-
-    const sortBy = sortByMap[sortOption];
-
-    // Call the sort endpoint
-    this.applySorting(sortBy, 0);
-  }
-  applySorting(sortBy: string, page: number) {
-    const userData: UserData = this.folderStateService.userData();
-    const folderId = userData.draftsFolderId;
-    const userId = userData.userId;
-
-    if (!folderId || !userId) {
-      console.error('folderId or userId is missing');
-      return;
-    }
-
-    let params = new HttpParams()
-      .set('userId', userId)
-      .set('folderId', folderId)
-      .set('sortBy', sortBy)
-      .set('page', page);
-
-    this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
-      next: (response) => {
-        this.DraftData = response;
-        console.log('Sorted results:', response);
-      },
-      error: (error) => {
-        console.error('Sort failed:', error);
-        alert('Failed to sort emails');
-      }
-    });
-  }
-
-  deleteForever() {
+  delete() {
     if (this.Emails.length == 0) return;
 
-
+    
     const ids = this.Emails.map(email => email.mailId);
 
+    
+    const url = `http://localhost:8080/api/drafts`; 
 
-    const url = `http://localhost:8080/api/drafts`;
-
-
-    ids.forEach(id => {
-      const emailIndex = this.DraftData.findIndex(e => e.mailId === id);
-      if(emailIndex > -1) this.toggleEmailsSelected(this.DraftData[emailIndex], false);
+    
+    ids.forEach((id) => {
+      const emailIndex = this.DraftData.findIndex((e) => e.mailId === id);
+      if (emailIndex > -1) this.toggleEmailsSelected(this.DraftData[emailIndex], false);
     });
 
-
+    
     this.http.request('delete', url, { body: ids, responseType: 'text' }).subscribe({
       next: (response) => {
+        
         const deletedIdsSet = new Set(ids);
-        this.DraftData = this.DraftData.filter(email => !deletedIdsSet.has(email.mailId));
+        this.DraftData = this.DraftData.filter((email) => !deletedIdsSet.has(email.mailId));
         this.Emails = [];
-        console.log("Deleted Forever from Drafts");
+        console.log("Deleted Drafts Successfully");
       },
       error: (err) => {
         console.error(err);
-        alert("Failed to delete forever");
+        alert("Failed to delete drafts");
+        
       }
     })
   }
-
+  
   protected readonly MailDetail = MailDetail;
   protected readonly MailShuttleService = MailShuttleService;
   protected readonly FolderStateService = FolderStateService;
