@@ -42,5 +42,12 @@ public class DraftController {
         draftService.sendDraft(mailId);
         return ResponseEntity.ok("Draft sent successfully");
     }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteForever (@RequestBody List<String> ids) {
+        draftService.deleteForever(ids);
+        return ResponseEntity.ok("successfully deleted");
+
+    }
 }
 
