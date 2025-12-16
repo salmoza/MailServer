@@ -147,20 +147,6 @@ import { HeaderComponent } from '../../header';
             <div
               class="bg-white rounded-lg border border-gray-200"
             >
-              <!-- ToolBar -->
-              <!--div
-                class="flex justify-between items-center gap-2 px-4 py-3 border-b border-gray-200"
-              >
-                <div class="flex items-center gap-2">
-                  <input
-                    class="h-5 w-5 rounded border-gray-300 bg-transparent text-[#137fec] checked:bg-[#137fec] checked:border-[#137fec] focus:ring-1 focus:ring-[#137fec]"
-                    type="checkbox"
-                    #checkbox
-                    (click)="addallemails(checkbox.checked)"
-                  />
-                </div>
-              </div>-->
-              <!-- Table -->
               <div class="px-4 py-3 @container">
                 <div class="flex overflow-hidden">
                   <table class="w-full">
@@ -690,28 +676,24 @@ export class Drafts implements OnInit {
     })
   }
   openEdit(id:string){
-
     this.attachments=[];
     this.oldattachments=[];
     this.currentEmailInput='';
-    let mail:Datafile;
-    let emailIndex = this.DraftData.findIndex(e => e.mailId === id);
-    this.DraftId = this.DraftData[emailIndex].mailId;
-    if (emailIndex != -1) {
-      mail = this.DraftData[emailIndex];
-      this.recipients=mail.receiverEmails || [];
-      this.subject=mail.subject;
-      this.body=mail.body;
-      this.priority=mail.priority;
-      this.oldattachments = mail.attachmentMetadata;
-      this.maildId=mail.mailId;
-      this.isopen=true;
-      this.attachments=[];
-    }
-    else{
-      alert("failed to open edit email");
-      return;
-    }
+    this.http.get<Datafile>(`http://localhost:8080/api/mails/${this.folderStateService.userData().draftsFolderId}/${id}`).subscribe({
+      next: (mail) => {
+        this.recipients=mail.receiverEmails || [];
+        this.subject=mail.subject;
+        this.body=mail.body;
+        this.priority=mail.priority;
+        this.oldattachments = mail.attachmentMetadata;
+        this.maildId=mail.mailId;
+        this.isopen=true;
+        this.attachments=[];
+      },
+      error: (err) => {
+        alert("failed to get data");
+      }
+    });
   }
   removeRecipient(toremoveemail: string): void {
     this.recipients = this.recipients.filter(email => email !== toremoveemail);
@@ -942,6 +924,28 @@ export class Drafts implements OnInit {
       error: (error) => {
         console.error('Sort failed:', error);
         alert('Failed to sort emails');
+      }
+    });
+  }
+  deleteForever() {
+    if (this.Emails.length === 0) return;
+
+
+    const ids = this.Emails.map(e => e.mailId);
+
+
+    const url = `http://localhost:8080/api/mails/${this.folderStateService.userData().draftsFolderId}`;
+
+    this.http.request('delete', url, { body: ids, responseType: 'text' }).subscribe({
+      next: () => {
+
+        const deletedIdsSet = new Set(ids);
+        this.DraftData = this.DraftData.filter(email => !deletedIdsSet.has(email.mailId));
+        this.Emails = [];
+      },
+      error: (err) => {
+        console.error("Delete Forever failed", err);
+        alert("Failed to delete emails forever");
       }
     });
   }
