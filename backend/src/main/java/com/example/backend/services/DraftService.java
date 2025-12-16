@@ -109,6 +109,28 @@ public class DraftService {
             User receiver = userRepo.findByEmail(receiverEmail);
             if (receiver == null) continue;
             Mail receiverCopy = MailFactory.createReceiverCopyFromDraft(receiver.getUserId() , draft , receiverEmail) ;
+            if (draft.getAttachments() != null && !draft.getAttachments().isEmpty()) {
+                List<Attachment> receiverAttachments = new ArrayList<>();
+
+                for (Attachment senderAtt : draft.getAttachments()) {
+
+                    Attachment newAtt = new Attachment();
+
+
+                    newAtt.setFilename(senderAtt.getFilename());
+                    newAtt.setFiletype(senderAtt.getFiletype());
+                    newAtt.setFilesize(senderAtt.getFilesize());
+                    newAtt.setFilePath(senderAtt.getFilePath());
+
+
+                    newAtt.setMail(receiverCopy);
+
+                    receiverAttachments.add(newAtt);
+                }
+
+
+                receiverCopy.setAttachments(receiverAttachments);
+            }
             mailRepo.save(receiverCopy);
             folderService.addMail(null ,receiver.getInboxFolderId(), receiverCopy);
         }
