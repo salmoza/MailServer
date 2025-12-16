@@ -683,7 +683,7 @@ export class Drafts implements OnInit {
     this.currentEmailInput='';
     this.http.get<Datafile>(`http://localhost:8080/api/mails/${this.folderStateService.userData().draftsFolderId}/${id}`).subscribe({
       next: (mail) => {
-        this.recipients=mail.receiverEmails || [];
+        this.recipients=mail.receivers || mail.receiverEmails;
         this.subject=mail.subject;
         this.body=mail.body;
         this.priority=mail.priority;
