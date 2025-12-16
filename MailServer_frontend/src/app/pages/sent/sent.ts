@@ -24,7 +24,6 @@ interface MailSearchRequestDto {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <div class="flex h-screen w-full font-inter">
-    <!-- Sidebar -->
     <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
       <div class="flex h-full flex-col justify-between">
         <div class="flex flex-col gap-6">
@@ -39,12 +38,10 @@ interface MailSearchRequestDto {
             Compose
           </button>
 
-          <!-- Default folders -->
           <div class="flex flex-col gap-1">
             <a [routerLink]="['/inbox']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
               <span class="material-symbols-outlined text-slate-800">inbox</span>
               <p class="text-slate-800 text-sm font-medium">Inbox</p>
-              <span class="ml-auto text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">3</span>
             </a>
 
             <a [routerLink]="['/sent']" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20">
@@ -73,7 +70,6 @@ interface MailSearchRequestDto {
             </a>
           </div>
 
-          <!-- Custom folders -->
           <div class="flex flex-col gap-1 mt-4">
             <div class="flex items-center justify-between px-3 py-2">
               <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Custom Folders</h2>
@@ -93,11 +89,8 @@ interface MailSearchRequestDto {
       </div>
     </aside>
 
-  <!-- Main Content -->
   <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-    <!-- Top bar: Search + Avatar -->
     <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
-      <!-- Search bar stretches -->
       <div class="flex-1 mr-4">
         <app-search-bar 
           (onSearch)="handleSearch($event)"
@@ -105,18 +98,17 @@ interface MailSearchRequestDto {
         </app-search-bar>
       </div>
       
-      <!-- Avatar dropdown -->
       <app-header></app-header>
     </div>
 
-    <!-- Toolbar -->
     <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
         <div class="flex gap-2">
-          <button (click)="delete()"
+          <button (click)="askDelete()"
                   class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50"
                   [disabled]="Emails.length === 0">
             <span class="material-symbols-outlined">delete</span>
           </button>
+          
           <button (click)="tomove = true"
                   class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50"
                   [disabled]="Emails.length === 0">
@@ -151,8 +143,7 @@ interface MailSearchRequestDto {
         </div>
       </div>
 
-     <!-- Email List Table -->
-<div class="flex-1 px-6 py-4 overflow-x-hidden">
+     <div class="flex-1 px-6 py-4 overflow-x-hidden">
   <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
     <table class="w-full text-left">
       <thead class="bg-slate-50">
@@ -160,8 +151,8 @@ interface MailSearchRequestDto {
           <th class="px-4 py-3 w-12">
             <input type="checkbox"
                    class="h-5 w-5 rounded border-slate-300 text-primary"
-                   (change)="addallemails($event.target.checked)"
-                   [checked]="Emails.length===SentData.length"/>
+                   (change)="addallemails($any($event.target).checked)"
+                   [checked]="Emails.length > 0 && Emails.length===SentData.length"/>
           </th>
           <th class="py-3 pl-0 pr-4" colspan="5">
             <div class="flex items-center w-full">
@@ -180,27 +171,23 @@ interface MailSearchRequestDto {
           <td class="px-4 py-2">
             <input type="checkbox"
                    class="h-5 w-5 rounded border-slate-300 text-primary"
-                   (change)="toggleEmailsSelected(item, $event.target.checked)"
+                   (change)="toggleEmailsSelected(item, $any($event.target).checked)"
                    [checked]="checked(item.mailId)"/>
           <td class="py-0 pl-0 pr-4" colspan="5">
             <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-              <!-- Sender -->
               <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
                 me
               </div>
 
-              <!-- Receiver -->
               <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
                 {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0 ? item.receiverDisplayNames[0] : '-' }}
               </div>
 
-              <!-- Subject -->
               <div class="px-4 w-1/3">
                 <span class="text-slate-800 text-sm font-semibold">{{ item.subject }}</span>
                 <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
               </div>
 
-              <!-- Priority -->
               <div class="px-4 w-1/12">
                 <span 
                   class="text-xs font-semibold px-2 py-1 rounded"
@@ -214,7 +201,6 @@ interface MailSearchRequestDto {
                 </span>
               </div>
 
-              <!-- Date -->
               <div class="px-4 text-slate-500 text-sm text-right w-1/6">
                 {{ item.date | date:'mediumDate' }}
               </div>
@@ -226,7 +212,6 @@ interface MailSearchRequestDto {
   </div>
 </div>
 
-      <!-- Pagination -->
       <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto gap-2">
         <button (click)="updatePage(page-1)" class="flex items-center justify-center text-slate-500 hover:text-primary">
           <span class="material-symbols-outlined text-lg">chevron_left</span>
@@ -241,7 +226,6 @@ interface MailSearchRequestDto {
       </div>
     </main>
 
-    <!-- Move Emails Modal -->
     <div class="move-conatiner bg-black/50" [class.active]="tomove">
       <div class="content-container">
         <span class="text-lg font-bold mt-5">Move {{Emails.length}} Email(s) To</span>
@@ -261,7 +245,28 @@ interface MailSearchRequestDto {
       </div>
     </div>
 
-    <!-- Custom Folder Modal -->
+    <div class="move-conatiner bg-black/50" [class.active]="showDeleteOptions">
+        <div class="content-container" style="min-height: 250px; gap: 20px;">
+          <span class="text-lg font-bold mt-5 text-red-600">Delete {{Emails.length}} Email(s)</span>
+          <p class="text-slate-600 text-center px-4">Do you want to move these emails to Trash or delete them forever?</p>
+          
+          <div class="flex flex-col gap-3 w-3/4">
+            <button (click)="moveToTrash()" class="bg-amber-100 text-amber-800 hover:bg-amber-200" style="border: 1px solid #d97706;">
+              <span class="material-symbols-outlined align-middle mr-1 text-sm">delete</span>
+              Move to Trash
+            </button>
+            <button (click)="deleteForever()" class="bg-red-100 text-red-800 hover:bg-red-200" style="border: 1px solid #dc2626;">
+              <span class="material-symbols-outlined align-middle mr-1 text-sm">delete_forever</span>
+              Delete Forever
+            </button>
+          </div>
+
+          <div class="bottom-btn">
+            <button (click)="showDeleteOptions=false">Cancel</button>
+          </div>
+        </div>
+    </div>
+
     <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
       <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
         <input type="text" placeholder="Folder Name.." [(ngModel)]="foldername">
@@ -295,6 +300,8 @@ export class Sent implements OnInit {
   CustomFolders:CustomFolderData[]=[];
   page: number = 0;
   tomove:boolean=false;
+  showDeleteOptions: boolean = false;
+
   isSearchActive = false;
   isAdvancedSearch = false;
   currentSearchKeyword = '';
@@ -586,4 +593,47 @@ export class Sent implements OnInit {
       default: return 'Normal';
     }
   }
+  askDelete() {
+    if (this.Emails.length > 0) {
+      this.showDeleteOptions = true;
+    }
+  }
+
+  
+  moveToTrash(){
+    if(!this.Emails.length) return;
+    const ids = this.Emails.map(e => e.mailId);
+    const url = `http://localhost:8080/api/mails/${this.folderStateService.userData().sentFolderId}`;
+    let params = new HttpParams();
+    ids.forEach(id => params = params.append('ids', id));
+    
+    this.http.delete(url, {params: params, responseType: 'text'}).subscribe({
+      next:()=>{ 
+        this.SentData = this.SentData.filter(e => !ids.includes(e.mailId)); 
+        this.Emails=[]; 
+        this.showDeleteOptions = false;
+      },
+      error:()=>alert("Failed to move emails to Trash")
+    });
+  }
+
+  
+  deleteForever() {
+    if (this.Emails.length === 0) return;
+    const ids = this.Emails.map(e => e.mailId);
+    
+    const url = `http://localhost:8080/api/mails`; 
+
+    this.http.request('delete', url, { body: ids, responseType: 'text' }).subscribe({
+      next: () => {
+        const deletedIdsSet = new Set(ids);
+        this.SentData = this.SentData.filter(email => !deletedIdsSet.has(email.mailId));
+        this.Emails = [];
+        this.showDeleteOptions = false;
+        console.log("Deleted Forever");
+      },
+      error: (err) => alert("Failed to delete emails forever")
+    });
+  }
+  
 }

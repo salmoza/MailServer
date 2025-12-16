@@ -6,6 +6,7 @@ import com.example.backend.dtos.MailSearchRequestDto;
 import com.example.backend.dtos.MoveMaildto;
 import com.example.backend.mappers.MailFactory;
 import com.example.backend.repo.MailRepo;
+import com.example.backend.repo.UserRepo;
 import com.example.backend.services.mailService.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +26,18 @@ public class MailController {
 
     @Autowired
     MailRepo mailRepo ;
+    @Autowired
+    private UserRepo userRepo;
 
 
     @PostMapping
     public ResponseEntity<List<String>> compose (@RequestBody MailDto mailDto) {
         List<String> createdMailIds = mailService.createNewMail(mailDto);
         return ResponseEntity.ok(createdMailIds);
+    }
+    @GetMapping("/valid/{email}")
+    public Boolean isValidMail(@PathVariable("email") String email){
+        return userRepo.existsByEmail(email);
     }
 
     @GetMapping("/{folderId}/{mailId}")        // details
@@ -97,16 +104,23 @@ public class MailController {
         return mailRepo.findAll().stream().map(mailFactory::toListDto).toList();
     }    // for testing */
 
-    @DeleteMapping
+   /* @DeleteMapping
     public ResponseEntity<String> deleteAll () {
         mailRepo.deleteAll();
         return ResponseEntity.ok("All mails deleted successfully!");
-    }
+    } */
 
     @PatchMapping //undo
     public ResponseEntity<?> undo(@RequestBody List<String> ids) {
         mailService.undo(ids) ;
         return ResponseEntity.ok("successfully") ;
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteForever (@RequestBody List<String> ids) {
+        mailService.deleteForever(ids);
+        return ResponseEntity.ok("successfully deleted");
+
     }
 
 

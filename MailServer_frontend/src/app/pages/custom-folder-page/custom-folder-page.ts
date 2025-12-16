@@ -63,7 +63,7 @@ interface MailSearchRequestDto {
                 <p class="text-slate-600 text-sm font-medium leading-normal">Filters</p>
               </a>
             </div>
-            
+
             <div class="flex flex-col gap-1">
               <div class="flex items-center justify-between px-3 py-2">
                 <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Custom Folders</h2>
@@ -85,14 +85,14 @@ interface MailSearchRequestDto {
       </aside>
 
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <app-search-bar 
+        <app-search-bar
           (onSearch)="handleSearch($event)"
           (onClear)="handleClearSearch()">
         </app-search-bar>
-        
+
         <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
           <div class="flex gap-2">
-            <button (click)="delete()"
+            <button (click)="askDelete()"
               class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               [disabled]="Emails.length === 0">
               <span class="material-symbols-outlined">delete</span>
@@ -102,7 +102,7 @@ interface MailSearchRequestDto {
               [disabled]="Emails.length === 0">
               <span class="material-symbols-outlined">folder_open</span>
             </button>
-            <button (click)="getCustom(page)" 
+            <button (click)="getCustom(page)"
               class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
               title="Reload Emails">
               <span class="material-symbols-outlined">refresh</span>
@@ -199,7 +199,7 @@ interface MailSearchRequestDto {
                           <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
                         </div>
                         <div class="px-4 w-1/12">
-                           <span *ngIf="item.attachments && item.attachments.length > 0" 
+                           <span *ngIf="item.priority"
                             class="text-xs font-semibold px-2 py-1 rounded"
                             [ngClass]="{
                               'bg-red-100 text-red-700': item.priority === 1,
@@ -233,14 +233,14 @@ interface MailSearchRequestDto {
            </button>
         </div>
       </main>
-      
+
       <div class="move-conatiner bg-black/50" [class.active]="tomove">
         <div class="content-container">
           <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
-          
+
           <div class="buttons-folders">
             <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
-            
+
             <button (click)="move(folderStateService.userData().sentFolderId)">Sent</button>
 
             @for(folder of CustomFolders; track $index){
@@ -256,6 +256,28 @@ interface MailSearchRequestDto {
           </div>
         </div>
       </div>
+
+    <div class="move-conatiner bg-black/50" [class.active]="showDeleteOptions">
+        <div class="content-container" style="min-height: 250px; gap: 20px;">
+          <span class="text-lg font-bold mt-5 text-red-600">Delete {{Emails.length}} Email(s)</span>
+          <p class="text-slate-600 text-center px-4">Do you want to move these emails to Trash or delete them forever?</p>
+
+          <div class="flex flex-col gap-3 w-3/4">
+            <button (click)="moveToTrash()" class="bg-amber-100 text-amber-800 hover:bg-amber-200" style="border: 1px solid #d97706;">
+              <span class="material-symbols-outlined align-middle mr-1 text-sm">delete</span>
+              Move to Trash
+            </button>
+            <button (click)="deleteForever()" class="bg-red-100 text-red-800 hover:bg-red-200" style="border: 1px solid #dc2626;">
+              <span class="material-symbols-outlined align-middle mr-1 text-sm">delete_forever</span>
+              Delete Forever
+            </button>
+          </div>
+
+          <div class="bottom-btn">
+            <button (click)="showDeleteOptions=false">Cancel</button>
+          </div>
+        </div>
+    </div>
 
       <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
         <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
@@ -413,6 +435,7 @@ export class CustomFolderPage implements OnInit{
   CustomFolders:CustomFolderData[]=[];
   page:number = 0;
   tomove:boolean=false;
+  showDeleteOptions: boolean = false;
   isSearchActive = false;
   isAdvancedSearch = false;
   currentSearchKeyword = '';
@@ -463,11 +486,11 @@ export class CustomFolderPage implements OnInit{
       }
     })
   }
-  
+
   getCustom(page:number){
     const CustomId = this.MailDetails.getCustomId();
     if(!CustomId){
-       
+
        console.error('CustomId is missing, redirecting');
        this.router.navigate(['/inbox']);
        return;
@@ -482,7 +505,7 @@ export class CustomFolderPage implements OnInit{
     })
   }
 
-  
+
   goToMailDetails(details:Datafile){
     this.MailDetails.setMailData(details);
     this.MailDetails.setFromId(this.MailDetails.getCustomId());
@@ -491,15 +514,15 @@ export class CustomFolderPage implements OnInit{
   }
   goToCustomFolder(Id:string){
     this.MailDetails.setCustom(Id);
-    
-    
+
+
     if (this.router.url.includes('/Custom')) {
-       
+
        this.page = 0;
        this.getCustom(0);
-       this.getCustomFolders(); 
+       this.getCustomFolders();
     } else {
-       
+
        this.router.navigate([`/Custom`]);
     }
   }
@@ -569,23 +592,23 @@ export class CustomFolderPage implements OnInit{
     const payload={
       folderName:this.foldername,
       folderId:this.folderStateService.userData().inboxFolderId,
-      userId:this.folderStateService.userData().userId, 
+      userId:this.folderStateService.userData().userId,
     }
     this.http.post(url, payload).subscribe({
       next:() => {
         this.CustomFolderPopUp = false;
-        this.getCustomFolders(); 
+        this.getCustomFolders();
       },
       error:() => alert("failed to create custom folder")
     })
   }
-  
+
   move(targetFolderId: string) {
     if (this.Emails.length === 0) return;
 
     const currentFolderId = this.MailDetails.getCustomId();
-    
-    
+
+
     if(!currentFolderId) {
         alert("System State lost. Please return to Inbox and try again.");
         this.router.navigate(['/inbox']);
@@ -596,7 +619,7 @@ export class CustomFolderPage implements OnInit{
     const url = `http://localhost:8080/api/mails/${targetFolderId}/${currentFolderId}`;
     const payload = { ids: mailIds };
 
-    
+
     this.http.patch(url, payload, { responseType: 'text' }).subscribe({
       next: (response) => {
         const movedIdsSet = new Set(mailIds);
@@ -610,11 +633,11 @@ export class CustomFolderPage implements OnInit{
       }
     });
   }
-  
+
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
     this.page = 0;
-    
+
     if (criteria.keywords) {
       // Quick keyword search
       this.isSearchActive = true;
@@ -629,10 +652,10 @@ export class CustomFolderPage implements OnInit{
       this.performAdvancedSearch(0);
     }
   }
-  
+
   performQuickSearch(page: number) {
     const folderId = this.MailDetails.getCustomId();
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;
@@ -657,7 +680,7 @@ export class CustomFolderPage implements OnInit{
 
   performAdvancedSearch(page: number) {
     const folderId = this.MailDetails.getCustomId();
-    
+
     if (!folderId) {
       console.error('folderId is missing');
       return;
@@ -768,4 +791,57 @@ export class CustomFolderPage implements OnInit{
       };
     });
   }
+  askDelete() {
+    if (this.Emails.length > 0) {
+      this.showDeleteOptions = true;
+    }
+  }
+
+
+  moveToTrash(){
+    const CustomId = this.MailDetails.getCustomId();
+    const url = `http://localhost:8080/api/mails/${CustomId}`
+    if(this.Emails.length == 0) return;
+
+    let ids:string[]=[];
+    for(let i:number=0; i<this.Emails.length;i++){
+      ids.push(this.Emails[i].mailId);
+      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
+      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
+    }
+
+    let params = new HttpParams();
+    ids.forEach((id) => {
+      params = params.append('ids', id);
+    });
+
+    this.http.delete(url, {params:params, responseType: 'text'}).subscribe({
+      next:(respones) => {
+        const deletedIds = new Set(ids);
+        this.InboxData = this.InboxData.filter(email => !deletedIds.has(email.mailId));
+        this.Emails = [];
+        this.showDeleteOptions = false;
+      },
+      error:(respones) => alert("Failed to move to Trash")
+    })
+  }
+
+
+  deleteForever() {
+    if (this.Emails.length === 0) return;
+    const ids = this.Emails.map(e => e.mailId);
+    const url = `http://localhost:8080/api/mails`;
+
+    this.http.request('delete', url, { body: ids, responseType: 'text' }).subscribe({
+      next: () => {
+        const deletedIdsSet = new Set(ids);
+        this.InboxData = this.InboxData.filter(email => !deletedIdsSet.has(email.mailId));
+        this.Emails = [];
+        this.showDeleteOptions = false;
+        console.log("Deleted Forever");
+      },
+      error: (err) => alert("Failed to delete emails forever")
+    });
+  }
+
 }
