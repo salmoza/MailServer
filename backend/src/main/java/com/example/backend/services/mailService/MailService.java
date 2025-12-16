@@ -9,10 +9,7 @@ import com.example.backend.repo.*;
 import com.example.backend.services.AttachmentService;
 import com.example.backend.services.FolderService;
 import com.example.backend.services.filter.*;
-import com.example.backend.services.mailService.strategy.MailSorter;
-import com.example.backend.services.mailService.strategy.MailSortingStrategy;
-import com.example.backend.services.mailService.strategy.SortByDate;
-import com.example.backend.services.mailService.strategy.SortByPriority;
+import com.example.backend.services.mailService.strategy.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -331,10 +328,10 @@ public class MailService {
 
         switch (sortType.toLowerCase()) {
             case "priority" -> strategy = new SortByPriority();
-            //might implement later
-//            case "subject" -> strategy = new SortBySubject();
-//            case "sender" -> strategy = new SortBySender();
-            default -> strategy = new SortByDate();
+            case "subject" -> strategy = new SortBySubject();
+            case "sender" -> strategy = new SortBySender();
+            case "date_asc" -> strategy = new SortByDateAsc();
+            default -> strategy = new SortByDateDesc();
         }
 
         MailSorter sorter = new MailSorter(strategy);
