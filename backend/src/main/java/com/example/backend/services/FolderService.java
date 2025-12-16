@@ -6,12 +6,11 @@ import com.example.backend.model.User;
 import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.UserRepo;
+import com.example.backend.services.mailService.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class FolderService {
@@ -20,6 +19,9 @@ public class FolderService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private MailService mailService;
 
     @Autowired
     private MailRepo mailRepo;
@@ -33,7 +35,46 @@ public class FolderService {
         return folderRepo.save(folder);
     }
     public void deleteFolder(String userId, String folderId){
-        folderRepo.delete(folderRepo.findByFolderIdAndUserUserId(folderId, userId));
+        Folder folder = folderRepo.findByFolderIdAndUserUserId(folderId, userId);
+
+        User folderOwner = folder.getUser();
+        Set<Mail> mails = new HashSet<>(folder.getMails());
+
+        System.out.println("in deleteFolder");
+
+        // Get user's Sent and Inbox folder IDs (assuming they exist)
+        List<Folder> userFolders = folderRepo.findByUserUserId(userId);
+        String sentFolderId = userFolders.stream()
+                .filter(f -> "Sent".equals(f.getFolderName()))
+                .map(Folder::getFolderId)
+                .findFirst()
+                .orElse(null);
+
+        System.out.println(sentFolderId);
+
+        String inboxFolderId = userFolders.stream()
+                .filter(f -> "Inbox".equals(f.getFolderName()))
+                .map(Folder::getFolderId)
+                .findFirst()
+                .orElse(null);
+
+        System.out.println(inboxFolderId);
+
+        // Move each email based on sender check
+        for (Mail mail : mails) {
+            List<String> mailId = new ArrayList<>();
+            mailId.add(mail.getMailId());
+            if (folderOwner.getEmail().equals(mail.getSenderEmail())) {
+                // User is the sender, move to Sent folder
+                mailService.moveMails(folderId, sentFolderId, mailId);
+            } else {
+                // User is not the sender, move to Inbox folder
+                mailService.moveMails(folderId, inboxFolderId, mailId);
+            }
+        }
+
+        // Delete the folder
+        folderRepo.delete(folder);
     }
 
     public void addMail(String previousState , String folderId, Mail mail){

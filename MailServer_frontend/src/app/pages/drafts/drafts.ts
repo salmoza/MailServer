@@ -176,8 +176,10 @@ interface MailSearchRequestDto {
                           (click)="addallemails(checkbox.checked)"
                         />
                       </th>
-                      <th class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal w-1/4">
-                        Recipient
+                      <th
+                        class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal w-1/4"
+                      >
+                        Receiver
                       </th>
                       <th class="px-4 py-3 text-left text-gray-800 text-sm font-medium leading-normal w-1/2">
                         Subject

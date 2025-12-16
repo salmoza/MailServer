@@ -27,7 +27,7 @@ interface MailFilter {
 
     <div class="flex h-screen w-full">
       <!-- SideNavBar -->
-      <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
+      <!-- <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
         <div class="flex h-full flex-col justify-between">
           <div class="flex flex-col gap-6">
             <div class="flex items-center gap-3 px-3">
@@ -78,7 +78,7 @@ interface MailFilter {
                 <p class="text-slate-800 text-sm font-medium leading-normal">Filters</p>
               </a>
             </div>
-            <!-- Custom Folders -->
+            Custom Folders
             <div class="flex flex-col gap-1">
               <div class="flex items-center justify-between px-3 py-2">
                 <h2
@@ -103,14 +103,17 @@ interface MailFilter {
             </div>
           </div>
         </div>
-      </aside>
+      </aside> -->
 
       <!-- Main Content -->
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         <div class="flex-1 px-6 py-8">
           <div class="w-full max-w-5xl mx-auto">
             <!-- Page Heading -->
-            <header class="mb-8">
+            <header class="mb-8 flex items-center gap-4">
+              <button (click)="goBack()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-2xl">arrow_back</span>
+              </button>
               <p class="text-slate-800 text-4xl font-black leading-tight tracking-[-0.033em]">
                 Manage Filters
               </p>
@@ -439,5 +442,9 @@ export class Filters implements OnInit {
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
     // TODO: Implement search functionality
+  }
+
+  goBack() {
+    this.router.navigate(['/inbox']);
   }
 }

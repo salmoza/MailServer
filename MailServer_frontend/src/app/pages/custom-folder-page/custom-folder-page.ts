@@ -8,7 +8,8 @@ import {MailShuttleService} from '../../Dtos/MailDetails';
 import {MailDetail} from '../mail-detail/mail-detail';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {SearchBarComponent} from '../../components/search-bar/search-bar';
-
+import { SidebarComponent } from '../../components/side-bar/side-bar';
+import { FolderSidebarService } from '../../services/folder-sidebar.service';
 interface MailSearchRequestDto {
   sender?: string;
   receiver?: string;
@@ -19,70 +20,22 @@ interface MailSearchRequestDto {
 @Component({
   selector: 'app-custom-folder-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent],
+  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent, SidebarComponent],
   template: `
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
     <div class="flex h-screen w-full">
-      <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
-        <div class="flex h-full flex-col justify-between">
-          <div class="flex flex-col gap-6">
-            <div class="flex items-center gap-3 px-3">
-              <h1 class="text-slate-800 text-base font-medium leading-normal">
-                {{folderStateService.userData().username}}
-              </h1>
-            </div>
-            <button [routerLink]="['/compose']"
-              class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
-              <span class="truncate">Compose</span>
-            </button>
-            <div class="flex flex-col gap-1">
-              <a [routerLink]="['/inbox']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-                <span class="material-symbols-outlined text-slate-800">inbox</span>
-                <p class="text-slate-800 text-sm font-medium leading-normal">Inbox</p>
-              </a>
-              <a [routerLink]="['/sent']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-                <span class="material-symbols-outlined text-slate-600">send</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">Sent</p>
-              </a>
-              <a [routerLink]="['/drafts']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-                <span class="material-symbols-outlined text-slate-600">draft</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">Drafts</p>
-              </a>
-              <a [routerLink]="['/trash']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-                <span class="material-symbols-outlined text-slate-600">delete</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">Trash</p>
-              </a>
-              <a [routerLink]="['/contacts']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-                <span class="material-symbols-outlined text-slate-600">contacts</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">Contacts</p>
-              </a>
-              <a [routerLink]="['/filters']" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-                <span class="material-symbols-outlined text-slate-600">filter_alt</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">Filters</p>
-              </a>
-            </div>
-
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center justify-between px-3 py-2">
-                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Custom Folders</h2>
-                <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp=true">
-                  <span class="material-symbols-outlined text-base">add</span>
-                </button>
-              </div>
-              @for(custom of CustomFolders; track $index) {
-                <a (click)="goToCustomFolder(custom.folderId)"
-                   class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer"
-                   [ngClass]="{'bg-primary/20': custom.folderId == MailDetails.getCustomId(), 'hover:bg-slate-100': custom.folderId != MailDetails.getCustomId()}">
-                  <span class="material-symbols-outlined text-slate-600">folder</span>
-                  <p class="text-slate-600 text-sm font-medium leading-normal">{{custom.folderName}}</p>
-                </a>
-              }
-            </div>
-          </div>
-        </div>
-      </aside>
+    <app-sidebar
+      [username]="folderStateService.userData().username"
+      [userEmail]="folderStateService.userData().email"
+      [customFolders]="CustomFolders"
+      [activeCustomFolderId]="getCurrentFolderId()"
+      (folderClick)="handleFolderClick($event)"
+      (createFolder)="handleCreateFolder()"
+      (renameFolder)="handleRenameFolder($event)"
+      (deleteFolder)="handleDeleteFolder($event)">
+    </app-sidebar>
 
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         <app-search-bar
@@ -161,7 +114,7 @@ interface MailSearchRequestDto {
                     Subject
                   </th>
 
-                  <th class="px-4 py-3 w-40 text-slate-800 text-sm font-medium text-right">
+                  <th class="px-4 py-3 w-40 text-slate-800 text-sm font-medium text-center">
                     Date
                   </th>
                 </tr>
@@ -194,11 +147,11 @@ interface MailSearchRequestDto {
                     </td>
 
                     <td class="px-4 py-2 cursor-pointer" (click)="goToMailDetails(item)">
-                      <span class="text-slate-800 text-sm font-semibold">{{item.subject || '(No Subject)'}}</span>
+                      <span class="text-slate-800 text-sm font-semibold">{{item.subject || '(No Subject'}}</span>
                       <span class="text-slate-500 text-sm ml-2 truncate">{{item.body}}</span>
                     </td>
 
-                    <td class="px-4 py-2 w-40 text-slate-500 text-sm text-right" (click)="goToMailDetails(item)" (click)="goToMailDetails(item)">
+                    <td class="px-4 py-2 w-40 text-slate-500 text-sm text-center" (click)="goToMailDetails(item)">
                       {{item.date | date:'mediumDate'}}
                     </td>
                   </tr>
@@ -413,7 +366,7 @@ interface MailSearchRequestDto {
   `],
 })
 export class CustomFolderPage implements OnInit{
-  constructor(protected MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router) {
+  constructor(protected MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router, private folderSidebarService: FolderSidebarService) {
   }
   CustomFolderPopUp:boolean = false;
   foldername:string=''
@@ -499,20 +452,15 @@ export class CustomFolderPage implements OnInit{
     console.log(details)
     this.router.navigate([`/mail`]);
   }
-  goToCustomFolder(Id:string){
-    this.MailDetails.setCustom(Id);
+    goToCustomFolder(Id:string){
+     const alreadyOnCustom = this.folderSidebarService.navigateToCustomFolder(Id);
 
-
-    if (this.router.url.includes('/Custom')) {
-
+     if (alreadyOnCustom) {
        this.page = 0;
        this.getCustom(0);
        this.getCustomFolders();
-    } else {
-
-       this.router.navigate([`/Custom`]);
+     }
     }
-  }
   toggleEmailsSelected(email:Datafile,ischecked:boolean){
     if(ischecked){
       if(!this.Emails.includes(email)) {
@@ -829,6 +777,32 @@ export class CustomFolderPage implements OnInit{
       },
       error: (err) => alert("Failed to delete emails forever")
     });
+  }
+
+  handleFolderClick(folderId: string) {
+    const alreadyOnCustom = this.folderSidebarService.navigateToCustomFolder(folderId);
+
+    if (alreadyOnCustom) {
+      this.page = 0;
+      this.getCustom(0);
+      this.getCustomFolders();
+    }
+  }
+
+  handleCreateFolder() {
+    this.CustomFolderPopUp = this.folderSidebarService.openCreateFolderModal();
+  }
+
+  handleRenameFolder(data: {folderId: string, newName: string}) {
+    this.folderSidebarService.renameFolder(data.folderId, data.newName, () => this.getCustomFolders());
+  }
+
+  handleDeleteFolder(folderId: string) {
+    this.folderSidebarService.deleteFolder(folderId, () => this.getCustomFolders());
+  }
+
+  getCurrentFolderId(): string {
+    return this.folderSidebarService.getActiveCustomFolderId();
   }
 
 }
