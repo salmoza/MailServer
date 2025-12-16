@@ -645,15 +645,24 @@ export class Drafts implements OnInit {
     this.attachments = this.attachments.filter(att => att.id !== attId);
   }
 
-  SentDraft() {
-    if (this.attachments.length > 0) {
-      this.uploadAndSend();
-      this.isopen=false;
-    } else {
-      this.Sent();
-      this.isopen=false;
-    }
+  async SentDraft() {
+    try {
+      
+      await this.UpdateDraftBase();
 
+      
+      if (this.attachments.length > 0) {
+        await this.DraftUploadAtt(this.DraftId);
+      }
+
+      
+      await this.Sent();
+      
+      this.isopen = false;
+    } catch (error) {
+      console.error("Error sending draft:", error);
+      alert("Failed to send draft. Please try again.");
+    }
   }
   private async uploadAndSend() {
     try {
