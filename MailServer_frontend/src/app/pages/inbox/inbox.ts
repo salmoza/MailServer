@@ -153,6 +153,7 @@ interface MailSearchRequestDto {
                 </button>
               </div>
             </div>
+          </div>
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-slate-600">Priority Mode</span>
             <label class="relative inline-flex items-center cursor-pointer">
@@ -163,7 +164,6 @@ interface MailSearchRequestDto {
             </label>
           </div>
         </div>
-
         <div class="flex-1 px-6 py-4 overflow-x-hidden">
           <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
             <table class="w-full text-left">
@@ -227,7 +227,6 @@ interface MailSearchRequestDto {
           <a (click)="updatePage(page+1)" class="flex size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer">
             <span class="material-symbols-outlined text-lg">chevron_right</span>
           </a>
-        </div>
         </div>
       </main>
 
