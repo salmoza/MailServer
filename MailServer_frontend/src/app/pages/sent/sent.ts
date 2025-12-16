@@ -88,7 +88,7 @@ interface MailSearchRequestDto {
     </div>
 
     <div class="flex-1 px-6 py-4 overflow-x-hidden">
-      <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <table class="w-full text-left">
           <thead class="bg-slate-50 border-b border-slate-200">
           <tr>
@@ -122,7 +122,7 @@ interface MailSearchRequestDto {
 
             <td class="py-0 pl-0 pr-4" colspan="4">
               <div class="flex items-center w-full py-3 cursor-pointer" (click)="goToMailDetails(item)">
-                
+
                 <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">me</div>
 
                 <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">
