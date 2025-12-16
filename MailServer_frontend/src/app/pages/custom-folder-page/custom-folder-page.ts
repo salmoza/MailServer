@@ -108,6 +108,32 @@ interface MailSearchRequestDto {
               <span class="material-symbols-outlined">refresh</span>
             </button>
           </div>
+          <div class="relative inline-block">
+            <button (click)="toggleSortMenu()"
+              class="flex items-center gap-2 px-3 py-2 text-slate-600 text-sm font-medium hover:bg-slate-100 rounded-lg">
+              Sort by: <span [textContent]="currentSort"></span>
+              <span class="material-symbols-outlined text-lg">expand_more</span>
+            </button>
+            <div *ngIf="showSortMenu" class="absolute right-0 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+              <div class="py-1">
+                <button (click)="setSortAndClose('Date (Newest first)')"
+                  [ngClass]="{'bg-blue-50': currentSort === 'Date (Newest first)'}"
+                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                  Date (Newest first)
+                </button>
+                <button (click)="setSortAndClose('Date (Oldest first)')"
+                  [ngClass]="{'bg-blue-50': currentSort === 'Date (Oldest first)'}"
+                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                  Date (Oldest first)
+                </button>
+                <button (click)="setSortAndClose('Subject (A → Z)')"
+                  [ngClass]="{'bg-blue-50': currentSort === 'Subject (A → Z)'}"
+                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                  Subject (A → Z)
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="flex-1 px-6 py-4 overflow-x-hidden">
@@ -391,6 +417,8 @@ export class CustomFolderPage implements OnInit{
   isAdvancedSearch = false;
   currentSearchKeyword = '';
   currentAdvancedFilters: MailSearchRequestDto = {};
+  showSortMenu = false;
+  currentSort = 'Date (Newest first)';
   ngOnInit() {
     this.getCustom(0);
     this.getCustomFolders();
@@ -401,7 +429,15 @@ export class CustomFolderPage implements OnInit{
     }
     this.page = page;
     
-    if (this.isSearchActive) {
+    if (this.currentSort !== 'Date (Newest first)') {
+      const sortByMap: { [key: string]: string } = {
+        'Date (Newest first)': 'date_desc',
+        'Date (Oldest first)': 'date_asc',
+        'Subject (A → Z)': 'subject'
+      };
+      this.applySorting(sortByMap[this.currentSort], this.page);
+    }
+    else if (this.isSearchActive) {
       if (this.isAdvancedSearch) {
         this.performAdvancedSearch(this.page);
       } else {
@@ -653,7 +689,57 @@ export class CustomFolderPage implements OnInit{
     this.currentSearchKeyword = '';
     this.currentAdvancedFilters = {};
     this.page = 0;
+    this.currentSort = 'Date (Newest first)';
     this.getCustom(0);
+  }
+
+  toggleSortMenu() {
+    this.showSortMenu = !this.showSortMenu;
+  }
+
+  setSortAndClose(sortOption: string) {
+    this.currentSort = sortOption;
+    this.showSortMenu = false;
+    this.page = 0; // Reset to first page
+    
+    // Map the display text to backend sortBy parameter
+    const sortByMap: { [key: string]: string } = {
+      'Date (Newest first)': 'date_desc',
+      'Date (Oldest first)': 'date_asc',
+      'Subject (A → Z)': 'subject'
+    };
+    
+    const sortBy = sortByMap[sortOption];
+    
+    // Call the sort endpoint
+    this.applySorting(sortBy, 0);
+  }
+
+  applySorting(sortBy: string, page: number) {
+    const folderId = this.MailDetails.getCustomId();
+    const userId = this.folderStateService.userData().userId;
+    
+    if (!folderId || !userId) {
+      console.error('folderId or userId is missing');
+      return;
+    }
+
+    let params = new HttpParams()
+      .set('userId', userId)
+      .set('folderId', folderId)
+      .set('sortBy', sortBy)
+      .set('page', page);
+
+    this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
+      next: (response) => {
+        this.InboxData = this.transformMailData(response);
+        console.log('Sorted results:', response);
+      },
+      error: (error) => {
+        console.error('Sort failed:', error);
+        alert('Failed to sort emails');
+      }
+    });
   }
 
   getSanitizedPreview(body: string | undefined): string {

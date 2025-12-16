@@ -183,21 +183,41 @@ interface MailSearchRequestDto {
       <span class="material-symbols-outlined">refresh</span>
     </button>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-medium text-slate-600"
-              >Priority Mode</span
-            >
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input 
-                class="sr-only peer" 
-                type="checkbox" 
-                [(ngModel)]="isPriorityMode"
-                (change)="togglePriorityMode($event)"
-              />
-              <div
-                class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"
-              ></div>
-            </label>
+          <div class="relative inline-block">
+            <button (click)="toggleSortMenu()"
+              class="flex items-center gap-2 px-3 py-2 text-slate-600 text-sm font-medium hover:bg-slate-100 rounded-lg">
+              Sort by: <span [textContent]="currentSort"></span>
+              <span class="material-symbols-outlined text-lg">expand_more</span>
+            </button>
+            <div *ngIf="showSortMenu" class="absolute right-0 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+              <div class="py-1">
+                <button (click)="setSortAndClose('Date (Newest first)')"
+                  [ngClass]="{'bg-blue-50': currentSort === 'Date (Newest first)'}"
+                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                  Date (Newest first)
+                </button>
+                <button (click)="setSortAndClose('Date (Oldest first)')"
+                  [ngClass]="{'bg-blue-50': currentSort === 'Date (Oldest first)'}"
+                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                  Date (Oldest first)
+                </button>
+                <button (click)="setSortAndClose('Sender (A → Z)')"
+                  [ngClass]="{'bg-blue-50': currentSort === 'Sender (A → Z)'}"
+                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                  Sender (A → Z)
+                </button>
+                <button (click)="setSortAndClose('Subject (A → Z)')"
+                  [ngClass]="{'bg-blue-50': currentSort === 'Subject (A → Z)'}"
+                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                  Subject (A → Z)
+                </button>
+                <button (click)="setSortAndClose('Priority')"
+                  [ngClass]="{'bg-blue-50': currentSort === 'Priority'}"
+                  class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                  Priority
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <!-- Email List Table -->
@@ -520,8 +540,9 @@ export class Inbox implements OnInit{
   isSearchActive = false;
   isAdvancedSearch = false;
   currentSearchKeyword = '';
-  isPriorityMode = false;
   currentAdvancedFilters: MailSearchRequestDto = {};
+  showSortMenu = false;
+  currentSort = 'Date (Newest first)';
   ngOnInit() {
     this.getInbox(0);
     this.getCustomFolders();
@@ -532,7 +553,17 @@ export class Inbox implements OnInit{
     }
     this.page = page;
     
-    if (this.isSearchActive) {
+    if (this.currentSort !== 'Date (Newest first)') {
+      const sortByMap: { [key: string]: string } = {
+        'Date (Newest first)': 'date_desc',
+        'Date (Oldest first)': 'date_asc',
+        'Sender (A → Z)': 'sender',
+        'Subject (A → Z)': 'subject',
+        'Priority': 'priority'
+      };
+      this.applySorting(sortByMap[this.currentSort], this.page);
+    }
+    else if (this.isSearchActive) {
       if (this.isAdvancedSearch) {
         this.performAdvancedSearch(this.page);
       } else {
@@ -570,17 +601,7 @@ export class Inbox implements OnInit{
     param = param.set("folderId",this.folderStateService.userData().inboxFolderId);
     console.log(param);
 
-    const endpoint = this.isPriorityMode 
-    ? 'http://localhost:8080/api/mails/sort'
-    : 'http://localhost:8080/api/mails';
-
-    if (this.isPriorityMode) {
-      param = param
-        .set('userId', userData.userId)
-        .set('sortBy', 'priority');
-    }
-
-    this.http.get<Datafile[]>(endpoint, {params:param}).subscribe({
+    this.http.get<Datafile[]>('http://localhost:8080/api/mails', {params:param}).subscribe({
       next:(respones) => {
         this.InboxData=respones;
         console.log(respones);
@@ -774,9 +795,6 @@ export class Inbox implements OnInit{
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
       next: (response) => {
-        if (this.isPriorityMode) {
-          response = this.sortByPriorityClientSide(response);
-        }
         this.InboxData = response;
         console.log('Search results:', response);
       },
@@ -793,6 +811,7 @@ export class Inbox implements OnInit{
     this.currentSearchKeyword = '';
     this.currentAdvancedFilters = {};
     this.page = 0;
+    this.currentSort = 'Date (Newest first)';
     this.getInbox(0);
   }
 
@@ -846,9 +865,6 @@ export class Inbox implements OnInit{
       { params }
     ).subscribe({
       next: (response) => {
-        if (this.isPriorityMode) {
-          response = this.sortByPriorityClientSide(response);
-        }
         this.InboxData = response;
         console.log('Filter results:', response);
       },
@@ -859,58 +875,58 @@ export class Inbox implements OnInit{
     });
   }
 
-  private sortByPriorityClientSide(emails: Datafile[]): Datafile[] {
-    return emails.sort((a, b) => {
-      const priorityA = a.priority || 3; // Default to Normal (3) if undefined
-      const priorityB = b.priority || 3;
-      return priorityA - priorityB; // 1 (Urgent) comes before 4 (Low)
-    });
+  // Sort menu
+  toggleSortMenu() {
+    this.showSortMenu = !this.showSortMenu;
   }
 
-  // Priority sorting
-  togglePriorityMode(event: any) {
-    this.isPriorityMode = event.target.checked;
+  setSortAndClose(sortOption: string) {
+    this.currentSort = sortOption;
+    this.showSortMenu = false;
     this.page = 0; // Reset to first page
     
-    // Re-fetch current view with or without priority sorting
-    if (this.isSearchActive) {
-      if (this.isAdvancedSearch) {
-        this.performAdvancedSearch(0);
-      } else {
-        this.performQuickSearch(0);
+    // Map the display text to backend sortBy parameter
+    const sortByMap: { [key: string]: string } = {
+      'Date (Newest first)': 'date_desc',
+      'Date (Oldest first)': 'date_asc',
+      'Sender (A → Z)': 'sender',
+      'Subject (A → Z)': 'subject',
+      'Priority': 'priority'
+    };
+    
+    const sortBy = sortByMap[sortOption];
+    
+    // Call the sort endpoint
+    this.applySorting(sortBy, 0);
+  }
+
+  applySorting(sortBy: string, page: number) {
+    const userData: UserData = this.folderStateService.userData();
+    const folderId = userData.inboxFolderId;
+    const userId = userData.userId;
+    
+    if (!folderId || !userId) {
+      console.error('folderId or userId is missing');
+      return;
+    }
+
+    let params = new HttpParams()
+      .set('userId', userId)
+      .set('folderId', folderId)
+      .set('sortBy', sortBy)
+      .set('page', page);
+
+    this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
+      next: (response) => {
+        this.InboxData = response;
+        console.log('Sorted results:', response);
+      },
+      error: (error) => {
+        console.error('Sort failed:', error);
+        alert('Failed to sort emails');
       }
-    } else {
-      this.getInbox(0);
-    }
+    });
   }
-
-sortByPriority(page: number) {
-  const userData: UserData = this.folderStateService.userData();
-  const folderId = userData.inboxFolderId;
-  const userId = userData.userId;
-  
-  if (!folderId || !userId) {
-    console.error('folderId or userId is missing');
-    return;
-  }
-
-  let params = new HttpParams()
-    .set('userId', userId)
-    .set('folderId', folderId)
-    .set('sortBy', 'priority')
-    .set('page', page);
-
-  this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
-    next: (response) => {
-      this.InboxData = response;
-      console.log('Priority sorted results:', response);
-    },
-    error: (error) => {
-      console.error('Priority sort failed:', error);
-      alert('Failed to sort by priority');
-    }
-  });
-}
 
 
 }
