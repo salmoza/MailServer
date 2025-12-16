@@ -146,39 +146,37 @@ interface MailSearchRequestDto {
       </thead>
 
       <tbody>
-        <tr *ngFor="let item of SentData" class="border-t border-t-slate-200 hover:bg-slate-50">
-          <td class="px-4 py-2">
-            <input type="checkbox"
-                   class="h-5 w-5 rounded border-slate-300 text-primary"
-                   (change)="toggleEmailsSelected(item, $any($event.target).checked)"
-                   [checked]="checked(item.mailId)"/>
-          <td class="py-0 pl-0 pr-4" colspan="5">
-            <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-              <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
-                me
-              <div class="px-4 w-1/4">
-            <!-- Sender name -->
-            <div class="text-slate-900 text-sm">
-              {{ item.senderDisplayName || item.sender }}
+      <tr *ngFor="let item of SentData" class="border-t border-t-slate-200 hover:bg-slate-50 transition-colors">
+        <td class="px-4 py-2">
+          <input type="checkbox"
+                 class="h-5 w-5 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]"
+                 (change)="toggleEmailsSelected(item, $any($event.target).checked)"
+                 [checked]="checked(item.mailId)"/>
+        </td>
+        <!-- Data Row Container -->
+        <td class="py-0 pl-0 pr-4" colspan="5">
+          <div class="flex items-center w-full py-3 cursor-pointer" (click)="goToMailDetails(item)">
+
+            <!-- 1. Sender (1/6): Fixed as 'me' for Sent folder -->
+            <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
+              me
             </div>
-          </div>
-              <div class="px-4 w-1/2">
-                <span class="text-slate-800 text-sm truncate">{{item.subject}}</span>
-                <span class="text-slate-500 text-sm ml-2 truncate">{{item.body}}</span>
-              </div>
 
-              <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
-                {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0 ? item.receiverDisplayNames[0] : '-' }}
-              </div>
+            <!-- 2. Receiver (1/6): Display first receiver or dash -->
+            <div class="px-4 text-slate-800 w-1/6 text-sm font-semibold truncate">
+              {{ item.receiverEmails && item.receiverEmails.length > 0 ? item.receiverEmails[0] : '-' }}
+            </div>
 
-              <div class="px-4 w-1/3">
-                <span class="text-slate-800 text-sm font-semibold">{{ item.subject }}</span>
-                <span class="text-slate-500 text-sm ml-2" [innerHTML]="getSanitizedPreview(item.body)"></span>
-              </div>
+            <!-- 3. Subject + Preview (1/3) -->
+            <div class="px-4 w-1/3 flex items-center overflow-hidden">
+              <span class="text-slate-800 text-sm font-semibold truncate mr-2">{{ item.subject || '(No Subject)' }}</span>
+              <span class="text-slate-500 text-sm truncate flex-1 block">{{ getSanitizedPreview(item.body) }}</span>
+            </div>
 
-              <div class="px-4 w-1/12">
+            <!-- 4. Priority (1/12) -->
+            <div class="px-4 w-1/12">
                 <span
-                  class="text-xs font-semibold px-2 py-1 rounded"
+                  class="text-xs font-semibold px-2 py-1 rounded whitespace-nowrap"
                   [ngClass]="{
                     'bg-red-100 text-red-700': item.priority === 1,
                     'bg-orange-100 text-orange-700': item.priority === 2,
@@ -187,14 +185,16 @@ interface MailSearchRequestDto {
                   }">
                   {{ getPriorityLabel(item.priority) }}
                 </span>
-              </div>
-
-              <div class="px-4 text-slate-500 text-sm text-right w-1/6">
-                {{ item.date | date:'mediumDate' }}
-              </div>
             </div>
-          </td>
-        </tr>
+
+            <!-- 5. Date (1/6) -->
+            <div class="px-4 text-slate-500 text-sm text-right w-1/6">
+              {{ item.date | date:'mediumDate' }}
+            </div>
+
+          </div>
+        </td>
+      </tr>
       </tbody>
     </table>
   </div>

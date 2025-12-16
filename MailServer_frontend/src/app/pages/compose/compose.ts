@@ -189,9 +189,7 @@ export interface att {
               <div class="flex items-center border border-gray-300 rounded-lg">
                 <button
                   (click)="priority = 4"
-                  [class]="
-                    priority === 4 ? 'px-2 py-1 bg-gray-200 rounded-l-md border-r' : 'px-2 py-1'
-                  "
+                  [class]="priority === 4 ? 'px-2 py-1 bg-gray-200 rounded-l-md border-r' : 'px-2 py-1'"
                 >
                   4
                 </button>
