@@ -123,12 +123,6 @@ public class MailController {
 
     }
 
-    @PatchMapping //undo
-    public ResponseEntity<?> undo(@RequestBody List<String> ids) {
-        mailService.undo(ids) ;
-        return ResponseEntity.ok("successfully") ;
-    }
-
 
 
 }
