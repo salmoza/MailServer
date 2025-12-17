@@ -28,6 +28,7 @@ public class ReceiverCriteria implements MailCriteria {
                                                 email != null &&
                                                         email.toLowerCase().contains(keyword)
                                         )
+                        || mail.getReceiverDisplayNames().contains(keyword)
                 )
                 .collect(Collectors.toList());
     }

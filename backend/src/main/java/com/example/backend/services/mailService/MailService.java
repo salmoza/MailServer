@@ -123,9 +123,11 @@ public class MailService {
 
             if (receiverContact != null) {
                 receiverCopy.setSenderDisplayName(receiverContact.getName());
-            } else if (senderUser.getUsername() != null) {
+            }
+            else if (!senderUser.getUsername().isEmpty()) {
                 receiverCopy.setSenderDisplayName(senderUser.getUsername());
-            } else {
+            }
+            else {
                 receiverCopy.setSenderDisplayName(senderUser.getEmail());
             }
 
@@ -297,7 +299,10 @@ public class MailService {
                 .filter(mail -> mail.getSubject().contains(keyword)
                         || mail.getBody().contains(keyword)
                         || mail.getSenderEmail().contains(keyword)
-                        || mail.getReceiverEmails().contains(keyword))
+                        || mail.getReceiverEmails().contains(keyword)
+                        || mail.getSenderDisplayName().contains(keyword)
+                        || mail.getReceiverDisplayNames().contains(keyword)
+                )
                 .collect(Collectors.toList()), page);
     }
 
