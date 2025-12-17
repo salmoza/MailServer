@@ -446,3 +446,12 @@ select m1_0.mail_id,m1_0.body,m1_0.date,m1_0.deleted_at,m1_0.is_read,m1_0.mail_c
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:480)
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:57)
 	at java.base/java.lang.Thread.run(Thread.java:1575)
+2025-12-17 20:50:48.682692+02:00 database: close
+org.h2.message.DbException: IO Exception: "Closing" [90028-240]
+	at org.h2.message.DbException.get(DbException.java:212)
+	at org.h2.mvstore.db.Store.close(Store.java:352)
+	at org.h2.engine.Database.closeOpenFilesAndUnlock(Database.java:1314)
+	at org.h2.engine.Database.closeImpl(Database.java:1276)
+	at org.h2.engine.Database.close(Database.java:1195)
+	at org.h2.engine.Database.onShutdown(Database.java:1180)
+	... 8 more
