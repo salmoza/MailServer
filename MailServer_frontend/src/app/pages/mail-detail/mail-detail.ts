@@ -8,8 +8,17 @@ import { take } from 'rxjs';
 import { MailShuttleService } from '../../Dtos/MailDetails';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import {HeaderComponent} from '../../header';
-import {SearchBarComponent} from '../../components/search-bar/search-bar';
+import { HeaderComponent } from '../../header';
+import { SearchBarComponent } from '../../components/search-bar/search-bar';
+import { FolderSidebarService } from '../../services/folder-sidebar.service';
+import { SidebarComponent } from '../../components/side-bar/side-bar';
+
+interface MailSearchRequestDto {
+  sender?: string;
+  receiver?: string;
+  subject?: string;
+  body?: string;
+}
 
 // @ts-ignore
 // @ts-ignore
@@ -17,7 +26,15 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
 @Component({
   selector: 'app-mail-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule, HeaderComponent, SearchBarComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    HttpClientModule,
+    FormsModule,
+    HeaderComponent,
+    SearchBarComponent,
+    SidebarComponent,
+  ],
   template: `
     <!-- Global resource loading added for robustness -->
     <link
@@ -29,106 +46,29 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
       rel="stylesheet"
     />
 
-    <div class="flex h-screen w-full flex-col bg-[#f6f7f8] font-display">
-      <!-- TopNavBar -->
-      <header
-        class="flex items-center justify-between whitespace-nowrap border-b border-gray-200 bg-white px-6 py-2 shrink-0"
+    <div class="flex h-screen w-full font-inter">
+      <app-sidebar
+        [customFolders]="CustomFolders"
+        [activeCustomFolderId]="getCurrentFolderId()"
+        (folderClick)="handleFolderClick($event)"
+        (createFolder)="handleCreateFolder()"
+        (renameFolder)="handleRenameFolder($event)"
+        (deleteFolder)="handleDeleteFolder($event)"
       >
-        <div class="flex items-center gap-8">
-          <div class="flex items-center gap-3 text-gray-900">
-            <div class="size-6 text-[#137fec]">
-              <span class="material-symbols-outlined !text-3xl">all_inclusive</span>
-            </div>
-            <h2 class="text-xl font-bold tracking-[-0.015em]">MailClient</h2>
+      </app-sidebar>
+
+      <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f6f7f8]">
+        <div
+          class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50"
+        >
+          <div class="flex-1 mr-4">
+            <app-search-bar (onSearch)="handleSearch($event)" (onClear)="handleClearSearch()">
+            </app-search-bar>
           </div>
-          <label class="hidden md:flex flex-col min-w-40 !h-10 max-w-64">
-            <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
-              <div
-                class="text-gray-500 flex bg-gray-100 items-center justify-center pl-3 rounded-l-lg border-r-0"
-              >
-                <span class="material-symbols-outlined">search</span>
-              </div>
-              <input
-                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-gray-900 focus:outline-0 focus:ring-0 border-none bg-gray-100 h-full placeholder:text-gray-500 px-2 text-base font-normal leading-normal"
-                placeholder="Search"
-                value=""
-              />
-            </div>
-          </label>
-        </div>
-        <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50">
+
           <app-header></app-header>
         </div>
-      </header>
-      <div class="flex flex-1 overflow-hidden">
-        <!-- SideNavBar -->
-        <aside
-          class="hidden md:flex w-64 flex-col justify-between bg-white p-4 border-r border-gray-200 shrink-0"
-        >
-          <div class="flex flex-col gap-6">
-            <button
-              [routerLink]="['/compose']"
-              class="flex w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-[#137fec] text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2 shadow-sm hover:opacity-90"
-            >
-              <span class="material-symbols-outlined">edit</span>
-              <span class="truncate">Compose</span>
-            </button>
-            <div class="flex flex-col gap-1">
-              <a [routerLink]="['/inbox']"
-                 class="flex items-center gap-4 px-3 py-2  hover:bg-gray-100 text-gray-700"
-              >
-                <span class="material-symbols-outlined">inbox</span>
-                <p class="text-sm font-medium leading-normal">Inbox</p>
-              </a>
-              <a
-                [routerLink]="['/sent']"
-                class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-              >
-                <span class="material-symbols-outlined">send</span>
-                <p class="text-sm font-medium leading-normal">Sent</p>
-              </a>
-              <a
-                [routerLink]="['/drafts']"
-                class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-              >
-                <span class="material-symbols-outlined">draft</span>
-                <p class="text-sm font-medium leading-normal">Drafts</p>
-              </a>
-              <a
-                [routerLink]="['/trash']"
-                class="flex items-center gap-4 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700"
-              >
-                <span class="material-symbols-outlined">delete</span>
-                <p class="text-sm font-medium leading-normal">Trash</p>
-              </a>
-            </div>
 
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center justify-between px-3 py-2">
-                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Custom Folders
-                </h2>
-                <button
-                  class="text-slate-500 hover:text-primary cursor-pointer"
-                  (click)="CustomFolderPopUp = true"
-                >
-                  <span class="material-symbols-outlined text-base">add</span>
-                </button>
-              </div>
-              @for(custom of CustomFolders; track $index) {
-              <a
-                (click)="goToCustomFolder(custom.folderId)"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600">folder</span>
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  {{ custom.folderName }}
-                </p>
-              </a>
-              }
-            </div>
-          </div>
-        </aside>
         <!-- Main Content Area -->
         <main class="flex-1 flex flex-col bg-[#f6f7f8] overflow-y-auto">
           <div class="p-4 sm:p-6 flex-1 flex flex-col">
@@ -165,9 +105,7 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
                 style="
                   background-image: url('https://cdn-icons-png.flaticon.com/512/149/149071.png');
                 "
-
-              >
-              </div>
+              ></div>
               <div class="flex flex-col justify-center flex-1">
                 <p class="text-gray-900 text-base font-medium leading-normal">
                   {{ mail?.senderDisplayName }}
@@ -190,8 +128,7 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
             <div
               class="prose prose-sm sm:prose-base max-w-none text-gray-800 leading-relaxed flex-1"
             >
-
-                <div [innerHTML]="sanitizedBody"></div>
+              <div [innerHTML]="sanitizedBody"></div>
 
               <br />
             </div>
@@ -200,26 +137,24 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Attachment Card 1 -->
                 @for (item of mail?.attachments; track $index) {
+                <div class="flex items-center gap-4 p-3 border border-gray-200 rounded-xl bg-white">
                   <div
-                    class="flex items-center gap-4 p-3 border border-gray-200 rounded-xl bg-white"
-                  >
-                    <div
-                      class="flex items-center justify-center size-10 bg-[#137fec]/10 rounded-lg text-[#137fec]"
-                    >
-                    </div>
-                    <div class="flex-1">
-                      <p class="text-sm font-medium text-gray-900 truncate">
-                        {{item.fileName}}
-                      </p>
-                      <p class="text-xs text-gray-500">{{formatFileSize(item.fileSize)}}</p>
-                    </div>
-                    <button (click)="DownloadAtt(item.id,item.fileName)"
-                            class="p-2 text-gray-500 hover:text-[#137fec]"
-                            title="Download"
-                    >
-                      <span class="material-symbols-outlined">download</span>
-                    </button>
+                    class="flex items-center justify-center size-10 bg-[#137fec]/10 rounded-lg text-[#137fec]"
+                  ></div>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-900 truncate">
+                      {{ item.fileName }}
+                    </p>
+                    <p class="text-xs text-gray-500">{{ formatFileSize(item.fileSize) }}</p>
                   </div>
+                  <button
+                    (click)="DownloadAtt(item.id, item.fileName)"
+                    class="p-2 text-gray-500 hover:text-[#137fec]"
+                    title="Download"
+                  >
+                    <span class="material-symbols-outlined">download</span>
+                  </button>
+                </div>
                 }
               </div>
             </div>
@@ -247,7 +182,9 @@ import {SearchBarComponent} from '../../components/search-bar/search-bar';
             <button id="trash-btn" (click)="CustomFolderPopUp = false">Back</button>
           </div>
         </div>
-      </div>
+        <!-- </div>
+    </div> -->
+      </main>
     </div>
   `,
   styles: [
@@ -416,7 +353,8 @@ export class MailDetail implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private MailDetails: MailShuttleService, // Used to read URL parameters
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private folderSidebarService: FolderSidebarService
   ) {}
   goToCustomFolder(Id: string) {
     this.MailDetails.setCustom(Id);
@@ -424,6 +362,8 @@ export class MailDetail implements OnInit {
   }
   foldername: string = '';
   tomove: boolean = false;
+  page: number = 0;
+  SentData: Datafile[] = [];
   CustomFolderPopUp: boolean = false;
   CustomFolders: CustomFolderData[] = [];
   MailDetails2 = inject(MailShuttleService);
@@ -476,10 +416,10 @@ export class MailDetail implements OnInit {
   }
 
   // Generates the correct download link (as previously implemented)
-  DownloadAtt(attachmentId: string,fileName:string) {
+  DownloadAtt(attachmentId: string, fileName: string) {
     const attachmentApiUrl = `http://localhost:8080/api/attachments/download/${attachmentId}`;
-    this.http.get(attachmentApiUrl,{responseType:'blob'}).subscribe({
-      next: (blob:Blob) => {
+    this.http.get(attachmentApiUrl, { responseType: 'blob' }).subscribe({
+      next: (blob: Blob) => {
         const objectUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = objectUrl;
@@ -492,9 +432,9 @@ export class MailDetail implements OnInit {
       },
       error: (err) => {
         console.log(err);
-        alert("failed to download attachment");
-      }
-    })
+        alert('failed to download attachment');
+      },
+    });
   }
   CreateCustomFolder() {
     const url = 'http://localhost:8080/api/folders';
@@ -545,4 +485,71 @@ export class MailDetail implements OnInit {
       ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       : date.toLocaleDateString([], { day: 'numeric', month: 'short' });
   }
+
+  handleSearch(criteria: any) {
+    let queryParams: any = {};
+
+    if (criteria.keywords) {
+      queryParams.q = criteria.keywords;
+    }
+
+    if (criteria.advancedSearch) {
+      queryParams.advanced = true;
+      queryParams.filters = JSON.stringify(criteria.advancedSearch);
+    }
+
+    this.router.navigate(['/inbox'], { queryParams });
+  }
+
+  handleClearSearch() {
+    this.isSearchActive = false;
+    this.isAdvancedSearch = false;
+    this.currentSearchKeyword = '';
+    this.currentAdvancedFilters = {};
+    this.page = 0;
+    this.currentSort = 'Date (Newest first)';
+    this.getSent(0);
+  }
+
+  getSent(page: number) {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('folderId', this.folderStateService.userData().sentFolderId!);
+    this.http.get<Datafile[]>(`http://localhost:8080/api/mails`, { params }).subscribe({
+      next: (res) => {
+        console.log('Sent mails data:', res);
+        this.SentData = res;
+      },
+      error: (err) => alert('Failed to fetch mails'),
+    });
+  }
+
+  handleFolderClick(folderId: string) {
+    this.folderSidebarService.navigateToCustomFolder(folderId);
+  }
+
+  handleCreateFolder() {
+    this.CustomFolderPopUp = this.folderSidebarService.openCreateFolderModal();
+  }
+
+  handleRenameFolder(data: { folderId: string; newName: string }) {
+    this.folderSidebarService.renameFolder(data.folderId, data.newName, () =>
+      this.getCustomFolders()
+    );
+  }
+
+  handleDeleteFolder(folderId: string) {
+    this.folderSidebarService.deleteFolder(folderId, () => this.getCustomFolders());
+  }
+
+  getCurrentFolderId(): string {
+    return this.folderSidebarService.getActiveCustomFolderId();
+  }
+
+  isSearchActive = false;
+  isAdvancedSearch = false;
+  currentSearchKeyword = '';
+  currentAdvancedFilters: MailSearchRequestDto = {};
+  showSortMenu = false;
+  currentSort = 'Date (Newest first)';
 }
