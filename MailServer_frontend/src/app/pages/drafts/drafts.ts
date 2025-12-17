@@ -906,6 +906,7 @@ export class Drafts implements OnInit, OnDestroy {
       await this.Sent();
 
       this.isopen = false;
+      this.refreshData()
     } catch (error) {
       console.error("Error sending draft:", error);
       alert("Failed to send draft. Please try again.");
@@ -928,7 +929,7 @@ export class Drafts implements OnInit, OnDestroy {
     }
   }
 
-  private Sent(): Promise<string> {
+  /* private Sent(): Promise<string> {  old 
     const p = lastValueFrom(
       this.http.post(`http://localhost:8080/api/drafts/${this.DraftId}/send` , {} ,
         { responseType: 'text' })
@@ -940,6 +941,12 @@ export class Drafts implements OnInit, OnDestroy {
       this.DraftData = [...this.DraftData];
     }
     return p;
+  } */
+  private Sent(): Promise<string> {
+    
+    return lastValueFrom(
+      this.http.post(`http://localhost:8080/api/drafts/${this.DraftId}/send`, {}, { responseType: 'text' })
+    );
   }
 
   private uploadAttachments(mailId: string) {
@@ -952,12 +959,13 @@ export class Drafts implements OnInit, OnDestroy {
     return Promise.all(uploadPromises);
   }
 
-  SaveDraft() {
+  async SaveDraft() {
     if (this.attachments.length > 0) {
-      this.uploadAndSaveDraft();
+      await this.uploadAndSaveDraft();
     } else {
-      this.UpdateDraftBase();
+      await this.UpdateDraftBase();
     }
+    await this.delay(300);
     this.isopen=false;
     this.refreshData();
   }
