@@ -94,51 +94,107 @@ public class DraftService {
     public void sendDraft(String mailId) {
         Mail draft = mailRepo.findByMailId(mailId)
                 .orElseThrow(() -> new RuntimeException("Mail not found"));
+
         if (draft == null || draft.getStatus() != MailStatus.DRAFT) {
             throw new RuntimeException("Draft not found");
         }
 
+
+        User senderUser = userRepo.findByUserId(draft.getUserId())
+                .orElseThrow(() -> new RuntimeException("Sender not found"));
+
         mailSnapshotRepo.deleteByMailId(draft.getMailId());
+
+
+        List<String> receiverDisplayNames = new ArrayList<>();
+
+
+        for (String receiverEmail : draft.getReceiverEmails()) {
+            User receiverUser = userRepo.findByEmail(receiverEmail);
+
+
+            if (receiverUser == null) {
+                receiverDisplayNames.add(receiverEmail);
+                continue;
+            }
+
+            Contact senderContact = senderUser.getContacts().stream()
+                    .filter(c -> c.getEmailAddresses().contains(receiverUser.getEmail()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (senderContact != null) {
+                receiverDisplayNames.add(senderContact.getName());
+            } else if (receiverUser.getUsername() != null) {
+                receiverDisplayNames.add(receiverUser.getUsername());
+            } else {
+                receiverDisplayNames.add(receiverUser.getEmail());
+            }
+        }
+
 
         draft.setStatus(MailStatus.SENT);
         draft.setDate(Timestamp.valueOf(LocalDateTime.now()));
+
+
+        draft.setSenderDisplayName(
+                senderUser.getUsername() != null
+                        ? senderUser.getUsername()
+                        : senderUser.getEmail()
+        );
+
+        draft.setReceiverDisplayNames(receiverDisplayNames);
+
         mailRepo.save(draft);
 
 
         for (String receiverEmail : draft.getReceiverEmails()) {
             User receiver = userRepo.findByEmail(receiverEmail);
             if (receiver == null) continue;
-            Mail receiverCopy = MailFactory.createReceiverCopyFromDraft(receiver.getUserId() , draft , receiverEmail) ;
+
+            Mail receiverCopy = MailFactory.createReceiverCopyFromDraft(receiver.getUserId(), draft, receiverEmail);
+
+
+            Contact receiverContact = receiver.getContacts().stream()
+                    .filter(c -> c.getEmailAddresses().contains(senderUser.getEmail()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (receiverContact != null) {
+                receiverCopy.setSenderDisplayName(receiverContact.getName());
+            } else if (senderUser.getUsername() != null) {
+                receiverCopy.setSenderDisplayName(senderUser.getUsername());
+            } else {
+                receiverCopy.setSenderDisplayName(senderUser.getEmail());
+            }
+
+
+            receiverCopy.setReceiverDisplayNames(receiverDisplayNames);
+
+
+
             if (draft.getAttachments() != null && !draft.getAttachments().isEmpty()) {
                 List<Attachment> receiverAttachments = new ArrayList<>();
-
                 for (Attachment senderAtt : draft.getAttachments()) {
-
                     Attachment newAtt = new Attachment();
-
-
                     newAtt.setFilename(senderAtt.getFilename());
                     newAtt.setFiletype(senderAtt.getFiletype());
                     newAtt.setFilesize(senderAtt.getFilesize());
                     newAtt.setFilePath(senderAtt.getFilePath());
-
-
                     newAtt.setMail(receiverCopy);
-
                     receiverAttachments.add(newAtt);
                 }
-
-
                 receiverCopy.setAttachments(receiverAttachments);
             }
+
             mailRepo.save(receiverCopy);
-            folderService.addMail(null ,receiver.getInboxFolderId(), receiverCopy);
+            folderService.addMail(null, receiver.getInboxFolderId(), receiverCopy);
+            // applyFilters(receiverCopy, receiver.getUserId());
         }
 
 
-        User sender = userRepo.findByUserId(draft.getUserId()).orElseThrow();
-        folderService.deleteMail(sender.getDraftsFolderId(), draft);
-        folderService.addMail(null , sender.getSentFolderId(), draft);
+        folderService.deleteMail(senderUser.getDraftsFolderId(), draft);
+        folderService.addMail(null, senderUser.getSentFolderId(), draft);
     }
 
     @Transactional
