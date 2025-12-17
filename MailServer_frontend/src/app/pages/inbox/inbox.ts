@@ -13,6 +13,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SidebarComponent } from '../../components/side-bar/side-bar';
 import { PaginationFooterComponent } from '../../components/pagination-footer/pagination-footer';
 import { PaginationService } from '../../services/pagination.service';
+import { forkJoin } from 'rxjs';
 interface MailSearchRequestDto {
   sender?: string;
   receiver?: string;
@@ -106,6 +107,13 @@ interface MailSearchRequestDto {
                       title="Reload Emails">
                 <span class="material-symbols-outlined">refresh</span>
               </button>
+              <button 
+                  (click)="markAllAsRead()" 
+  class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+  [disabled]="unreadCount === 0"
+  title="Mark all as read">
+  <span class="material-symbols-outlined">done_all</span>
+</button>
             </div>
           </div>
 
@@ -984,4 +992,23 @@ export class Inbox implements OnInit, OnDestroy {
   getCurrentFolderId(): string {
     return this.folderSidebarService.getActiveCustomFolderId();
   }
+
+
+
+  markAllAsRead() {
+    const unreadMails = this.InboxData.filter(mail => !mail.isRead);
+    if (unreadMails.length === 0) return;
+  
+    const requests = unreadMails.map(mail => {
+      mail.isRead = true; 
+      const url = `http://localhost:8080/api/mails/${mail.mailId}/read-status`;
+      return this.http.patch(url, {}, { responseType: 'text' });
+    });
+  
+    forkJoin(requests).subscribe({
+      next: () => console.log('All requests completed'),
+      error: (err) => alert('Some emails failed to update')
+    });
+  }
+
 }
