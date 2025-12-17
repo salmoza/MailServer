@@ -77,7 +77,7 @@ interface MailSearchRequestDto {
 
     <div class="flex-1 px-6 py-4 overflow-x-hidden">
       <div class="bg-white rounded-lg border border-gray-200">
-        <div class="flex overflow-hidden rounded-lg">
+        <div class="flex overflow-hidden rounded-lg shadow-sm">
           <table class="w-full text-left table-fixed">
             <thead class="bg-slate-50 border-b border-gray-200">
               <tr>
