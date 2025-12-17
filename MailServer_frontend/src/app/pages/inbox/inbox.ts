@@ -593,7 +593,8 @@ export class Inbox implements OnInit {
   addallemails(check: boolean) {
     if (check) {
       console.log('added');
-      this.Emails = this.InboxData;
+      
+      this.Emails = [...this.InboxData]; 
     } else {
       console.log('removed');
       this.Emails = [];
@@ -811,21 +812,18 @@ export class Inbox implements OnInit {
 
     if (this.Emails.length === 0) return;
 
-    let ids: string[] = [];
-    for (let i = 0; i < this.Emails.length; i++) {
-      ids.push(this.Emails[i].mailId);
-
-      const emailIndex = this.InboxData.findIndex((e) => e.mailId === this.Emails[i].mailId);
-      if (emailIndex !== -1) this.toggleEmailsSelected(this.InboxData[emailIndex], false);
-    }
+    
+    const ids = this.Emails.map(e => e.mailId);
 
     let params = new HttpParams();
     ids.forEach((id) => (params = params.append('ids', id)));
 
     this.http.delete(url, { params: params, responseType: 'text' }).subscribe({
       next: () => {
+        
         this.InboxData = this.InboxData.filter((e) => !ids.includes(e.mailId));
-        this.Emails = [];
+        
+        this.Emails = []; 
         this.showDeleteOptions = false;
       },
       error: (res) => {
@@ -834,7 +832,7 @@ export class Inbox implements OnInit {
       },
     });
   }
-  // Sort menu
+  
 
   // Sort menu
   toggleSortMenu() {

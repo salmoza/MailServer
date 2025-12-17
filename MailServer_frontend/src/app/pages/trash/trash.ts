@@ -69,6 +69,11 @@ interface MailSearchRequestDto {
                 title="Restore to previous folder">
           <span class="material-symbols-outlined">undo</span>
         </button>
+        <button (click)="refreshData()"
+                      class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
+                      title="Reload Emails">
+                <span class="material-symbols-outlined">refresh</span>
+              </button>
       </div>
     </div>
 
@@ -612,6 +617,20 @@ export class Trash implements OnInit {
     } else {
       // Show day and month
       return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+    }
+  }
+
+  refreshData() {
+    console.log("Refreshing Trash Data...");
+    this.Emails = [];
+    if (this.isSearchActive) {
+      if (this.isAdvancedSearch) {
+        this.performAdvancedSearch(this.page);
+      } else {
+        this.performQuickSearch(this.page);
+      }
+    } else {
+      this.getTrash(this.page);
     }
   }
 

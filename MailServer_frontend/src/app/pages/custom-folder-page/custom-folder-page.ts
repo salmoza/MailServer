@@ -468,14 +468,14 @@ export class CustomFolderPage implements OnInit{
       }
     }
   }
-  addallemails(check:boolean){
-    if(check){
-      console.log("added")
-      this.Emails = this.InboxData;
-    }
-    else{
+  addallemails(check: boolean) {
+    if (check) {
+      console.log("added");
+      
+      this.Emails = [...this.InboxData];
+    } else {
       console.log("removed");
-      this.Emails=[];
+      this.Emails = [];
     }
   }
   checked(id:string){
@@ -727,32 +727,30 @@ export class CustomFolderPage implements OnInit{
   }
 
 
-  moveToTrash(){
+  moveToTrash() {
     const CustomId = this.MailDetails.getCustomId();
-    const url = `http://localhost:8080/api/mails/${CustomId}`
-    if(this.Emails.length == 0) return;
+    const url = `http://localhost:8080/api/mails/${CustomId}`;
+    
+    if (this.Emails.length == 0) return;
 
-    let ids:string[]=[];
-    for(let i:number=0; i<this.Emails.length;i++){
-      ids.push(this.Emails[i].mailId);
-      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
-    }
+    
+    const ids = this.Emails.map(e => e.mailId);
 
     let params = new HttpParams();
     ids.forEach((id) => {
       params = params.append('ids', id);
     });
 
-    this.http.delete(url, {params:params, responseType: 'text'}).subscribe({
-      next:(respones) => {
+    this.http.delete(url, { params: params, responseType: 'text' }).subscribe({
+      next: (respones) => {
         const deletedIds = new Set(ids);
         this.InboxData = this.InboxData.filter(email => !deletedIds.has(email.mailId));
+        
         this.Emails = [];
         this.showDeleteOptions = false;
       },
-      error:(respones) => alert("Failed to move to Trash")
-    })
+      error: (respones) => alert("Failed to move to Trash")
+    });
   }
 
 
