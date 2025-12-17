@@ -49,5 +49,11 @@ public class DraftController {
         return ResponseEntity.ok("successfully deleted");
 
     }
+
+    @PutMapping("/{draftId}/{snapshotId}")
+    public ResponseEntity<?> force (@PathVariable String draftId , @PathVariable String snapshotId) {
+        draftService.force(draftId , snapshotId) ;
+        return ResponseEntity.ok("swapped") ;
+    }
 }
 
