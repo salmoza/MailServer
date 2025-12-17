@@ -117,7 +117,7 @@ interface MailSearchRequestDto {
 
               <td class="py-0 pl-0 pr-4" colspan="5">
                 <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-                  
+
                   <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">
                     {{item.senderDisplayName || item.sender}}
                   </div>
@@ -157,11 +157,14 @@ interface MailSearchRequestDto {
         ></app-pagination-footer>
       </main>
 
-  <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
-    <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
-      <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername" />
-      <button (click)="CreateCustomFolder(); CustomFolderPopUp = false">Create</button>
-      <button id="trash-btn" (click)="CustomFolderPopUp = false">Back</button>
+  <div class="move-conatiner fixed inset-0 z-50 flex items-center justify-center  backdrop-blur-sm" [class.active]="CustomFolderPopUp" style="background-color: rgba(0,0,0,0.5)" >
+    <div class="bg-gray-100 rounded-xl p-8 flex flex-col gap-5 shadow-xl w-96">
+      <h2 class="text-xl font-bold text-center text-gray-800">New Folder</h2>
+      <input type="text" placeholder="Folder Name..." [(ngModel)]="foldername" class="p-3 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:outline-none transition-all duration-300"/>
+      <div class="flex justify-between mt-4">
+        <button (click)="CustomFolderPopUp = false" class="px-5 py-2 font-bold rounded-lg border border-gray-300 bg-white hover:bg-gray-100 cursor-pointer">Cancel</button>
+        <button (click)="CreateCustomFolder()" class="px-5 py-2 rounded-lg font-bold bg-blue-600 text-white hover:bg-blue-700 cursor-pointer">Create</button>
+      </div>
     </div>
   </div>
 </div>
@@ -674,7 +677,7 @@ export class Trash implements OnInit, OnDestroy {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else {
       // Show day and month
-      
+
       return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
 
     }

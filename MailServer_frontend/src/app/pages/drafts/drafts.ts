@@ -303,16 +303,16 @@ interface MailSnapshot {
         </div>
       </div>
 
-      <div class="popup" [class.active]="CustomFolderPopUp" style="background-color: rgba(0,0,0,0.5);">
-        <div class="bg-amber-50 rounded-xl p-8 flex flex-col gap-5 shadow-xl w-96">
-          <h2 class="text-xl font-bold text-center text-gray-800">New Folder</h2>
-          <input type="text" placeholder="Folder Name..." [(ngModel)]="foldername" class="p-3 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:outline-none"/>
-          <div class="flex justify-between mt-4">
-            <button (click)="CustomFolderPopUp = false" class="px-5 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-100">Cancel</button>
-            <button (click)="CreateCustomFolder()" class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Create</button>
-          </div>
-        </div>
+  <div class="popup fixed inset-0 z-50 flex items-center justify-center  backdrop-blur-sm" [class.active]="CustomFolderPopUp" style="background-color: rgba(0,0,0,0.5)" >
+    <div class="bg-gray-100 rounded-xl p-8 flex flex-col gap-5 shadow-xl w-96">
+      <h2 class="text-xl font-bold text-center text-gray-800">New Folder</h2>
+      <input type="text" placeholder="Folder Name..." [(ngModel)]="foldername" class="p-3 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:outline-none transition-all duration-300"/>
+      <div class="flex justify-between mt-4">
+        <button (click)="CustomFolderPopUp = false" class="px-5 py-2 font-bold rounded-lg border border-gray-300 bg-white hover:bg-gray-100 cursor-pointer">Cancel</button>
+        <button (click)="CreateCustomFolder()" class="px-5 py-2 rounded-lg font-bold bg-blue-600 text-white hover:bg-blue-700 cursor-pointer">Create</button>
       </div>
+    </div>
+  </div>
     </div>
   `,
   styles: [`
@@ -749,7 +749,7 @@ export class Drafts implements OnInit, OnDestroy {
       folderId: this.folderStateService.userData().inboxFolderId,
       userId: this.folderStateService.userData().userId,
     };
-    
+
     // Add new folder to CustomFolders array immediately for instant UI feedback
     const newFolder: CustomFolderData = {
       folderId: payload.folderId,
@@ -760,7 +760,7 @@ export class Drafts implements OnInit, OnDestroy {
     this.CustomFolders = [...this.CustomFolders, newFolder];
     this.foldername = '';
     this.CustomFolderPopUp = false;
-    
+
     this.http.post(url, payload).subscribe({
       next: (respones) => {
         // Sync with server in background
@@ -929,7 +929,7 @@ export class Drafts implements OnInit, OnDestroy {
     }
   }
 
-  /* private Sent(): Promise<string> {  old 
+  /* private Sent(): Promise<string> {  old
     const p = lastValueFrom(
       this.http.post(`http://localhost:8080/api/drafts/${this.DraftId}/send` , {} ,
         { responseType: 'text' })
@@ -943,7 +943,7 @@ export class Drafts implements OnInit, OnDestroy {
     return p;
   } */
   private Sent(): Promise<string> {
-    
+
     return lastValueFrom(
       this.http.post(`http://localhost:8080/api/drafts/${this.DraftId}/send`, {}, { responseType: 'text' })
     );
@@ -970,7 +970,7 @@ export class Drafts implements OnInit, OnDestroy {
     this.refreshData();
   }
 
-  private UpdateDraftBase(): Promise<string> { 
+  private UpdateDraftBase(): Promise<string> {
     const payload = {
       subject: this.subject,
       body: this.body,
@@ -982,10 +982,10 @@ export class Drafts implements OnInit, OnDestroy {
     return lastValueFrom(
       this.http.put(`http://localhost:8080/api/drafts/${this.DraftId}`, payload,{responseType:"text"})
     );
-    
-  } 
 
-  
+  }
+
+
 
  /* private async uploadAndSaveDraft() {
     try {
@@ -1011,9 +1011,9 @@ export class Drafts implements OnInit, OnDestroy {
     } catch (error) {
       console.log(error);
     }
-  } 
+  }
 
-  
+
   private DraftUploadAtt(mailId: string) {
     const uploadPromises = this.attachments.map(att => {
       const formData = new FormData();
@@ -1111,7 +1111,7 @@ export class Drafts implements OnInit, OnDestroy {
 
 
   private async validateDraftBeforeSending(): Promise<boolean> {  // check for sendDraft
-    
+
     if (this.recipients.length === 0) {
       alert("Please add at least one recipient.");
       return false;
@@ -1120,7 +1120,7 @@ export class Drafts implements OnInit, OnDestroy {
       alert("Provide subject or body");
       return false;
     }
-  
+
     try {
       for (const email of this.recipients) {
         const isValid = await lastValueFrom(this.http.get<boolean>(`http://localhost:8080/api/mails/valid/${email}`));
@@ -1133,7 +1133,7 @@ export class Drafts implements OnInit, OnDestroy {
       alert("Error validating email addresses. Please try again.");
       return false;
     }
-  
+
     return true;
   }
 
