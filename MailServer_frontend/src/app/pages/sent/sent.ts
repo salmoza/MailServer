@@ -28,14 +28,13 @@ interface MailSearchRequestDto {
 
 <div class="flex h-screen w-full font-inter">
   <app-sidebar
-    [username]="folderStateService.userData().username"
-    [userEmail]="folderStateService.userData().email"
     [customFolders]="CustomFolders"
     [activeCustomFolderId]="getCurrentFolderId()"
     (folderClick)="handleFolderClick($event)"
     (createFolder)="handleCreateFolder()"
     (renameFolder)="handleRenameFolder($event)"
     (deleteFolder)="handleDeleteFolder($event)">
+    
   </app-sidebar>
 
   <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f6f7f8]">
@@ -122,7 +121,7 @@ interface MailSearchRequestDto {
 
             <td class="py-0 pl-0 pr-4" colspan="4">
               <div class="flex items-center w-full py-3 cursor-pointer" (click)="goToMailDetails(item)">
-
+                
                 <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">me</div>
 
                 <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">

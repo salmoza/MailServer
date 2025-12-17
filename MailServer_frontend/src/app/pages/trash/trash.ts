@@ -37,8 +37,6 @@ interface MailSearchRequestDto {
 
 <div class="flex h-screen w-full font-inter">
   <app-sidebar
-    [username]="folderStateService.userData().username"
-    [userEmail]="folderStateService.userData().email"
     [customFolders]="CustomFolders"
     [activeCustomFolderId]="getCurrentFolderId()"
     (folderClick)="handleFolderClick($event)"
@@ -69,6 +67,11 @@ interface MailSearchRequestDto {
                 title="Restore to previous folder">
           <span class="material-symbols-outlined">undo</span>
         </button>
+        <button (click)="refreshData()"
+                      class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
+                      title="Reload Emails">
+                <span class="material-symbols-outlined">refresh</span>
+              </button>
       </div>
     </div>
 
@@ -109,7 +112,7 @@ interface MailSearchRequestDto {
 
               <td class="py-0 pl-0 pr-4" colspan="5">
                 <div class="flex items-center w-full py-2 cursor-pointer" (click)="goToMailDetails(item)">
-
+                  
                   <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold truncate">
                     {{item.senderDisplayName || item.sender}}
                   </div>
@@ -612,6 +615,20 @@ export class Trash implements OnInit {
     } else {
       // Show day and month
       return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+    }
+  }
+
+  refreshData() {
+    console.log("Refreshing Trash Data...");
+    this.Emails = [];
+    if (this.isSearchActive) {
+      if (this.isAdvancedSearch) {
+        this.performAdvancedSearch(this.page);
+      } else {
+        this.performQuickSearch(this.page);
+      }
+    } else {
+      this.getTrash(this.page);
     }
   }
 

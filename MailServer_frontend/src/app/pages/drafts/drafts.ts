@@ -32,8 +32,6 @@ interface MailSearchRequestDto {
 
 <div class="flex h-screen w-full font-inter">
   <app-sidebar
-    [username]="folderStateService.userData().username"
-    [userEmail]="folderStateService.userData().email"
     [customFolders]="CustomFolders"
     [activeCustomFolderId]="getCurrentFolderId()"
     (folderClick)="handleFolderClick($event)"
@@ -269,8 +267,8 @@ interface MailSearchRequestDto {
 })
 export class Drafts implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-
-
+  
+  
   constructor(
       private http: HttpClient,
       protected folderStateService: FolderStateService,
@@ -278,7 +276,7 @@ export class Drafts implements OnInit {
       private Shuffler: MailShuttleService,
       private folderSidebarService: FolderSidebarService
   ) {}
-
+  
   page=0;
   showSortMenu = false;
   currentSort = 'Date (Newest first)';
@@ -298,14 +296,14 @@ export class Drafts implements OnInit {
   DraftData:Datafile[]=[];
   foldername: string = '';
 
-
+  
   isSearchActive = false;
   isAdvancedSearch = false;
   currentSearchKeyword = '';
   currentAdvancedFilters: MailSearchRequestDto = {};
 
   ngOnInit() {
-    this.refreshData();
+    this.refreshData(); 
     this.getCustomFolders();
   }
 
@@ -324,8 +322,8 @@ export class Drafts implements OnInit {
         'Priority': 'priority'
       };
       this.applySorting(sortByMap[this.currentSort], this.page);
-    }
-
+    } 
+    
     else if (this.isSearchActive) {
       if (this.isAdvancedSearch) {
         this.performAdvancedSearch(this.page);
@@ -334,7 +332,7 @@ export class Drafts implements OnInit {
       }
     }
     else {
-
+      
       this.applySorting('date_desc', this.page);
     }
   }
@@ -345,7 +343,7 @@ export class Drafts implements OnInit {
 
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
-    this.page = 0;
+    this.page = 0; 
 
     if (criteria.keywords) {
       // Quick keyword search
@@ -364,7 +362,7 @@ export class Drafts implements OnInit {
 
   performQuickSearch(page: number) {
     const userData: UserData = this.folderStateService.userData();
-
+    
     const folderId = userData.draftsFolderId;
 
     if (!folderId) {
@@ -392,7 +390,7 @@ export class Drafts implements OnInit {
 
   performAdvancedSearch(page: number) {
     const userData: UserData = this.folderStateService.userData();
-
+    
     const folderId = userData.draftsFolderId;
 
     if (!folderId) {
@@ -409,7 +407,7 @@ export class Drafts implements OnInit {
       .subscribe({
         next: (response) => {
           this.DraftData = response;
-          this.Emails = [];
+          this.Emails = []; 
           console.log('Filter results:', response);
         },
         error: (error) => {
@@ -426,12 +424,12 @@ export class Drafts implements OnInit {
     this.currentAdvancedFilters = {};
     this.page = 0;
     this.currentSort = 'Date (Newest first)';
-    this.refreshData();
+    this.refreshData(); 
   }
 
   applySorting(sortBy: string, page: number) {
     const userData: UserData = this.folderStateService.userData();
-    const folderId = userData.draftsFolderId;
+    const folderId = userData.draftsFolderId; 
     const userId = userData.userId;
 
     if (!folderId || !userId) {
@@ -445,7 +443,7 @@ export class Drafts implements OnInit {
       .set('sortBy', sortBy)
       .set('page', page);
 
-
+    
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
       next: (response) => {
         this.DraftData = response;
@@ -465,10 +463,10 @@ export class Drafts implements OnInit {
   setSortAndClose(sortOption: string) {
     this.currentSort = sortOption;
     this.showSortMenu = false;
-    this.page = 0;
-    this.updatePage(0);
+    this.page = 0; 
+    this.updatePage(0); 
   }
-
+  
   getCustomFolders(){
     const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
@@ -484,7 +482,7 @@ export class Drafts implements OnInit {
     })
   }
 
-
+  
 
   handleFolderClick(folderId: string) {
     this.folderSidebarService.navigateToCustomFolder(folderId);
@@ -506,7 +504,7 @@ export class Drafts implements OnInit {
     return this.folderSidebarService.getActiveCustomFolderId();
   }
 
-
+  
 
   CreateCustomFolder() {
     const url = 'http://localhost:8080/api/folders';
@@ -645,15 +643,24 @@ export class Drafts implements OnInit {
     this.attachments = this.attachments.filter(att => att.id !== attId);
   }
 
-  SentDraft() {
-    if (this.attachments.length > 0) {
-      this.uploadAndSend();
-      this.isopen=false;
-    } else {
-      this.Sent();
-      this.isopen=false;
-    }
+  async SentDraft() {
+    try {
+      
+      await this.UpdateDraftBase();
 
+      
+      if (this.attachments.length > 0) {
+        await this.DraftUploadAtt(this.DraftId);
+      }
+
+      
+      await this.Sent();
+      
+      this.isopen = false;
+    } catch (error) {
+      console.error("Error sending draft:", error);
+      alert("Failed to send draft. Please try again.");
+    }
   }
   private async uploadAndSend() {
     try {
@@ -677,7 +684,7 @@ export class Drafts implements OnInit {
       this.http.post(`http://localhost:8080/api/drafts/${this.DraftId}/send` , {} ,
         { responseType: 'text' })
     );
-
+    
     let emailIndex = this.DraftData.findIndex(e => e.mailId === this.DraftId);
     if(emailIndex > -1) {
       this.DraftData.splice(emailIndex, 1);
@@ -769,22 +776,22 @@ export class Drafts implements OnInit {
   delete() {
     if (this.Emails.length == 0) return;
 
-
+    
     const ids = this.Emails.map(email => email.mailId);
 
+    
+    const url = `http://localhost:8080/api/drafts`; 
 
-    const url = `http://localhost:8080/api/drafts`;
-
-
+    
     ids.forEach((id) => {
       const emailIndex = this.DraftData.findIndex((e) => e.mailId === id);
       if (emailIndex > -1) this.toggleEmailsSelected(this.DraftData[emailIndex], false);
     });
 
-
+    
     this.http.request('delete', url, { body: ids, responseType: 'text' }).subscribe({
       next: (response) => {
-
+        
         const deletedIdsSet = new Set(ids);
         this.DraftData = this.DraftData.filter((email) => !deletedIdsSet.has(email.mailId));
         this.Emails = [];
@@ -793,11 +800,11 @@ export class Drafts implements OnInit {
       error: (err) => {
         console.error(err);
         alert("Failed to delete drafts");
-
+        
       }
     })
   }
-
+  
   protected readonly MailDetail = MailDetail;
   protected readonly MailShuttleService = MailShuttleService;
   protected readonly FolderStateService = FolderStateService;
