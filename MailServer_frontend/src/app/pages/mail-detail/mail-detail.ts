@@ -541,8 +541,12 @@ export class MailDetail implements OnInit {
     const date = new Date(itemDate);
     const today = new Date();
 
-    return date.toDateString() === today.toDateString()
-      ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+    if (date.toDateString() === today.toDateString()) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else {
+      const dateStr = date.toLocaleDateString([], { month: '2-digit', day: '2-digit', year: 'numeric' });
+      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `${dateStr} ${timeStr}`;
+    }
   }
 }

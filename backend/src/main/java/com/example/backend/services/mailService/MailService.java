@@ -344,7 +344,7 @@ public class MailService {
     }
 
     public List<MailListDto> paginateMails(List<Mail> sortedMails, int page) {
-        int size = 20;
+        int size = 10;
         int start = page * size;
         int end = Math.min(start + size, sortedMails.size());
 

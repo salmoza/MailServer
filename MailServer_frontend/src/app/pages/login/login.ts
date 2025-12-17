@@ -67,15 +67,16 @@ import {FolderStateService} from '../../Dtos/FolderStateService';
                   name="password"
                   placeholder="Enter your password"
                   required=""
-                  type="password"
+                  [type]="showPassword ? 'text' : 'password'"
                   value=""
                   [(ngModel)]="password"
                 />
                 <div
-                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#4c739a]"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#4c739a] cursor-pointer"
+                  (click)="togglePasswordVisibility()"
                 >
-                  <span class="material-symbols-outlined cursor-pointer" data-icon="Eye"
-                  >visibility</span
+                  <span class="material-symbols-outlined"
+                  >{{ showPassword ? 'visibility_off' : 'visibility' }}</span
                   >
                 </div>
               </div>
@@ -164,15 +165,16 @@ import {FolderStateService} from '../../Dtos/FolderStateService';
                   name="password"
                   placeholder="Enter your password"
                   required=""
-                  type="password"
+                  [type]="showPasswordSignUp ? 'text' : 'password'"
                   value=""
                   [(ngModel)]="password"
                 />
                 <div
-                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#4c739a]"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#4c739a] cursor-pointer"
+                  (click)="togglePasswordVisibilitySignUp()"
                 >
-                  <span class="material-symbols-outlined cursor-pointer" data-icon="Eye"
-                  >visibility</span
+                  <span class="material-symbols-outlined"
+                  >{{ showPasswordSignUp ? 'visibility_off' : 'visibility' }}</span
                   >
                 </div>
               </div>
@@ -239,6 +241,17 @@ private hhtp = inject(HttpClient);
   username: string = '';
   password: string = '';
   email: string = '';
+  showPassword: boolean = false;
+  showPasswordSignUp: boolean = false;
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  togglePasswordVisibilitySignUp(): void {
+    this.showPasswordSignUp = !this.showPasswordSignUp;
+  }
+
 login(){
   const payload={
     password:this.password,

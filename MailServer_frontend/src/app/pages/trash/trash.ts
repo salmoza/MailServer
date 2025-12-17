@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FolderStateService } from '../../Dtos/FolderStateService';
@@ -10,6 +10,8 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
 import { HeaderComponent } from '../../header';
 import { SidebarComponent } from '../../components/side-bar/side-bar';
 import { FolderSidebarService } from '../../services/folder-sidebar.service';
+import { PaginationFooterComponent } from '../../components/pagination-footer/pagination-footer';
+import { PaginationService } from '../../services/pagination.service';
 
 interface MailSearchRequestDto {
   sender?: string;
@@ -29,7 +31,8 @@ interface MailSearchRequestDto {
     FormsModule,
     SearchBarComponent,
     HeaderComponent,
-    SidebarComponent
+    SidebarComponent,
+    PaginationFooterComponent,
   ],
   template: `
     <link
@@ -164,35 +167,11 @@ interface MailSearchRequestDto {
             </table>
           </div>
         </div>
-        <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto">
-          <a
-            (click)="updatePage(page - 1)"
-            class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_left</span>
-          </a>
-          <a
-            (click)="updatePage(0)"
-            class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary"
-            >1</a
-          >
-          <a
-            (click)="updatePage(1)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >2</a
-          >
-          <a
-            (click)="updatePage(2)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >3</a
-          >
-          <a
-            (click)="updatePage(page + 1)"
-            class="flex  size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_right</span>
-          </a>
-        </div>
+        <app-pagination-footer
+          [contextKey]="paginationKey"
+          [pages]="paginationPages"
+          [canGoNext]="canGoNext"
+        ></app-pagination-footer>
       </main>
 
       <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
@@ -344,19 +323,24 @@ interface MailSearchRequestDto {
     `,
   ],
 })
-export class Trash implements OnInit {
+export class Trash implements OnInit, OnDestroy {
   constructor(
     private MailDetails: MailShuttleService,
     protected folderStateService: FolderStateService,
     private http: HttpClient,
     private router: Router,
     private folderSidebarService: FolderSidebarService,
+    private paginationService: PaginationService,
   ) {}
   foldername: string = '';
   CustomFolderPopUp: boolean = false;
   Emails: Datafile[] = [];
   TrashData: Datafile[] = [];
   page: number = 0;
+  readonly paginationKey = 'trash';
+  readonly pageSize = 10;
+  paginationPages: number[] = [0];
+  canGoNext = true;
   CustomFolders:CustomFolderData[]=[];
 
 
@@ -367,9 +351,33 @@ export class Trash implements OnInit {
   currentAdvancedFilters: MailSearchRequestDto = {};
 
   ngOnInit() {
-    this.getTrash(0);
+    this.paginationService.registerContext(this.paginationKey, 0, (page) => this.updatePage(page));
     this.getCustomFolders();
   }
+  ngOnDestroy(): void {
+    this.paginationService.unregisterContext(this.paginationKey);
+  }
+
+  private resetPaginationState(): void {
+    this.paginationPages = [0];
+    this.canGoNext = true;
+    this.paginationService.resetState(this.paginationKey, 0);
+  }
+
+  private syncPagination(page: number, itemsCount: number): boolean {
+    const state = this.paginationService.updateAfterDataLoad(
+      this.paginationKey,
+      page,
+      itemsCount,
+      this.pageSize,
+    );
+
+    this.paginationPages = state.pages;
+    this.canGoNext = state.canGoNext;
+
+    return true;
+  }
+
   updatePage(page: number) {
     if (page < 0) {
       return;
@@ -413,6 +421,11 @@ export class Trash implements OnInit {
     param = param.set('folderId', this.folderStateService.userData().trashFolderId);
     this.http.get<Datafile[]>(`http://localhost:8080/api/mails`, { params: param }).subscribe({
       next: (respones) => {
+        const canDisplay = this.syncPagination(page, respones.length);
+        if (!canDisplay) {
+          return;
+        }
+
         this.TrashData = this.transformMailData(respones);
         console.log(respones);
       },
@@ -544,21 +557,27 @@ export class Trash implements OnInit {
 
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
-    this.page = 0;
-
-    if (criteria.keywords) {
+    if (criteria?.keywords) {
       // Quick keyword search
       this.isSearchActive = true;
       this.isAdvancedSearch = false;
       this.currentSearchKeyword = criteria.keywords;
-      this.performQuickSearch(0);
-    } else if (criteria.advancedSearch) {
+      this.currentAdvancedFilters = {};
+      this.page = 0;
+    } else if (criteria?.advancedSearch) {
       // Advanced filter search
       this.isSearchActive = true;
       this.isAdvancedSearch = true;
       this.currentAdvancedFilters = criteria.advancedSearch;
-      this.performAdvancedSearch(0);
+      this.currentSearchKeyword = '';
+      this.page = 0;
+    } else {
+      this.handleClearSearch();
+      return;
     }
+
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   performQuickSearch(page: number) {
@@ -577,7 +596,12 @@ export class Trash implements OnInit {
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
       next: (response) => {
-        this.TrashData = response;
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
+        this.TrashData = this.transformMailData(response);
         console.log('Search results:', response);
       },
       error: (error) => {
@@ -606,7 +630,12 @@ export class Trash implements OnInit {
       { params }
     ).subscribe({
       next: (response) => {
-        this.TrashData = response;
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
+        this.TrashData = this.transformMailData(response);
         console.log('Filter results:', response);
       },
       error: (error) => {
@@ -622,7 +651,8 @@ export class Trash implements OnInit {
     this.currentSearchKeyword = '';
     this.currentAdvancedFilters = {};
     this.page = 0;
-    this.getTrash(0);
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   transformMailData(mails: Datafile[]): Datafile[] {
@@ -649,8 +679,10 @@ export class Trash implements OnInit {
       // Show only time
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else {
-      // Show day and month
-      return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+      // Show month, day, year, hour, minute
+      const dateStr = date.toLocaleDateString([], { month: '2-digit', day: '2-digit', year: 'numeric' });
+      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `${dateStr} ${timeStr}`;
     }
   }
 

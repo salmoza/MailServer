@@ -140,7 +140,8 @@ import { CustomFolderData } from '../../Dtos/datafile';
         <span class="material-symbols-outlined text-red-600" style="font-size: 48px;">warning</span>
         <h3 class="text-lg font-bold text-slate-800">Delete Folder?</h3>
         <p class="text-slate-600 text-center">
-          Are you sure you want to delete this folder? All emails will be moved to Inbox.
+          Are you sure you want to delete this folder?
+          Emails will be moved to their original folder.
         </p>
         
         <div class="flex gap-3 w-full">

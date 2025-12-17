@@ -28,6 +28,7 @@ public class Mail {
     private List<String> receiverDisplayNames  = new ArrayList<>();
     private String senderEmail;
     private int priority;
+//    private int mailCount;
     private String subject;
     private String body;
     private String previousFolderId;

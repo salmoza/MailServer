@@ -1,4 +1,4 @@
-import {Component, ElementRef, inject, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {Router, RouterLink, RouterModule} from '@angular/router';
 import {MailDetail} from '../mail-detail/mail-detail';
@@ -11,6 +11,8 @@ import {FormsModule} from '@angular/forms';
 import {lastValueFrom} from 'rxjs';
 import {SearchBarComponent} from '../../components/search-bar/search-bar';
 import { HeaderComponent } from '../../header';
+import { PaginationFooterComponent } from '../../components/pagination-footer/pagination-footer';
+import { PaginationService } from '../../services/pagination.service';
 
 // Interface for Advanced Search
 interface MailSearchRequestDto {
@@ -23,7 +25,7 @@ interface MailSearchRequestDto {
 @Component({
   selector: 'app-drafts',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule, SearchBarComponent, HeaderComponent],
+  imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule, SearchBarComponent, HeaderComponent, PaginationFooterComponent],
   template: `
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
@@ -235,24 +237,11 @@ interface MailSearchRequestDto {
             </div>
           </div>
           
-          <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto">
-            <a (click)="updatePage(page - 1)"
-               class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary">
-              <span class="material-symbols-outlined text-lg">chevron_left</span>
-            </a>
-            <a (click)="updatePage(0)"
-               class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary">
-              1
-            </a>
-            <a (click)="updatePage(1)"
-               class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100">
-              2
-            </a>
-            <a (click)="updatePage(page + 1)"
-               class="flex size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer">
-              <span class="material-symbols-outlined text-lg">chevron_right</span>
-            </a>
-          </div>
+          <app-pagination-footer
+            [contextKey]="paginationKey"
+            [pages]="paginationPages"
+            [canGoNext]="canGoNext"
+          ></app-pagination-footer>
         </main>
         
         <div class="popup" [class.active]="isopen">
@@ -519,15 +508,19 @@ interface MailSearchRequestDto {
     .bg-primary\\/20 { background-color: rgba(19, 127, 236, 0.2) !important; }
   `],
 })
-export class Drafts implements OnInit {
+export class Drafts implements OnInit, OnDestroy {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   
-  constructor(private http:HttpClient,protected folderStateService: FolderStateService,private route:Router,private Shuffler:MailShuttleService) {
+  constructor(private http:HttpClient,protected folderStateService: FolderStateService,private route:Router,private Shuffler:MailShuttleService, private paginationService: PaginationService) {
   }
   
   page=0;
   showSortMenu = false;
   currentSort = 'Date (Newest first)';
+  readonly paginationKey = 'drafts';
+  readonly pageSize = 10;
+  paginationPages: number[] = [0];
+  canGoNext = true;
   DraftId:string='';
   currentEmailInput:string='';
   isopen:boolean = false;
@@ -551,8 +544,32 @@ export class Drafts implements OnInit {
   currentAdvancedFilters: MailSearchRequestDto = {};
 
   ngOnInit() {
-    this.refreshData(); 
+    this.paginationService.registerContext(this.paginationKey, 0, (page) => this.updatePage(page));
     this.getCustomFolders();
+  }
+
+  ngOnDestroy(): void {
+    this.paginationService.unregisterContext(this.paginationKey);
+  }
+
+  private resetPaginationState(): void {
+    this.paginationPages = [0];
+    this.canGoNext = true;
+    this.paginationService.resetState(this.paginationKey, 0);
+  }
+
+  private syncPagination(page: number, itemsCount: number): boolean {
+    const state = this.paginationService.updateAfterDataLoad(
+      this.paginationKey,
+      page,
+      itemsCount,
+      this.pageSize,
+    );
+
+    this.paginationPages = state.pages;
+    this.canGoNext = state.canGoNext;
+
+    return true;
   }
 
   
@@ -588,29 +605,36 @@ export class Drafts implements OnInit {
   }
 
   refreshData() {
-    
-    this.updatePage(this.page);
+    this.Emails = [];
+    this.paginationService.setPage(this.paginationKey, this.page);
   }
 
   
 
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
-    this.page = 0; 
 
-    if (criteria.keywords) {
-      
+    if (criteria?.keywords) {
       this.isSearchActive = true;
       this.isAdvancedSearch = false;
       this.currentSearchKeyword = criteria.keywords;
-      this.performQuickSearch(0);
-    } else if (criteria.advancedSearch) {
-      
+      this.currentAdvancedFilters = {};
+      this.currentSort = 'Date (Newest first)';
+      this.page = 0;
+    } else if (criteria?.advancedSearch) {
       this.isSearchActive = true;
       this.isAdvancedSearch = true;
       this.currentAdvancedFilters = criteria.advancedSearch;
-      this.performAdvancedSearch(0);
+      this.currentSearchKeyword = '';
+      this.currentSort = 'Date (Newest first)';
+      this.page = 0;
+    } else {
+      this.handleClearSearch();
+      return;
     }
+
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   performQuickSearch(page: number) {
@@ -630,6 +654,11 @@ export class Drafts implements OnInit {
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
       next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
         this.DraftData = response;
         this.Emails = [];
         console.log('Search results:', response);
@@ -659,8 +688,13 @@ export class Drafts implements OnInit {
       })
       .subscribe({
         next: (response) => {
+          const canDisplay = this.syncPagination(page, response.length);
+          if (!canDisplay) {
+            return;
+          }
+
           this.DraftData = response;
-          this.Emails = []; 
+          this.Emails = [];
           console.log('Filter results:', response);
         },
         error: (error) => {
@@ -677,7 +711,8 @@ export class Drafts implements OnInit {
     this.currentAdvancedFilters = {};
     this.page = 0;
     this.currentSort = 'Date (Newest first)';
-    this.refreshData(); 
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   
@@ -701,6 +736,11 @@ export class Drafts implements OnInit {
     
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
       next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
         this.DraftData = response;
         console.log('Drafts loaded:', response);
       },
@@ -718,8 +758,9 @@ export class Drafts implements OnInit {
   setSortAndClose(sortOption: string) {
     this.currentSort = sortOption;
     this.showSortMenu = false;
-    this.page = 0; 
-    this.updatePage(0); 
+    this.page = 0;
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
   
   

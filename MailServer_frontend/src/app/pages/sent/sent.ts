@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FolderStateService } from '../../Dtos/FolderStateService';
@@ -10,6 +10,8 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
 import { HeaderComponent } from '../../header';
 import { SidebarComponent } from '../../components/side-bar/side-bar';
 import { FolderSidebarService } from '../../services/folder-sidebar.service';
+import { PaginationFooterComponent } from '../../components/pagination-footer/pagination-footer';
+import { PaginationService } from '../../services/pagination.service';
 
 interface MailSearchRequestDto {
   sender?: string;
@@ -21,7 +23,7 @@ interface MailSearchRequestDto {
 @Component({
   selector: 'app-sent',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent, HeaderComponent, SidebarComponent],
+  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent, HeaderComponent, SidebarComponent, PaginationFooterComponent],
   template: `
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -188,33 +190,11 @@ interface MailSearchRequestDto {
   </div>
 </div>
 
-        <div
-          class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto gap-2"
-        >
-          <button
-            (click)="updatePage(page - 1)"
-            class="flex items-center justify-center text-slate-500 hover:text-primary"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_left</span>
-          </button>
-          <button
-            *ngFor="let p of [0, 1, 2]; let i = index"
-            (click)="updatePage(p)"
-            [ngClass]="{
-              'bg-primary text-white font-bold': page === p,
-              'bg-slate-100 text-slate-600': page !== p
-            }"
-            class="px-3 py-1 rounded-lg text-sm cursor-pointer"
-          >
-            {{ i + 1 }}
-          </button>
-          <button
-            (click)="updatePage(page + 1)"
-            class="flex items-center justify-center text-slate-500 hover:text-primary"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_right</span>
-          </button>
-        </div>
+        <app-pagination-footer
+          [contextKey]="paginationKey"
+          [pages]="paginationPages"
+          [canGoNext]="canGoNext"
+        ></app-pagination-footer>
       </main>
 
       <div class="move-conatiner bg-black/50" [class.active]="tomove">
@@ -362,7 +342,7 @@ interface MailSearchRequestDto {
     `,
   ],
 })
-export class Sent implements OnInit {
+export class Sent implements OnInit, OnDestroy {
   foldername: string = '';
   CustomFolderPopUp: boolean = false;
   Emails: Datafile[] = [];
@@ -378,12 +358,40 @@ export class Sent implements OnInit {
   currentAdvancedFilters: MailSearchRequestDto = {};
   showSortMenu = false;
   currentSort = 'Date (Newest first)';
+  readonly paginationKey = 'sent';
+  readonly pageSize = 10;
+  paginationPages: number[] = [0];
+  canGoNext = true;
 
-  constructor(private MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router, private folderSidebarService: FolderSidebarService) {}
+  constructor(private MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router, private folderSidebarService: FolderSidebarService, private paginationService: PaginationService) {}
 
   ngOnInit() {
-    this.getSent(this.page);
+    this.paginationService.registerContext(this.paginationKey, 0, (page) => this.updatePage(page));
     this.getCustomFolders();
+  }
+
+  ngOnDestroy(): void {
+    this.paginationService.unregisterContext(this.paginationKey);
+  }
+
+  private resetPaginationState(): void {
+    this.paginationPages = [0];
+    this.canGoNext = true;
+    this.paginationService.resetState(this.paginationKey, 0);
+  }
+
+  private syncPagination(page: number, itemsCount: number): boolean {
+    const state = this.paginationService.updateAfterDataLoad(
+      this.paginationKey,
+      page,
+      itemsCount,
+      this.pageSize,
+    );
+
+    this.paginationPages = state.pages;
+    this.canGoNext = state.canGoNext;
+
+    return true;
   }
 
   updatePage(page: number) {
@@ -426,6 +434,11 @@ export class Sent implements OnInit {
       .set('folderId', this.folderStateService.userData().sentFolderId!);
     this.http.get<Datafile[]>(`http://localhost:8080/api/mails`, { params }).subscribe({
       next: (res) => {
+        const canDisplay = this.syncPagination(page, res.length);
+        if (!canDisplay) {
+          return;
+        }
+
         console.log('Sent mails data:', res);
         this.SentData = res;
       },
@@ -520,21 +533,23 @@ export class Sent implements OnInit {
   }
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
-    this.page = 0;
 
     if (criteria.keywords) {
-      // Quick keyword search
       this.isSearchActive = true;
       this.isAdvancedSearch = false;
       this.currentSearchKeyword = criteria.keywords;
-      this.performQuickSearch(0);
+      this.currentAdvancedFilters = {};
+      this.currentSort = 'Date (Newest first)';
     } else if (criteria.advancedSearch) {
-      // Advanced filter search
       this.isSearchActive = true;
       this.isAdvancedSearch = true;
       this.currentAdvancedFilters = criteria.advancedSearch;
-      this.performAdvancedSearch(0);
+      this.currentSearchKeyword = '';
+      this.currentSort = 'Date (Newest first)';
     }
+
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   performQuickSearch(page: number) {
@@ -553,6 +568,11 @@ export class Sent implements OnInit {
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
       next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
         this.SentData = response;
         console.log('Search results:', response);
       },
@@ -581,6 +601,11 @@ export class Sent implements OnInit {
       })
       .subscribe({
         next: (response) => {
+          const canDisplay = this.syncPagination(page, response.length);
+          if (!canDisplay) {
+            return;
+          }
+
           this.SentData = response;
           console.log('Filter results:', response);
         },
@@ -596,9 +621,9 @@ export class Sent implements OnInit {
     this.isAdvancedSearch = false;
     this.currentSearchKeyword = '';
     this.currentAdvancedFilters = {};
-    this.page = 0;
     this.currentSort = 'Date (Newest first)';
-    this.getSent(0);
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   toggleSortMenu() {
@@ -608,19 +633,8 @@ export class Sent implements OnInit {
   setSortAndClose(sortOption: string) {
     this.currentSort = sortOption;
     this.showSortMenu = false;
-    this.page = 0; // Reset to first page
-
-    // Map the display text to backend sortBy parameter
-    const sortByMap: { [key: string]: string } = {
-      'Date (Newest first)': 'date_desc',
-      'Date (Oldest first)': 'date_asc',
-      'Subject (A → Z)': 'subject',
-    };
-
-    const sortBy = sortByMap[sortOption];
-
-    // Call the sort endpoint
-    this.applySorting(sortBy, 0);
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   applySorting(sortBy: string, page: number) {
@@ -641,6 +655,11 @@ export class Sent implements OnInit {
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
       next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
         this.SentData = response;
         console.log('Sorted results:', response);
       },
@@ -725,8 +744,10 @@ export class Sent implements OnInit {
       // Show only time
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else {
-      // Show day and month
-      return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+      // Show month, day, year, hour, minute
+      const dateStr = date.toLocaleDateString([], { month: '2-digit', day: '2-digit', year: 'numeric' });
+      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `${dateStr} ${timeStr}`;
     }
   }
 
