@@ -970,7 +970,7 @@ export class Drafts implements OnInit, OnDestroy {
     this.refreshData();
   }
 
-  private UpdateDraftBase(): Promise<string> {
+  private UpdateDraftBase(): Promise<string> { 
     const payload = {
       subject: this.subject,
       body: this.body,
@@ -983,7 +983,9 @@ export class Drafts implements OnInit, OnDestroy {
       this.http.put(`http://localhost:8080/api/drafts/${this.DraftId}`, payload,{responseType:"text"})
     );
     
-  }
+  } 
+
+  
 
  /* private async uploadAndSaveDraft() {
     try {
@@ -1011,7 +1013,7 @@ export class Drafts implements OnInit, OnDestroy {
     }
   } 
 
-
+  
   private DraftUploadAtt(mailId: string) {
     const uploadPromises = this.attachments.map(att => {
       const formData = new FormData();
