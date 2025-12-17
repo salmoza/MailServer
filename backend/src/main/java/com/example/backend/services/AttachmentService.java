@@ -91,11 +91,11 @@ public class AttachmentService {
        attachmentsRepo.delete(att);
         return "deleted";
     }
-    public Path getfilePath(String attid){
+    /*public Path getfilePath(String attid){
         Optional<Attachment> attop = attachmentsRepo.findById(attid);
         Attachment att = attop.get();
         return Paths.get(att.getFilePath());
-    }
+    }*/
     public List<Attachment> duplicateAttachmentsForNewMail(String sourceDraftId, Mail targetMailEntity) {
 
         // 1. Find all attachments currently linked to the source Draft ID

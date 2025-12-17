@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AttachmentFactory {
-    public  Attachment toEntity(AttachmentDto dto){
+    /*public  Attachment toEntity(AttachmentDto dto){
         if(dto == null){
             return null;
         }
@@ -14,7 +14,7 @@ public class AttachmentFactory {
         att.setFiletype(dto.getFiletype());
         att.setFilePath(dto.getFilePath());
         return att;
-    }
+    }*/
     public AttachmentDto toDTO(Attachment entity) {
         if (entity == null) {
             return null;

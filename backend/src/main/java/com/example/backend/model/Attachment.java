@@ -13,7 +13,7 @@ public class Attachment {
     private String attachmentId;
     private String filetype;
     private String filePath;
-    private double filesize;
+    private Long filesize;
     private String filename;
     @ManyToOne
     @JoinColumn(name = "mail_id")
