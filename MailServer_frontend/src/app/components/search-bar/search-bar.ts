@@ -71,32 +71,32 @@ interface SearchCriteria {
               <label class="block text-xs font-medium text-slate-600 mb-1">Sender</label>
               <input
                 [(ngModel)]="advancedFilters.sender"
-                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-0 focus:ring-2 focus:ring-primary"
-                placeholder="sender@example.com"
+                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-0 focus:ring-2 focus:ring-primary placeholder:text-slate-400"
+                placeholder="Email | Username | Contact"
               />
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-600 mb-1">Receiver</label>
               <input
                 [(ngModel)]="advancedFilters.receiver"
-                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-0 focus:ring-2 focus:ring-primary"
-                placeholder="receiver@example.com"
+                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-0 focus:ring-2 focus:ring-primary placeholder:text-slate-400"
+                placeholder="Email | Username | Contact"
               />
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-600 mb-1">Subject</label>
               <input
                 [(ngModel)]="advancedFilters.subject"
-                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-0 focus:ring-2 focus:ring-primary"
-                placeholder="Email subject"
+                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-0 focus:ring-2 focus:ring-primary placeholder:text-slate-400"
+                placeholder="Subject Text"
               />
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-600 mb-1">Body</label>
               <input
                 [(ngModel)]="advancedFilters.body"
-                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-0 focus:ring-2 focus:ring-primary"
-                placeholder="Body text"
+                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm focus:outline-0 focus:ring-2 focus:ring-primary placeholder:text-slate-400"
+                placeholder="Body Text"
               />
             </div>
           </div>
