@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface AttachmentsRepo extends JpaRepository<Attachment,String> {
     List<Attachment> findByAttachmentId(String mailId);
+    List<Attachment> findAllByMail_MailId(String mailId);
 
 }
