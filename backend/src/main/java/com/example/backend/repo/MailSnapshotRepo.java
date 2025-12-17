@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MailSnapshotRepo extends JpaRepository<MailSnapshot, String> {
@@ -16,4 +17,5 @@ public interface MailSnapshotRepo extends JpaRepository<MailSnapshot, String> {
     @Transactional
     @Query("DELETE FROM MailSnapshot ms WHERE ms.mail.mailId = :mailId")
     void deleteByMailId(String mailId);
+    Optional<MailSnapshot> findBySnapshotId(String snapshotId) ;
 }

@@ -65,7 +65,7 @@ public class DraftService {
             throw new RuntimeException("Draft not found");
         }
 
-        draft.setSubject(dto.getSubject()); // builder could make some troubles
+        draft.setSubject(dto.getSubject());
         draft.setBody(dto.getBody());
         draft.setPriority(dto.getPriority());
         draft.setReceiverEmails(dto.getReceivers() != null ? dto.getReceivers() : new ArrayList<>());
@@ -213,5 +213,46 @@ public class DraftService {
             mailRepo.delete(deletedMail);
         }
         folderRepo.save(folder) ;
+    }
+
+    @Transactional
+    public void force(String draftId, String snapshotId) {
+
+        Mail draft = mailRepo.findByMailId(draftId)
+                .orElseThrow(() -> new RuntimeException("Mail not found"));
+
+        MailSnapshot snapshot = mailSnapshotRepo.findBySnapshotId(snapshotId)
+                .orElseThrow(() -> new RuntimeException("Snapshot not found"));
+
+
+        draft.setSubject(snapshot.getSubject());
+        draft.setBody(snapshot.getBody());
+        draft.setPriority(snapshot.getPriority());
+        draft.setReceiverEmails(snapshot.getReceiverEmails() != null ? new ArrayList<>(snapshot.getReceiverEmails()) : new ArrayList<>());
+        draft.setDate(Timestamp.valueOf(LocalDateTime.now()));
+
+
+        List<Attachment> currentAttachments = draft.getAttachments();
+        if(currentAttachments != null) {
+
+            for(Attachment att : currentAttachments) {
+                att.setMail(null);
+            }
+            currentAttachments.clear();
+        }
+
+
+        List<Attachment> snapshotAttachments = snapshot.getAttachments();
+        if (snapshotAttachments != null && !snapshotAttachments.isEmpty()) {
+            List<Attachment> restoredAttachments = new ArrayList<>();
+            for (Attachment att : snapshotAttachments) {
+
+                att.setMail(draft);
+                restoredAttachments.add(att);
+            }
+            draft.setAttachments(restoredAttachments);
+        }
+
+        mailRepo.save(draft);
     }
 }

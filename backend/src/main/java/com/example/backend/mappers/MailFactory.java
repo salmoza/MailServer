@@ -76,6 +76,8 @@ public class MailFactory {
 
     public static MailSnapshot createSnapshot(Mail draft) {
         return MailSnapshot.builder()
+                .userId(draft.getUserId())
+                .attachments(draft.getAttachments() != null ? new ArrayList<>(draft.getAttachments()) : new ArrayList<>())
                 .mail(draft)
                 .subject(draft.getSubject())
                 .body(draft.getBody())
