@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {Router, RouterLink} from '@angular/router';
 import {FolderStateService} from '../../Dtos/FolderStateService';
@@ -9,6 +9,8 @@ import {MailDetail} from '../mail-detail/mail-detail';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {SearchBarComponent} from '../../components/search-bar/search-bar';
 import { SidebarComponent } from '../../components/side-bar/side-bar';
+import { PaginationFooterComponent } from '../../components/pagination-footer/pagination-footer';
+import { PaginationService } from '../../services/pagination.service';
 import { FolderSidebarService } from '../../services/folder-sidebar.service';
 interface MailSearchRequestDto {
   sender?: string;
@@ -20,7 +22,7 @@ interface MailSearchRequestDto {
 @Component({
   selector: 'app-custom-folder-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent, SidebarComponent],
+  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent, SidebarComponent, PaginationFooterComponent],
   template: `
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -55,7 +57,7 @@ interface MailSearchRequestDto {
                 [disabled]="Emails.length === 0">
           <span class="material-symbols-outlined">folder_open</span>
         </button>
-        <button (click)="getCustom(page)"
+        <button (click)="refreshCurrentPage()"
                 class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
                 title="Reload Emails">
           <span class="material-symbols-outlined">refresh</span>
@@ -163,16 +165,13 @@ interface MailSearchRequestDto {
       </div>
     </div>
 
-    <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto gap-2">
-      <button (click)="updatePage(page-1)" class="flex items-center justify-center text-slate-500 hover:text-primary">
-        <span class="material-symbols-outlined text-lg">chevron_left</span>
-      </button>
-      <button *ngFor="let p of [0,1,2]" (click)="updatePage(p)" [class.bg-primary]="page===p" [class.text-white]="page===p" class="px-3 py-1 rounded-lg text-sm">{{p+1}}</button>
-      <button (click)="updatePage(page+1)" class="flex items-center justify-center text-slate-500 hover:text-primary">
-        <span class="material-symbols-outlined text-lg">chevron_right</span>
-      </button>
-    </div>
-  </main>
+        <app-pagination-footer
+          [contextKey]="paginationKey"
+          [pages]="paginationPages"
+          [canGoNext]="canGoNext"
+        ></app-pagination-footer>
+      </main>
+
 
   <div class="move-conatiner bg-black/50" [class.active]="tomove">
     <div class="content-container">
@@ -359,8 +358,8 @@ interface MailSearchRequestDto {
     }
   `],
 })
-export class CustomFolderPage implements OnInit{
-  constructor(protected MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router, private folderSidebarService: FolderSidebarService) {
+export class CustomFolderPage implements OnInit, OnDestroy{
+  constructor(protected MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router, private folderSidebarService: FolderSidebarService, private paginationService: PaginationService) {
   }
   CustomFolderPopUp:boolean = false;
   foldername:string=''
@@ -368,6 +367,10 @@ export class CustomFolderPage implements OnInit{
   InboxData:Datafile[]=[];
   CustomFolders:CustomFolderData[]=[];
   page:number = 0;
+  readonly paginationKey = 'custom-folder-page';
+  readonly pageSize = 10;
+  paginationPages: number[] = [0];
+  canGoNext = true;
   tomove:boolean=false;
   showDeleteOptions: boolean = false;
   isSearchActive = false;
@@ -377,8 +380,30 @@ export class CustomFolderPage implements OnInit{
   showSortMenu = false;
   currentSort = 'Date (Newest first)';
   ngOnInit() {
-    this.getCustom(0);
+    this.paginationService.registerContext(this.paginationKey, 0, (page) => this.updatePage(page));
     this.getCustomFolders();
+  }
+  ngOnDestroy(): void {
+    this.paginationService.unregisterContext(this.paginationKey);
+  }
+  private resetPaginationState(): void {
+    this.paginationPages = [0];
+    this.canGoNext = true;
+    this.paginationService.resetState(this.paginationKey, 0);
+  }
+
+  private syncPagination(page: number, itemsCount: number): boolean {
+    const state = this.paginationService.updateAfterDataLoad(
+      this.paginationKey,
+      page,
+      itemsCount,
+      this.pageSize,
+    );
+
+    this.paginationPages = state.pages;
+    this.canGoNext = state.canGoNext;
+
+    return true;
   }
   updatePage(page: number) {
     if (page < 0) {
@@ -432,6 +457,11 @@ export class CustomFolderPage implements OnInit{
     let param = new HttpParams().set('page', page).set("folderId", CustomId);
     this.http.get<Datafile[]>(`http://localhost:8080/api/mails`,{params:param}).subscribe({
       next:(respones) => {
+        const canDisplay = this.syncPagination(page, respones.length);
+        if (!canDisplay) {
+          return;
+        }
+
         this.InboxData = this.transformMailData(respones);
         console.log(respones);
       },
@@ -451,7 +481,8 @@ export class CustomFolderPage implements OnInit{
 
      if (alreadyOnCustom) {
        this.page = 0;
-       this.getCustom(0);
+       this.resetPaginationState();
+       this.paginationService.setPage(this.paginationKey, 0);
        this.getCustomFolders();
      }
     }
@@ -523,9 +554,21 @@ export class CustomFolderPage implements OnInit{
       folderId:this.folderStateService.userData().inboxFolderId,
       userId:this.folderStateService.userData().userId,
     }
+    
+    // Add new folder to CustomFolders array immediately for instant UI feedback
+    const newFolder: CustomFolderData = {
+      folderId: payload.folderId,
+      folderName: this.foldername,
+      User: this.folderStateService.userData().userId,
+      mails: []
+    };
+    this.CustomFolders = [...this.CustomFolders, newFolder];
+    this.foldername = '';
+    this.CustomFolderPopUp = false;
+    
     this.http.post(url, payload).subscribe({
       next:() => {
-        this.CustomFolderPopUp = false;
+        // Sync with server in background
         this.getCustomFolders();
       },
       error:() => alert("failed to create custom folder")
@@ -565,21 +608,30 @@ export class CustomFolderPage implements OnInit{
 
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
-    this.page = 0;
 
-    if (criteria.keywords) {
+    if (criteria?.keywords) {
       // Quick keyword search
       this.isSearchActive = true;
       this.isAdvancedSearch = false;
       this.currentSearchKeyword = criteria.keywords;
-      this.performQuickSearch(0);
-    } else if (criteria.advancedSearch) {
+      this.currentAdvancedFilters = {};
+      this.currentSort = 'Date (Newest first)';
+      this.page = 0;
+    } else if (criteria?.advancedSearch) {
       // Advanced filter search
       this.isSearchActive = true;
       this.isAdvancedSearch = true;
       this.currentAdvancedFilters = criteria.advancedSearch;
-      this.performAdvancedSearch(0);
+      this.currentSearchKeyword = '';
+      this.currentSort = 'Date (Newest first)';
+      this.page = 0;
+    } else {
+      this.handleClearSearch();
+      return;
     }
+
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   performQuickSearch(page: number) {
@@ -597,6 +649,11 @@ export class CustomFolderPage implements OnInit{
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
       next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
         this.InboxData = this.transformMailData(response);
         console.log('Search results:', response);
       },
@@ -625,6 +682,11 @@ export class CustomFolderPage implements OnInit{
       { params }
     ).subscribe({
       next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
         this.InboxData = this.transformMailData(response);
         console.log('Filter results:', response);
       },
@@ -640,9 +702,10 @@ export class CustomFolderPage implements OnInit{
     this.isAdvancedSearch = false;
     this.currentSearchKeyword = '';
     this.currentAdvancedFilters = {};
-    this.page = 0;
     this.currentSort = 'Date (Newest first)';
-    this.getCustom(0);
+    this.page = 0;
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   toggleSortMenu() {
@@ -652,19 +715,9 @@ export class CustomFolderPage implements OnInit{
   setSortAndClose(sortOption: string) {
     this.currentSort = sortOption;
     this.showSortMenu = false;
-    this.page = 0; // Reset to first page
-    
-    // Map the display text to backend sortBy parameter
-    const sortByMap: { [key: string]: string } = {
-      'Date (Newest first)': 'date_desc',
-      'Date (Oldest first)': 'date_asc',
-      'Subject (A → Z)': 'subject'
-    };
-    
-    const sortBy = sortByMap[sortOption];
-    
-    // Call the sort endpoint
-    this.applySorting(sortBy, 0);
+    this.page = 0;
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   applySorting(sortBy: string, page: number) {
@@ -684,6 +737,11 @@ export class CustomFolderPage implements OnInit{
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
       next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
         this.InboxData = this.transformMailData(response);
         console.log('Sorted results:', response);
       },
@@ -771,12 +829,17 @@ export class CustomFolderPage implements OnInit{
     });
   }
 
+  refreshCurrentPage() {
+    this.Emails = [];
+    this.paginationService.setPage(this.paginationKey, this.page);
+  }
+
   handleFolderClick(folderId: string) {
     const alreadyOnCustom = this.folderSidebarService.navigateToCustomFolder(folderId);
 
     if (alreadyOnCustom) {
       this.page = 0;
-      this.getCustom(0);
+      this.paginationService.setPage(this.paginationKey, 0);
       this.getCustomFolders();
     }
   }
@@ -790,7 +853,10 @@ export class CustomFolderPage implements OnInit{
   }
 
   handleDeleteFolder(folderId: string) {
-    this.folderSidebarService.deleteFolder(folderId, () => this.getCustomFolders());
+    this.CustomFolders = this.CustomFolders.filter(f => f.folderId !== folderId);
+    this.folderSidebarService.deleteFolder(folderId, () => {
+      this.router.navigate(['/inbox']);
+    });
   }
 
   getCurrentFolderId(): string {

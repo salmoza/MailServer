@@ -21,4 +21,5 @@ public class MailListDto {
     private LocalDateTime date;
     private Boolean isRead;
     private int priority;
+//    private int mailCount;
 }

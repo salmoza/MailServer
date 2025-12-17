@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterModule } from '@angular/router';
 import { MailDetail } from '../mail-detail/mail-detail';
@@ -11,6 +11,8 @@ import { FormsModule } from '@angular/forms';
 import { lastValueFrom } from 'rxjs';
 import { SearchBarComponent } from '../../components/search-bar/search-bar';
 import { HeaderComponent } from '../../header';
+import { PaginationFooterComponent } from '../../components/pagination-footer/pagination-footer';
+import { PaginationService } from '../../services/pagination.service';
 import { SidebarComponent } from '../../components/side-bar/side-bar';
 import { FolderSidebarService } from '../../services/folder-sidebar.service';
 
@@ -38,7 +40,7 @@ interface MailSnapshot {
 @Component({
   selector: 'app-drafts',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule, SearchBarComponent, HeaderComponent, SidebarComponent],
+  imports: [CommonModule, RouterLink, RouterModule, HttpClientModule, FormsModule, SearchBarComponent, HeaderComponent, SidebarComponent, PaginationFooterComponent],
   template: `
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
@@ -136,12 +138,11 @@ interface MailSnapshot {
           </div>
         </div>
 
-        <div class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto gap-2">
-          <button (click)="updatePage(page - 1)" class="flex cursor-pointer items-center justify-center text-slate-500 hover:text-primary"><span class="material-symbols-outlined text-lg">chevron_left</span></button>
-          <button (click)="updatePage(0)" [ngClass]="{'bg-primary text-white': page === 0, 'bg-slate-100 text-slate-600': page !== 0}" class="px-3 py-1 rounded-lg text-sm cursor-pointer">1</button>
-          <button (click)="updatePage(1)" [ngClass]="{'bg-primary text-white': page === 1, 'bg-slate-100 text-slate-600': page !== 1}" class="px-3 py-1 rounded-lg text-sm cursor-pointer">2</button>
-          <button (click)="updatePage(page + 1)" class="flex items-center justify-center text-slate-500 hover:text-primary cursor-pointer"><span class="material-symbols-outlined text-lg">chevron_right</span></button>
-        </div>
+          <app-pagination-footer
+            [contextKey]="paginationKey"
+            [pages]="paginationPages"
+            [canGoNext]="canGoNext"
+          ></app-pagination-footer>
       </main>
 
       <div class="popup" [class.active]="isopen">
@@ -382,7 +383,7 @@ interface MailSnapshot {
     .bg-primary\\/20 { background-color: rgba(19, 127, 236, 0.2) !important; }
   `],
 })
-export class Drafts implements OnInit {
+export class Drafts implements OnInit, OnDestroy {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
 
@@ -390,13 +391,17 @@ export class Drafts implements OnInit {
       private http: HttpClient,
       protected folderStateService: FolderStateService,
       private route: Router,
-      private Shuffler: MailShuttleService,
+      private Shuffler: MailShuttleService, private paginationService: PaginationService,
       private folderSidebarService: FolderSidebarService
   ) {}
 
   page=0;
   showSortMenu = false;
   currentSort = 'Date (Newest first)';
+  readonly paginationKey = 'drafts';
+  readonly pageSize = 10;
+  paginationPages: number[] = [0];
+  canGoNext = true;
   DraftId:string='';
   currentEmailInput:string='';
   isopen:boolean = false;
@@ -426,8 +431,32 @@ export class Drafts implements OnInit {
   selectedSnapshot: MailSnapshot | null = null;
 
   ngOnInit() {
-    this.refreshData();
+    this.paginationService.registerContext(this.paginationKey, 0, (page) => this.updatePage(page));
     this.getCustomFolders();
+  }
+
+  ngOnDestroy(): void {
+    this.paginationService.unregisterContext(this.paginationKey);
+  }
+
+  private resetPaginationState(): void {
+    this.paginationPages = [0];
+    this.canGoNext = true;
+    this.paginationService.resetState(this.paginationKey, 0);
+  }
+
+  private syncPagination(page: number, itemsCount: number): boolean {
+    const state = this.paginationService.updateAfterDataLoad(
+      this.paginationKey,
+      page,
+      itemsCount,
+      this.pageSize,
+    );
+
+    this.paginationPages = state.pages;
+    this.canGoNext = state.canGoNext;
+
+    return true;
   }
 
   updatePage(page: number) {
@@ -460,7 +489,8 @@ export class Drafts implements OnInit {
   }
 
   refreshData() {
-    this.updatePage(this.page);
+    this.Emails = [];
+    this.paginationService.setPage(this.paginationKey, this.page);
   }
 
 
@@ -526,19 +556,27 @@ export class Drafts implements OnInit {
     console.log('Search criteria:', criteria);
     this.page = 0;
 
-    if (criteria.keywords) {
-      // Quick keyword search
+    if (criteria?.keywords) {
       this.isSearchActive = true;
       this.isAdvancedSearch = false;
       this.currentSearchKeyword = criteria.keywords;
-      this.performQuickSearch(0);
-    } else if (criteria.advancedSearch) {
-      // Advanced filter search
+      this.currentAdvancedFilters = {};
+      this.currentSort = 'Date (Newest first)';
+      this.page = 0;
+    } else if (criteria?.advancedSearch) {
       this.isSearchActive = true;
       this.isAdvancedSearch = true;
       this.currentAdvancedFilters = criteria.advancedSearch;
-      this.performAdvancedSearch(0);
+      this.currentSearchKeyword = '';
+      this.currentSort = 'Date (Newest first)';
+      this.page = 0;
+    } else {
+      this.handleClearSearch();
+      return;
     }
+
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   performQuickSearch(page: number) {
@@ -558,6 +596,11 @@ export class Drafts implements OnInit {
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
       next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
         this.DraftData = response;
         this.Emails = [];
         console.log('Search results:', response);
@@ -587,6 +630,11 @@ export class Drafts implements OnInit {
       })
       .subscribe({
         next: (response) => {
+          const canDisplay = this.syncPagination(page, response.length);
+          if (!canDisplay) {
+            return;
+          }
+
           this.DraftData = response;
           this.Emails = [];
           console.log('Filter results:', response);
@@ -605,7 +653,8 @@ export class Drafts implements OnInit {
     this.currentAdvancedFilters = {};
     this.page = 0;
     this.currentSort = 'Date (Newest first)';
-    this.refreshData();
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   applySorting(sortBy: string, page: number) {
@@ -627,6 +676,11 @@ export class Drafts implements OnInit {
 
     this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
       next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
         this.DraftData = response;
         console.log('Drafts loaded:', response);
       },
@@ -645,7 +699,8 @@ export class Drafts implements OnInit {
     this.currentSort = sortOption;
     this.showSortMenu = false;
     this.page = 0;
-    this.updatePage(0);
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
   }
 
   getCustomFolders(){
@@ -694,11 +749,22 @@ export class Drafts implements OnInit {
       folderId: this.folderStateService.userData().inboxFolderId,
       userId: this.folderStateService.userData().userId,
     };
+    
+    // Add new folder to CustomFolders array immediately for instant UI feedback
+    const newFolder: CustomFolderData = {
+      folderId: payload.folderId,
+      folderName: this.foldername,
+      User: this.folderStateService.userData().userId,
+      mails: []
+    };
+    this.CustomFolders = [...this.CustomFolders, newFolder];
+    this.foldername = '';
+    this.CustomFolderPopUp = false;
+    
     this.http.post(url, payload).subscribe({
       next: (respones) => {
-        this.getCustomFolders(); // Refresh list
-        this.CustomFolderPopUp = false;
-        this.foldername = '';
+        // Sync with server in background
+        this.getCustomFolders();
       },
       error: (respones) => {
         alert('failed to create custom folder');

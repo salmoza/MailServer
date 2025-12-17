@@ -1,0 +1,24 @@
+<div class="pagination-container">
+  <button
+    type="button"
+    class="icon-button"
+    (click)="previous()"
+    [disabled]="pages.length ? currentPage <= pages[0] : currentPage === 0"
+  >
+    <span class="material-symbols-outlined text-lg">chevron_left</span>
+  </button>
+
+  <button
+    type="button"
+    *ngFor="let page of pages"
+    class="page-button"
+    [class.active]="isActive(page)"
+    (click)="goToPage(page)"
+  >
+    {{ page + 1 }}
+  </button>
+
+  <button type="button" class="icon-button" (click)="next()" [disabled]="!canGoNext">
+    <span class="material-symbols-outlined text-lg">chevron_right</span>
+  </button>
+</div>
