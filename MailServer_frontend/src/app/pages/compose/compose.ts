@@ -9,6 +9,7 @@ import { Datafile } from '../../Dtos/datafile';
 import { MailShuttleService } from '../../Dtos/MailDetails';
 import { ContactService } from '../../services/contact.services';
 import { ContactDto } from '../../Dtos/ContactDto';
+import {aiService} from '../../services/ai.Service';
 
 export interface att {
   id: string;
@@ -46,7 +47,7 @@ export interface att {
         >
           <h3 class="text-lg font-semibold text-gray-800">New Message</h3>
           <button
-            class="p-2 text-gray-500 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0D6EFD]"
+            class="p-2 flex items-center text-gray-500 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0D6EFD]"
             (click)="close()"
           >
             <span class="material-symbols-outlined text-xl">close</span>
@@ -143,7 +144,17 @@ export interface att {
               ></div>
             </div>
           </div>
-
+          <button
+            (click)="showAiModel = true"
+            type="button"
+            class=" absolute flex  right-110 top-60 flex-col items-center gap-1 p-3
+                   bg-white text-purple-600 rounded-4xl shadow-sm border border-gray-100
+                   hover:shadow-md hover:scale-110 hover:text-purple-700 hover:border-purple-200
+                   transition-all duration-200 group-hover:opacity-100 opacity-60"
+            title="Generate with AI"
+          >
+            <span class="material-symbols-outlined text-2xl">auto_awesome</span>
+          </button>
           <!-- Attachment Area -->
           <div
             (click)="openFileUpload()"
@@ -156,17 +167,14 @@ export interface att {
           <!-- Attached Files List -->
           @for(item of attachments; track item){
           <div class="space-y-2">
-            <div class="flex items-center justify-between p-2 bg-gray-100 rounded-lg">
+            <div class="flex items-center justify-between p-5 bg-gray-100 rounded-2xl ">
               <div class="flex items-center space-x-2">
-                <span class="material-symbols-outlined text-gray-500">{{ item.name }}</span>
-                <span class="text-sm font-medium text-gray-700"
-                  >{{ item.name }}.{{ item.filetype }}</span
-                >
+                <span class="font-bold text-black">{{ item.name }}</span>
                 <span class="text-xs text-gray-500">{{ item.sizeMB }}</span>
               </div>
               <button
                 (click)="removeAttachment(item.id)"
-                class="p-1 rounded-full text-gray-500 hover:bg-gray-200"
+                class="flex items-center p-1 rounded-full text-gray-500 hover:bg-gray-200"
               >
                 <span class="material-symbols-outlined text-lg">close</span>
               </button>
@@ -226,25 +234,25 @@ export interface att {
             <div class="flex items-center gap-1">
               <span class="text-sm font-medium text-gray-600">Priority:</span>
               <div class="flex items-center border border-gray-300 rounded-lg">
-                <button
+                <button class="  hover:bg-gray-200 hover:rounded-l-md hover:border-r"
                   (click)="priority = 4"
                   [class]="priority === 4 ? 'px-2 py-1 bg-gray-200 rounded-l-md border-r' : 'px-2 py-1'"
                 >
                   4
                 </button>
-                <button
+                <button class="  hover:bg-gray-400 "
                   (click)="priority = 3"
-                  [class]="priority === 3 ? 'px-2 py-1 bg-gray-200' : 'px-2 py-1'"
+                  [class]="priority === 3 ? 'px-2 py-1 bg-gray-400' : 'px-2 py-1'"
                 >
                   3
                 </button>
-                <button
+                <button class="  hover:bg-yellow-200 "
                   (click)="priority = 2"
                   [class]="priority === 2 ? 'px-2 py-1 bg-yellow-200' : 'px-2 py-1'"
                 >
                   2
                 </button>
-                <button
+                <button  class="  hover:bg-red-200  hover:border-l"
                   (click)="priority = 1"
                   [class]="
                     priority === 1 ? 'px-2 py-1 bg-red-200 rounded-r-md border-l' : 'px-2 py-1'
@@ -255,13 +263,93 @@ export interface att {
               </div>
             </div>
             <button
-              class="p-2 text-gray-600 rounded-full hover:bg-gray-200"
+              class="p-3 flex items-center text-gray-600 rounded-full hover:bg-gray-200"
               (click)="clearCompose()"
             >
               <span class="material-symbols-outlined">delete</span>
             </button>
           </div>
         </footer>
+      </div>
+      <div class="ai-popup " [class.active] = 'showAiModel'>
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm ">
+          <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+
+            <div class="bg-gradient-to-r from-purple-600 to-blue-600 p-4 text-white flex justify-between items-center">
+              <h3 class="font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                Smart Body Generater
+              </h3>
+              <button (click)="showAiModel = false" class=" flex items-center hover:bg-white/20 rounded-full p-1">
+                <span class="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+
+            <div class="p-6 space-y-4" [class.cursor-wait]="isLoading">
+
+              <div class="space-y-1">
+                <label class="text-sm font-semibold text-gray-700">What should this email be about?</label>
+                <textarea
+                  [(ngModel)]="prompt"
+                  placeholder="e.g. Ask for a sick leave for tomorrow..."
+                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-h-[100px] resize-none text-sm outline-none transition-all "
+                ></textarea>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-sm font-semibold text-gray-700">Tone</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    (click)="selectedtone = 'Professional'"
+                    [class]="selectedtone === 'Professional' ? 'bg-purple-100 border-purple-500 text-purple-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'"
+                    class="border rounded-lg p-2 text-sm font-medium transition-all duration-20 active:scale-95 hover:scale-[1.02] "
+                  >
+                    Professional
+                  </button>
+                  <button
+                    type="button"
+                    (click)="selectedtone = 'Friendly'"
+                    [class]="selectedtone === 'Friendly' ? 'bg-purple-100 border-purple-500 text-purple-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'"
+                    class="border rounded-lg p-2 text-sm font-medium transition-all duration-20 active:scale-95 hover:scale-[1.02] "
+                  >
+                    Friendly
+                  </button>
+                  <button
+                    type="button"
+                    (click)="selectedtone = 'Urgent'"
+                    [class]="selectedtone === 'Urgent' ? 'bg-purple-100 border-purple-500 text-purple-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'"
+                    class="border rounded-lg p-2 text-sm font-medium transition-all duration-20 active:scale-95 hover:scale-[1.02] "
+                  >
+                    Urgent
+                  </button>
+                  <button
+                    type="button"
+                    (click)="selectedtone = 'Concise'"
+                    [class]="selectedtone === 'Concise' ? 'bg-purple-100 border-purple-500 text-purple-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'"
+                    class="border rounded-lg p-2 text-sm font-medium transition-all duration-20 active:scale-95 hover:scale-[1.02] "
+                  >
+                    Concise
+                  </button>
+                </div>
+              </div>
+
+              <button
+                (click)="generateBody()"
+                [disabled]="isLoading || !prompt || !selectedtone"
+                class="w-full py-3 transition-all duration-100 bg-purple-600 text-white font-bold rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 shadow-lg shadow-purple-200"
+              >
+                @if(isLoading) {
+                  <span class="material-symbols-outlined animate-spin text-xl">progress_activity</span>
+                  Generating...
+                } @else {
+                  <span class="material-symbols-outlined text-xl">smart_toy</span>
+                  Generate Draft
+                }
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   `,
@@ -295,7 +383,18 @@ export interface att {
         cursor: text;
         user-select: text;
       }
-
+        .ai-popup{
+          opacity: 0;
+          visibility: hidden;
+          position: absolute;
+          cursor: none;
+          transition: all 0.2s ease-in-out;
+        }
+        .ai-popup.active {
+          visibility: visible;
+          opacity: 1;
+          cursor: auto;
+        }
       button {
         cursor: pointer;
       }
@@ -321,7 +420,7 @@ export class Compose implements OnInit, OnDestroy {
 
   // Map for quick email to name lookup
   emailToNameMap: Map<string, string> = new Map();
-
+  ai = inject(aiService);
   constructor(
     private route: Router,
     private http: HttpClient,
@@ -341,7 +440,10 @@ export class Compose implements OnInit, OnDestroy {
       }
     }
   }
-
+  showAiModel:boolean = false;
+  prompt:string='';
+  selectedtone:string='';
+  isLoading:boolean = false;
   recipients: string[] = [];
   folderStateService: FolderStateService;
   currentEmailInput: string = '';
@@ -350,7 +452,31 @@ export class Compose implements OnInit, OnDestroy {
   priority: number = 4;
   attachments: att[] = [];
   mailId: string = '';
-
+  generateBody(){
+    if(!this.prompt){
+      alert("please enter a prompt");
+      return;
+    }
+    this.isLoading = true;
+    this.isRead = true;
+    const name = this.folderStateService.userData().username;
+    this.ai.Generate(name,this.prompt,this.selectedtone).subscribe({
+      next: (result) => {
+        if(this.bodyEditor && this.bodyEditor.nativeElement){
+          this.bodyEditor.nativeElement.innerText = result.result;
+        }
+        this.isRead = false;
+        this.showSuggestions = false;
+        this.showAiModel = false;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.log(err);
+        alert("Ai generation failed.");
+        this.isLoading = false;
+      }
+    });
+  }
   ngOnInit() {
     // Load all contacts on init
     this.loadAllContacts();
