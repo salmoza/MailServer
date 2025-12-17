@@ -22,22 +22,18 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
         >
           <span class="material-symbols-outlined text-xl">arrow_back</span>
         </a>
-        <div class="flex items-center gap-3 px-2">
-          <div class="size-6 text-[#137fec]">
-            <span class="material-symbols-outlined !text-3xl">all_inclusive</span>
-          </div>
-          <h2 class="text-xl font-bold tracking-[-0.015em]">MailClient</h2>
+        <div class="flex items-center gap-4 text-slate-800">
+          <h2 class="text-slate-800 text-lg font-bold">EmailApp</h2>
         </div>
 
+        
         <!-- Top bar: Search + Avatar -->
         <div
           class="w-full flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200 sticky top-0 z-50"
         >
           <label class="flex flex-col min-w-40 h-10 flex-1 mr-6">
             <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
-              <div
-                class=" text-slate-500 flex border-none bg-slate-100 items-center justify-center pl-3 rounded-l-lg border-r-0"
-              >
+              <div class=" text-slate-500 flex border-none bg-slate-100 items-center justify-center pl-3 rounded-l-lg border-r-0">
                 <span class="material-symbols-outlined text-xl">search</span>
               </div>
               <input
@@ -52,6 +48,8 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
           <!-- Avatar dropdown -->
           <app-header></app-header>
         </div>
+
+
 
         <!-- Rest of inbox content below -->
         <div class="px-6 py-4">
@@ -127,10 +125,7 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
           >
             <span class="material-symbols-outlined text-5xl mb-2">person_off</span>
             <p class="text-lg font-medium">No contacts found</p>
-            <button
-              (click)="resetView()"
-              class="mt-4 text-[#137fec] font-bold hover:underline cursor-pointer"
-            >
+            <button (click)="resetView()" class="mt-4 text-[#137fec] font-bold hover:underline cursor-pointer">
               Return to full list
             </button>
           </div>

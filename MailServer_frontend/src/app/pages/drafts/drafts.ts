@@ -45,6 +45,8 @@ interface MailSnapshot {
 
 <div class="flex h-screen w-full font-inter">
   <app-sidebar
+    [username]="folderStateService.userData().username"
+    [userEmail]="folderStateService.userData().email"
     [customFolders]="CustomFolders"
     [activeCustomFolderId]="getCurrentFolderId()"
     (folderClick)="handleFolderClick($event)"

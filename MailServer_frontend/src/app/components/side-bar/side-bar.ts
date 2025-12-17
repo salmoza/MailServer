@@ -9,18 +9,20 @@ import { CustomFolderData } from '../../Dtos/datafile';
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule],
   template: `
-     <aside
-        class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0"
-      >
-        <div class="flex h-full flex-col justify-between">
-          <div class="flex flex-col gap-6">
-            <!-- MailClient Logo and Name -->
-            <div class="flex items-center gap-3 px-2">
-              <div class="size-6 text-[#137fec]">
-                <span class="material-symbols-outlined !text-3xl">all_inclusive</span>
-              </div>
-              <h2 class="text-xl font-bold tracking-[-0.015em]">MailClient</h2>
+    <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
+      <div class="flex h-full flex-col justify-between">
+        <div class="flex flex-col gap-6">
+          <!-- User Info -->
+          <div class="flex items-center gap-3 px-2">
+            <div class="flex flex-col">
+              <h1 class="text-gray-900 text-base font-medium leading-normal">
+                {{ username }}
+              </h1>
+              <p class="text-gray-500 text-sm font-normal leading-normal">
+                {{ userEmail }}
+              </p>
             </div>
+          </div>
 
           <!-- Compose Button -->
           <button [routerLink]="['/compose']"
