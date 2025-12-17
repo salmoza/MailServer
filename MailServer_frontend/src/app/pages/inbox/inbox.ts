@@ -636,12 +636,28 @@ export class Inbox implements OnInit, OnDestroy {
       folderId: this.folderStateService.userData().inboxFolderId,
       userId: this.folderStateService.userData().userId,
     };
+    
+    // Add new folder to CustomFolders array immediately for instant UI feedback
+    const newFolder: CustomFolderData = {
+      folderId: payload.folderId,
+      folderName: this.foldername,
+      User: this.folderStateService.userData().userId,
+      mails: []
+    };
+    this.CustomFolders = [...this.CustomFolders, newFolder];
+    this.foldername = '';
+    this.CustomFolderPopUp = false;
+    
     this.http.post(url, payload).subscribe({
       next: (respones) => {
         console.log(respones);
+        // Sync with server in background
+        this.getCustomFolders();
       },
       error: (respones) => {
         alert('failed to create custom folder');
+        // Remove folder from UI if creation failed
+        this.CustomFolders = this.CustomFolders.filter(f => f.folderName !== this.foldername);
       },
     });
   }
@@ -933,7 +949,10 @@ export class Inbox implements OnInit, OnDestroy {
   }
 
   handleDeleteFolder(folderId: string) {
-    this.folderSidebarService.deleteFolder(folderId, () => this.getCustomFolders());
+    this.CustomFolders = this.CustomFolders.filter(f => f.folderId !== folderId);
+    this.folderSidebarService.deleteFolder(folderId, () => {
+      this.router.navigate(['/inbox']);
+    });
   }
 
   getCurrentFolderId(): string {

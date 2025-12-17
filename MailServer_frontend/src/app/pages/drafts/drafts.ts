@@ -792,11 +792,22 @@ export class Drafts implements OnInit, OnDestroy {
       folderId: this.folderStateService.userData().inboxFolderId,
       userId: this.folderStateService.userData().userId,
     };
+    
+    // Add new folder to CustomFolders array immediately for instant UI feedback
+    const newFolder: CustomFolderData = {
+      folderId: payload.folderId,
+      folderName: this.foldername,
+      User: this.folderStateService.userData().userId,
+      mails: []
+    };
+    this.CustomFolders = [...this.CustomFolders, newFolder];
+    this.foldername = '';
+    this.CustomFolderPopUp = false;
+    
     this.http.post(url, payload).subscribe({
       next: (respones) => {
-        this.getCustomFolders(); // Refresh list
-        this.CustomFolderPopUp = false;
-        this.foldername = '';
+        // Sync with server in background
+        this.getCustomFolders();
       },
       error: (respones) => {
         alert('failed to create custom folder');

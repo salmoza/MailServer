@@ -18,7 +18,7 @@ export interface PaginationUpdateResult {
 @Injectable({ providedIn: 'root' })
 export class PaginationService {
   private contexts = new Map<string, PaginationContext>();
-  private static readonly DEFAULT_PAGE_SIZE = 2;
+  private static readonly DEFAULT_PAGE_SIZE = 10;
 
   registerContext(key: string, initialPage = 0, onChange?: (page: number) => void): void {
     if (!this.contexts.has(key)) {
