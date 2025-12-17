@@ -16,7 +16,6 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Service
 public class MailSnapshot {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

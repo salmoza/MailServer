@@ -3,8 +3,8 @@ package com.example.backend.services.mailService;//package com.example.backend.s
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
 import com.example.backend.dtos.MailSearchRequestDto;
+import com.example.backend.mappers.MailMapper;
 import com.example.backend.model.*;
-import com.example.backend.mappers.MailFactory;
 import com.example.backend.repo.*;
 import com.example.backend.services.AttachmentService;
 import com.example.backend.services.FolderService;
@@ -44,7 +44,7 @@ public class MailService {
     private FolderRepo folderRepo ;
 
     @Autowired
-    MailFactory mailFactory;
+    MailMapper mailMapper;
 
     @Autowired
     private AttachmentService attachmentService;
@@ -82,7 +82,7 @@ public class MailService {
         }
 
         // Create sender copy with complete receiver list
-        Mail senderCopy = MailFactory.createSenderCopy(senderId, dto);
+        Mail senderCopy = MailMapper.createSenderCopy(senderId, dto);
 
         // Sender display name (for Sent folder)
         senderCopy.setSenderDisplayName(
@@ -113,7 +113,7 @@ public class MailService {
             String receiverId = receiverUser.getUserId();
 
             // receiver copy
-            Mail receiverCopy = MailFactory.createReceiverCopy(receiverId, dto, currentReceiverEmail);
+            Mail receiverCopy = MailMapper.createReceiverCopy(receiverId, dto, currentReceiverEmail);
 
             // Receiver sees sender name
             Contact receiverContact = receiverUser.getContacts().stream()
@@ -212,33 +212,9 @@ public class MailService {
         Mail found = folder.getMails().stream().filter(mail1 -> mail1.equals(mail)).findFirst()
                 .orElseThrow(() -> new RuntimeException("Mail not found"));
 
-        return mailFactory.toDto(mail, folderId);
+        return mailMapper.toDto(mail, folderId);
 
     }
-
-//    public List<MailListDto> filterEmails(String folderId, String subject, String sender) {
-//
-//        List<Mail> emails = mailRepo.getMailsByFolderId(folderId);
-//
-//        MailCriteria criteria = null;
-//
-//        if (subject != null) {
-//            criteria = (criteria == null)
-//                    ? new SubjectCriteria(subject)
-//                    : new AndCriteria(criteria, new SubjectCriteria(subject));
-//        }
-//
-//        if (sender != null) {
-//            criteria = (criteria == null)
-//                    ? new SenderCriteria(sender)
-//                    : new AndCriteria(criteria, new SenderCriteria(sender));
-//        }
-//
-//        if (criteria == null)
-//            return emails.stream().map(mailFactory::toListDto).toList();
-//
-//        return criteria.meetCriteria(emails).stream().map(mailFactory::toListDto).toList();
-//    }
 
     public void applyFilters(Mail mail, String userId) {
         System.out.println("in applyFilters");
@@ -357,7 +333,7 @@ public class MailService {
             return new ArrayList<>(); // empty page if page number is too high
         }
 
-        return sortedMails.subList(start, end).stream().map(mailFactory::toListDto).toList();
+        return sortedMails.subList(start, end).stream().map(mailMapper::toListDto).toList();
     }
 
 

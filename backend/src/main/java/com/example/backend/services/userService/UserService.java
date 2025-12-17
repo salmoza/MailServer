@@ -7,7 +7,7 @@ import com.example.backend.dtos.UserDto;
 //import com.example.backend.dtos.UserSigninDTO;
 
 import com.example.backend.model.User;
-import com.example.backend.mappers.UserFactory;
+import com.example.backend.mappers.UserMapper;
 import com.example.backend.repo.UserRepo;
 import com.example.backend.services.FolderService;
 import com.example.backend.services.userService.signin.*;
@@ -26,7 +26,7 @@ public class UserService {
     private UserRepo userRepo;
 
     @Autowired
-    UserFactory userFactory;
+    UserMapper userMapper;
 
     @Autowired
     private FolderService folderService ; //for initialization
@@ -112,7 +112,7 @@ public class UserService {
 
     public List<UserDto> getAllUsers() {
         return userRepo.findAll().stream()
-                .map(user -> userFactory.toDto(user))
+                .map(user -> userMapper.toDto(user))
                 .toList();
     }
 

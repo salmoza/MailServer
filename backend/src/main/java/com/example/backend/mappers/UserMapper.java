@@ -6,11 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserFactory {
+public class UserMapper {
 
 
     @Autowired
-    ContactFactory contactFactory;
+    ContactMapper contactMapper;
     public UserDto toDto(User user) {
         UserDto dto = new UserDto();
         dto.setUserId(user.getUserId());
@@ -20,7 +20,7 @@ public class UserFactory {
         if (user.getContacts() != null) {
             dto.setContacts(
                     user.getContacts().stream()
-                            .map(contactFactory::toDto)
+                            .map(contactMapper::toDto)
                             .toList()
             );
         }
@@ -36,7 +36,7 @@ public class UserFactory {
         user.setUsername(dto.getUsername());
         user.setContacts(
                 dto.getContacts().stream()
-                        .map(contactDto -> contactFactory.toEntity(contactDto, user))
+                        .map(contactDto -> contactMapper.toEntity(contactDto, user))
                         .toList()
         );
         user.setFolders(dto.getFolders());

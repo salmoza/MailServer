@@ -3,7 +3,7 @@ package com.example.backend.services;
 import com.example.backend.dtos.AttachmentDto;
 import com.example.backend.model.Attachment;
 import com.example.backend.model.Mail;
-import com.example.backend.mappers.AttachmentFactory;
+import com.example.backend.mappers.AttachmentMapper;
 import com.example.backend.repo.AttachmentsRepo;
 import com.example.backend.repo.MailRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +23,13 @@ import java.util.UUID;
 
 @Service
 public class AttachmentService {
-    private final AttachmentFactory attachmentFactory;
+    private final AttachmentMapper attachmentMapper;
     private final MailRepo mailRepo;
     private final AttachmentsRepo attachmentsRepo;
     private static final String Attachment_dir = "C:\\Users\\abdel\\Downloads\\Server";
     @Autowired
-    public AttachmentService(AttachmentFactory attachmentFactory, MailRepo mailRepo, AttachmentsRepo attachmentsRepo) {
-        this.attachmentFactory = attachmentFactory;
+    public AttachmentService(AttachmentMapper attachmentMapper, MailRepo mailRepo, AttachmentsRepo attachmentsRepo) {
+        this.attachmentMapper = attachmentMapper;
         this.mailRepo = mailRepo;
         this.attachmentsRepo = attachmentsRepo;
     }
@@ -62,7 +62,7 @@ public class AttachmentService {
             att.setFilename(originalName);
             Attachment saveAtt = attachmentsRepo.save(att);
             if(primaryAttachmentdto == null){
-                primaryAttachmentdto = attachmentFactory.toDTO(saveAtt);
+                primaryAttachmentdto = attachmentMapper.toDTO(saveAtt);
             }
         }
         return primaryAttachmentdto;

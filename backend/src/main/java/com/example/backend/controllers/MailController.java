@@ -4,7 +4,7 @@ import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
 import com.example.backend.dtos.MailSearchRequestDto;
 import com.example.backend.dtos.MoveMaildto;
-import com.example.backend.mappers.MailFactory;
+import com.example.backend.mappers.MailMapper;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.UserRepo;
 import com.example.backend.services.mailService.MailService;
@@ -22,7 +22,7 @@ public class MailController {
     MailService mailService ;
 
     @Autowired
-    MailFactory mailFactory;
+    MailMapper mailMapper;
 
     @Autowired
     MailRepo mailRepo ;

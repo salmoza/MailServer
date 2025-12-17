@@ -1,8 +1,8 @@
 package com.example.backend.services;
 
 import com.example.backend.dtos.MailDto;
+import com.example.backend.mappers.MailMapper;
 import com.example.backend.model.*;
-import com.example.backend.mappers.MailFactory;
 import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.MailSnapshotRepo;
@@ -42,7 +42,7 @@ public class DraftService {
         User user = userRepo.findByEmail(dto.getSender()) ;
         dto.setUserId(user.getUserId());
 
-        Mail draft = MailFactory.createDraftCopy(dto) ;
+        Mail draft = MailMapper.createDraftCopy(dto) ;
 
         draft = mailRepo.save(draft);
         folderService.addMail(null ,user.getDraftsFolderId(), draft);
@@ -78,7 +78,7 @@ public class DraftService {
     }
 
     private void saveSnapshot(Mail draft) {
-        MailSnapshot snapshot = MailFactory.createSnapshot(draft) ;
+        MailSnapshot snapshot = MailMapper.createSnapshot(draft) ;
         mailSnapshotrepo.save(snapshot);
     }
 
@@ -152,7 +152,7 @@ public class DraftService {
             User receiver = userRepo.findByEmail(receiverEmail);
             if (receiver == null) continue;
 
-            Mail receiverCopy = MailFactory.createReceiverCopyFromDraft(receiver.getUserId(), draft, receiverEmail);
+            Mail receiverCopy = MailMapper.createReceiverCopyFromDraft(receiver.getUserId(), draft, receiverEmail);
 
 
             Contact receiverContact = receiver.getContacts().stream()

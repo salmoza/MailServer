@@ -5,7 +5,7 @@ import com.example.backend.model.Attachment;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AttachmentFactory {
+public class AttachmentMapper {
     /*public  Attachment toEntity(AttachmentDto dto){
         if(dto == null){
             return null;

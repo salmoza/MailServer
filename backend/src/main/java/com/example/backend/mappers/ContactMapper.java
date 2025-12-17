@@ -6,7 +6,7 @@ import com.example.backend.model.User;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ContactFactory {
+public class ContactMapper {
     public ContactDto toDto(Contact contact) {
         ContactDto contactDto = new ContactDto();
         contactDto.setContactId(contact.getContactId());

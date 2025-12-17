@@ -446,3 +446,6 @@ select m1_0.mail_id,m1_0.body,m1_0.date,m1_0.deleted_at,m1_0.is_read,m1_0.mail_c
 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:480)
 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:57)
 	at java.base/java.lang.Thread.run(Thread.java:1575)
+2025-12-17 18:29:03.601352+02:00 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "BODY CHARACTER VARYING(255)": "'Dear [Recipient Name],<br><br>I hope this email finds you well.<br><br>I am wri... (418)"; SQL statement:
+insert into mail (body,date,deleted_at,is_read,previous_folder_id,priority,receiver_display_names,receiver_emails,sender_display_name,sender_email,status,subject,user_id,mail_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?) [22001-240]

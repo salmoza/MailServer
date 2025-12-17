@@ -2,7 +2,7 @@ package com.example.backend.services;
 
 import com.example.backend.dtos.ContactDto;
 import com.example.backend.model.Contact;
-import com.example.backend.mappers.ContactFactory;
+import com.example.backend.mappers.ContactMapper;
 import com.example.backend.repo.ContactsRepo;
 import com.example.backend.repo.UserRepo;
 import com.example.backend.model.User;
@@ -21,16 +21,16 @@ public class ContactService {
     private UserRepo userRepo;
 
     @Autowired
-    private ContactFactory contactFactory;
+    private ContactMapper contactMapper;
 
     public ContactDto createContact (String userId, ContactDto dto) {
         System.out.println("in contact create");
         User owner = userRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        Contact contact = contactFactory.toEntity(dto, owner);
+        Contact contact = contactMapper.toEntity(dto, owner);
         contact = contactsRepo.save(contact);
 
-        return contactFactory.toDto(contact);
+        return contactMapper.toDto(contact);
 //        return contactFactory.toDto(contact);
     }
 
@@ -45,7 +45,7 @@ public class ContactService {
         contact.setStarred(dto.isStarred());
         contact = contactsRepo.save(contact);
 
-        return contactFactory.toDto(contact);
+        return contactMapper.toDto(contact);
     }
 
     public void deleteContact (String contactId) {
@@ -112,7 +112,7 @@ public class ContactService {
 
         // Convert to DTO
         return contacts.stream()
-                .map(contactFactory::toDto)
+                .map(contactMapper::toDto)
                 .toList();
     }
 

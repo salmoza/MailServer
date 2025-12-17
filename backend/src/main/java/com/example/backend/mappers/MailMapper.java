@@ -12,10 +12,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 @Service
-public class MailFactory {
+public class MailMapper {
 
     @Autowired
-    AttachmentFactory attachmentFactory;
+    AttachmentMapper attachmentMapper;
 
     public static Mail createSenderCopy(String userId, MailDto dto) {
         return Mail.builder()
@@ -90,7 +90,7 @@ public class MailFactory {
 
         List<AttachmentDto> attachments = new ArrayList<>();
         for (Attachment attachment : mail.getAttachments()) {
-            attachments.add(attachmentFactory.toDTO(attachment));
+            attachments.add(attachmentMapper.toDTO(attachment));
         }
         return MailDto.builder()  // changed to be builder
                 .userId(mail.getUserId())
