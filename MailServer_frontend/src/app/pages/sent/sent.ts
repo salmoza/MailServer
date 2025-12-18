@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FolderStateService } from '../../Dtos/FolderStateService';
@@ -75,6 +75,13 @@ interface MailSearchRequestDto {
               [disabled]="Emails.length === 0"
             >
               <span class="material-symbols-outlined">folder_open</span>
+            </button>
+            <button
+              (click)="refreshSent()"
+              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100"
+              title="Refresh Sent"
+            >
+              <span class="material-symbols-outlined">refresh</span>
             </button>
           </div>
           <div class="relative inline-block">
@@ -263,11 +270,14 @@ interface MailSearchRequestDto {
         </div>
       </div>
 
-      <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
-        <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
-          <input type="text" placeholder="Folder Name.." [(ngModel)]="foldername" />
-          <button (click)="CreateCustomFolder(); CustomFolderPopUp = false">Create</button>
-          <button (click)="CustomFolderPopUp = false">Back</button>
+      <div class="move-conatiner backdrop-blur-sm " [class.active]="CustomFolderPopUp" style="background-color: rgba(0,0,0,0.5);">
+        <div class="bg-gray-100 rounded-xl p-8 flex flex-col gap-5 shadow-xl w-96">
+          <h2 class="text-xl font-bold text-center text-gray-800">New Folder</h2>
+          <input type="text" placeholder="Folder Name..." [(ngModel)]="foldername" class="p-3 rounded-lg border-2 border-gray-300 focus:border-blue-500 focus:outline-none transition-all duration-300"/>
+          <div class="flex justify-between mt-4">
+            <button (click)="CustomFolderPopUp = false" class="px-5 py-2 font-bold rounded-lg border border-gray-300 bg-white hover:bg-gray-100 cursor-pointer">Cancel</button>
+            <button (click)="CreateCustomFolder()" class="px-5 py-2 rounded-lg font-bold bg-blue-600 text-white hover:bg-blue-700 cursor-pointer">Create</button>
+          </div>
         </div>
       </div>
     </div>
@@ -310,6 +320,13 @@ interface MailSearchRequestDto {
         background-color: #e8e8e8;
         padding: 20px;
       }
+      #Custom-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 60px;
+        height: 300px;
+      }
       .buttons-folders {
         display: flex;
         flex-direction: column;
@@ -322,11 +339,26 @@ interface MailSearchRequestDto {
         border: 2px solid transparent;
         transition: all 0.1s ease-in-out;
       }
+      .content-container input {
+        border-radius: 15px;
+        padding: 10px;
+        border: 2px solid black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.1s ease-in;
+      }
+      .content-container input:focus {
+        border: 3px solid #3e8cf4;
+        outline: none;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        transform: scale(1.05);
+      }
       .content-container button:hover {
         transform: scale(1.05);
         background-color: #3e8cf4;
         color: white;
-        border: 2px solid rgba(62, 140, 244, 0.88);
+        border: 3px solid rgba(62, 140, 244, 0.88);
       }
       #trash-btn:hover {
         border: 2px solid rgba(243, 53, 53, 0.87);
@@ -649,6 +681,16 @@ export class Sent implements OnInit {
     this.currentSort = 'Date (Newest first)';
     this.resetPaginationState();
     this.paginationService.setPage(this.paginationKey, 0);
+  }
+
+  refreshSent() {
+    this.CustomFolderPopUp = false;
+    this.tomove = false;
+    this.showDeleteOptions = false;
+    this.showSortMenu = false;
+    this.Emails = [];
+    this.handleClearSearch();
+    this.getCustomFolders();
   }
 
   toggleSortMenu() {

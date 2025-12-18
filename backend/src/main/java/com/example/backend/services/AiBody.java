@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public class AiBody {
     @Value("${gemini.api.key}")
     private String apiKey;
-
+    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
     public String generateEmailBody(String prompt,String type,String senderName) {
         String todayDate = LocalDate.now().toString();
         String contextInstructions = String.format(
@@ -36,7 +36,7 @@ public class AiBody {
         try {
             Client client = Client.builder().apiKey(apiKey).build();
             GenerateContentResponse response = client.models.generateContent(
-                    "gemini-2.5-flash",
+                    "gemini-flash-latest",
                     finalPrompt,
                     null
             );

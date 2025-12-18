@@ -1,30 +1,38 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { HttpClient, HttpClientModule, HttpParams } from '@angular/common/http';
 import { ContactDto } from '../../Dtos/ContactDto';
 import { ContactService } from '../../services/contact.services';
 import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from '../../header';
 import { SearchBarComponent } from '../../components/search-bar/search-bar';
+import { SidebarComponent } from '../../components/side-bar/side-bar';
+import { FolderStateService } from '../../Dtos/FolderStateService';
+import { CustomFolderData } from '../../Dtos/datafile';
+import { FolderSidebarService } from '../../services/folder-sidebar.service';
 
 @Component({
   selector: 'app-contacts',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, DatePipe, HeaderComponent, SearchBarComponent],
-  template: `<header
-      class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-10 py-3 bg-white sticky top-0 z-10"
+  imports: [CommonModule, RouterLink, FormsModule, DatePipe, HeaderComponent, SearchBarComponent, SidebarComponent, HttpClientModule],
+  template: `<div class="flex h-screen w-full">
+    <app-sidebar
+      [username]="folderStateService.userData().username"
+      [userEmail]="folderStateService.userData().email"
+      [customFolders]="customFolders"
+      [activeCustomFolderId]="getCurrentFolderId()"
+      (folderClick)="handleFolderClick($event)"
+      (createFolder)="handleCreateFolder()"
+      (renameFolder)="handleRenameFolder($event)"
+      (deleteFolder)="handleDeleteFolder($event)"
     >
+    </app-sidebar>
+    <div class="flex flex-col flex-1">
+      <header
+        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-10 py-3 bg-white sticky top-0 z-10"
+      >
       <div class="flex items-center gap-8 w-full">
-        <a
-          [routerLink]="['/inbox']"
-          class="flex items-center justify-center size-10 rounded-full hover:bg-slate-100 text-slate-600 transition cursor-pointer"
-          title="Back to Inbox"
-        >
-          <span class="material-symbols-outlined text-xl">arrow_back</span>
-        </a>
-        <div class="flex items-center gap-4 text-slate-800">
-          <h2 class="text-slate-800 text-lg font-bold">EmailApp</h2>
-        </div>
 
         
         <!-- Top bar: Search + Avatar -->
@@ -358,7 +366,28 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
           </div>
         </div>
       </div>
-    </main> `,
+    </main>
+
+    <div class="move-conatiner backdrop-blur-sm" [class.active]="CustomFolderPopUp" style="background-color: rgba(0,0,0,0.5);">
+      <div class="content-container bg-white" style="min-height: 200px; gap: 20px; padding: 30px;">
+        <h3 class="text-lg font-bold text-slate-800">Create custom folder</h3>
+        <input
+          type="text"
+          [(ngModel)]="foldername"
+          placeholder="Folder name"
+          class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:border-primary focus:outline-none"
+          (keyup.enter)="CreateCustomFolder()"
+        />
+        <div class="flex gap-3 w-full">
+          <button (click)="CustomFolderPopUp = false" class="flex-1 px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 font-bold hover:bg-slate-50">
+            Cancel
+          </button>
+          <button (click)="CreateCustomFolder()" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-blue-700">
+            Create
+          </button>
+        </div>
+      </div>
+    </div>`,
   styles: [
     `
       /* 1. We define the font-family globally here, assuming the font files can be reached */
@@ -415,6 +444,35 @@ import { SearchBarComponent } from '../../components/search-bar/search-bar';
         width: 100%; /* Stretch input inside */
         max-width: none; /* Remove limiting max-width */
       }
+
+      .move-conatiner {
+        visibility: hidden;
+        opacity: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: all 0.2s ease-in;
+      }
+
+      .move-conatiner.active {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .content-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 320px;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      }
     `,
   ],
 })
@@ -427,11 +485,21 @@ export class Contacts implements OnInit {
   currentOrder: string = 'asc';
 
   selectedContact: ContactDto | null = null;
+  customFolders: CustomFolderData[] = [];
+  CustomFolderPopUp = false;
+  foldername = '';
 
-  constructor(private contactService: ContactService) {}
+  constructor(
+    private contactService: ContactService,
+    private http: HttpClient,
+    protected folderStateService: FolderStateService,
+    private folderSidebarService: FolderSidebarService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.loadContacts();
+    this.loadCustomFolders();
   }
 
   openContactModal(contact: ContactDto) {
@@ -452,6 +520,20 @@ export class Contacts implements OnInit {
         },
         error: (err) => console.error('Error fetching contacts', err),
       });
+  }
+
+  loadCustomFolders() {
+    const url = 'http://localhost:8080/api/folders';
+    let params = new HttpParams();
+    params = params.set('type', 'custom');
+    params = params.set('userId', this.folderStateService.userData().userId);
+
+    this.http.get<CustomFolderData[]>(url, { params }).subscribe({
+      next: (folders) => {
+        this.customFolders = folders;
+      },
+      error: (err) => console.error('Failed to fetch custom folders', err),
+    });
   }
 
   onSearch() {
@@ -554,5 +636,65 @@ export class Contacts implements OnInit {
         error: () => alert('Failed to delete contact'),
       });
     }
+  }
+
+  CreateCustomFolder() {
+    const trimmedName = this.foldername.trim();
+    if (!trimmedName) {
+      alert('Please enter a folder name');
+      return;
+    }
+
+    const url = 'http://localhost:8080/api/folders';
+    const payload = {
+      folderName: trimmedName,
+      folderId: this.folderStateService.userData().inboxFolderId,
+      userId: this.folderStateService.userData().userId,
+    };
+
+    const tempFolder: CustomFolderData = {
+      folderId: payload.folderId,
+      folderName: trimmedName,
+      User: payload.userId,
+      mails: [],
+    };
+
+    this.customFolders = [...this.customFolders, tempFolder];
+    this.foldername = '';
+    this.CustomFolderPopUp = false;
+
+    this.http.post(url, payload).subscribe({
+      next: () => this.loadCustomFolders(),
+      error: () => {
+        alert('Failed to create custom folder');
+        this.customFolders = this.customFolders.filter((folder) => folder !== tempFolder);
+      },
+    });
+  }
+
+  handleFolderClick(folderId: string) {
+    this.folderSidebarService.navigateToCustomFolder(folderId);
+  }
+
+  handleCreateFolder() {
+    this.CustomFolderPopUp = this.folderSidebarService.openCreateFolderModal();
+  }
+
+  handleRenameFolder(data: { folderId: string; newName: string }) {
+    this.folderSidebarService.renameFolder(data.folderId, data.newName, () =>
+      this.loadCustomFolders()
+    );
+  }
+
+  handleDeleteFolder(folderId: string) {
+    this.customFolders = this.customFolders.filter((folder) => folder.folderId !== folderId);
+    this.folderSidebarService.deleteFolder(folderId, () => {
+      this.router.navigate(['/inbox']);
+      this.loadCustomFolders();
+    });
+  }
+
+  getCurrentFolderId(): string {
+    return this.folderSidebarService.getActiveCustomFolderId();
   }
 }

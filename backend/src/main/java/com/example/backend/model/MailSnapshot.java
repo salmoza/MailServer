@@ -41,6 +41,7 @@ public class MailSnapshot {
 
     private String subject;
     @Lob
+    @Column(columnDefinition = "TEXT")
     private String body;
 
 

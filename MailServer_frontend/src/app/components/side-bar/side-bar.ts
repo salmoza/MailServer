@@ -13,10 +13,10 @@ import { CustomFolderData } from '../../Dtos/datafile';
       <div class="flex h-full flex-col justify-between">
         <div class="flex flex-col gap-4 ">
           <div class="flex items-center gap-3 text-gray-900 mt-4 ml-8">
-            <div class="size-6 text-[#137fec]">
-              <span class="material-symbols-outlined !text-3xl">all_inclusive</span>
+            <div class="flex items-center justify-center text-[#137fec]">
+              <span class="material-symbols-outlined !text-3xl relative ">all_inclusive</span>
             </div>
-            <h2 class="text-xl font-bold tracking-[-0.015em]">MailClient</h2>
+            <h2 class="text-xl font-bold tracking-[-0.015em]">MailTwist</h2>
           </div>
           <div class="flex flex-col gap-4"></div>
           <!-- Compose Button -->
@@ -26,7 +26,7 @@ import { CustomFolderData } from '../../Dtos/datafile';
           </button>
           <!-- Default Folders -->
           <div class="flex flex-col gap-1">
-            <a [routerLink]="['/inbox']" routerLinkActive="bg-primary/20" 
+            <a [routerLink]="['/inbox']" routerLinkActive="bg-primary/20"
                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
               <span class="material-symbols-outlined text-slate-800">inbox</span>
               <p class="text-slate-800 text-sm font-medium">Inbox</p>
@@ -64,23 +64,23 @@ import { CustomFolderData } from '../../Dtos/datafile';
           </div>
 
           <!-- Custom Folders -->
-          <div class="flex flex-col gap-1 mt-4">
+          <div class="flex flex-col gap-1">
             <div class="flex items-center justify-between px-3 py-2">
               <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Custom Folders
               </h2>
-              <button class="text-slate-500 hover:text-primary" (click)="onCreateFolder()">
+              <button class="p-1 text-slate-500 hover:bg-slate-200 rounded transition-colors cursor-pointer" (click)="onCreateFolder()" title="Add folder">
                 <span class="material-symbols-outlined text-base">add</span>
               </button>
             </div>
 
-            <div *ngFor="let custom of customFolders" 
+            <div *ngFor="let custom of customFolders"
                  class="group relative flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-100"
                  [class.bg-primary/20]="custom.folderId === activeCustomFolderId"
                  (click)="onFolderClick(custom.folderId)">
-              
+
               <span class="material-symbols-outlined text-slate-600">folder</span>
-              
+
               <p class="text-slate-600 text-sm font-medium flex-1 truncate">
                 {{ custom.folderName }}
               </p>
@@ -108,13 +108,13 @@ import { CustomFolderData } from '../../Dtos/datafile';
     <div class="move-conatiner bg-black/50" [class.active]="showRenameModal">
       <div class="content-container bg-white" style="min-height: 200px; gap: 20px; padding: 30px;">
         <h3 class="text-lg font-bold text-slate-800">Rename Folder</h3>
-        
-        <input type="text" 
+
+        <input type="text"
                [(ngModel)]="newFolderName"
                placeholder="New folder name..."
                class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:border-primary focus:outline-none"
                (keyup.enter)="confirmRename()">
-        
+
         <div class="flex gap-3 w-full">
           <button (click)="confirmRename()"
                   class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700">
@@ -137,7 +137,7 @@ import { CustomFolderData } from '../../Dtos/datafile';
           Are you sure you want to delete this folder?
           Emails will be moved to their original folder.
         </p>
-        
+
         <div class="flex gap-3 w-full">
           <button (click)="confirmDelete()"
                   class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">

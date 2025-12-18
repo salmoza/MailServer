@@ -31,6 +31,7 @@ public class Mail {
 //    private int mailCount;
     private String subject;
     @Lob
+    @Column(columnDefinition = "TEXT")
     private String body;
     private String previousFolderId;
     @Enumerated(EnumType.STRING)

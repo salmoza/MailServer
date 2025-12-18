@@ -8,6 +8,8 @@ import { CustomFolderData } from '../../Dtos/datafile';
 import {MailShuttleService} from '../../Dtos/MailDetails';
 import {SearchBarComponent} from '../../components/search-bar/search-bar';
 import { HeaderComponent } from '../../header';
+import { SidebarComponent } from '../../components/side-bar/side-bar';
+import { FolderSidebarService } from '../../services/folder-sidebar.service';
 
 interface MailFilter {
   filterId?: string;
@@ -21,16 +23,25 @@ interface MailFilter {
 @Component({
   selector: 'app-filters',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule, HeaderComponent],
+  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule, HeaderComponent, SidebarComponent],
   template: `
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
-    <div class="flex h-screen w-full flex-col">
-      <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
-        <button (click)="goBack()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-          <span class="material-symbols-outlined text-2xl">arrow_back</span>
-        </button>
+    <div class="flex h-screen w-full">
+      <app-sidebar
+        [username]="folderStateService.userData().username"
+        [userEmail]="folderStateService.userData().email"
+        [customFolders]="customFolders"
+        [activeCustomFolderId]="getCurrentFolderId()"
+        (folderClick)="handleFolderClick($event)"
+        (createFolder)="handleCreateFolder()"
+        (renameFolder)="handleRenameFolder($event)"
+        (deleteFolder)="handleDeleteFolder($event)"
+      >
+      </app-sidebar>
+      <div class="flex flex-col flex-1">
+      <div class="flex items-center justify-end px-6 py-3 bg-white border-b border-gray-200">
         <app-header></app-header>
       </div>
 
@@ -160,7 +171,28 @@ interface MailFilter {
           </div>
         </div>
       </main>
+      <div class="move-conatiner backdrop-blur-sm" [class.active]="CustomFolderPopUp" style="background-color: rgba(0,0,0,0.5);">
+        <div class="content-container bg-white" style="min-height: 200px; gap: 20px; padding: 30px;">
+          <h3 class="text-lg font-bold text-slate-800">Create custom folder</h3>
+          <input
+            type="text"
+            [(ngModel)]="foldername"
+            placeholder="Folder name"
+            class="w-full px-4 py-2 border-2 border-slate-300 rounded-lg focus:border-primary focus:outline-none"
+            (keyup.enter)="CreateCustomFolder()"
+          />
+          <div class="flex gap-3 w-full">
+            <button (click)="CustomFolderPopUp = false" class="flex-1 px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 font-bold hover:bg-slate-50">
+              Cancel
+            </button>
+            <button (click)="CreateCustomFolder()" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-blue-700">
+              Create
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+      </div>
   `,
   styles: [`
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -198,12 +230,43 @@ interface MailFilter {
       height: 48px !important;
       box-sizing: border-box !important;
     }
+
+    .move-conatiner {
+      visibility: hidden;
+      opacity: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: all 0.2s ease-in;
+    }
+
+    .move-conatiner.active {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .content-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 320px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
   `],
 })
 export class Filters implements OnInit {
 
   filters: MailFilter[] = [];
   customFolders: CustomFolderData[] = [];
+  CustomFolderPopUp = false;
+  foldername = '';
   newFilter: MailFilter = {
     userId: '',
     field: 'subject',
@@ -217,9 +280,10 @@ export class Filters implements OnInit {
 
   constructor(private MailDetails:MailShuttleService, private router : Router,
     private http: HttpClient,
-    protected folderStateService: FolderStateService
+    protected folderStateService: FolderStateService,
+    private folderSidebarService: FolderSidebarService
   ) {}
-  CustomFolderPopUp:boolean = false;
+  // CustomFolderPopUp:boolean = false;
 
   ngOnInit() {
     this.newFilter.userId = this.folderStateService.userData().userId;
@@ -367,10 +431,71 @@ export class Filters implements OnInit {
   }
   handleSearch(criteria: any) {
     console.log('Search criteria:', criteria);
-    // TODO: Implement search functionality
   }
 
   goBack() {
     this.router.navigate(['/inbox']);
+  }
+
+  CreateCustomFolder() {
+    const trimmedName = this.foldername.trim();
+    if (!trimmedName) {
+      alert('Please enter a folder name');
+      return;
+    }
+
+    const url = 'http://localhost:8080/api/folders';
+    const payload = {
+      folderName: trimmedName,
+      folderId: this.folderStateService.userData().inboxFolderId,
+      userId: this.folderStateService.userData().userId,
+    };
+
+    const newFolder: CustomFolderData = {
+      folderId: payload.folderId,
+      folderName: trimmedName,
+      User: payload.userId,
+      mails: [],
+    };
+
+    this.customFolders = [...this.customFolders, newFolder];
+    this.foldername = '';
+    this.CustomFolderPopUp = false;
+
+    this.http.post(url, payload).subscribe({
+      next: () => {
+        this.loadCustomFolders();
+      },
+      error: () => {
+        alert('Failed to create custom folder');
+        this.customFolders = this.customFolders.filter((folder) => folder !== newFolder);
+      },
+    });
+  }
+
+  handleFolderClick(folderId: string) {
+    this.folderSidebarService.navigateToCustomFolder(folderId);
+  }
+
+  handleCreateFolder() {
+    this.CustomFolderPopUp = this.folderSidebarService.openCreateFolderModal();
+  }
+
+  handleRenameFolder(data: { folderId: string; newName: string }) {
+    this.folderSidebarService.renameFolder(data.folderId, data.newName, () =>
+      this.loadCustomFolders()
+    );
+  }
+
+  handleDeleteFolder(folderId: string) {
+    this.customFolders = this.customFolders.filter((folder) => folder.folderId !== folderId);
+    this.folderSidebarService.deleteFolder(folderId, () => {
+      this.router.navigate(['/inbox']);
+      this.loadCustomFolders();
+    });
+  }
+
+  getCurrentFolderId(): string {
+    return this.folderSidebarService.getActiveCustomFolderId();
   }
 }
