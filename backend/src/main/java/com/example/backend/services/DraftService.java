@@ -7,6 +7,9 @@ import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.MailSnapshotRepo;
 import com.example.backend.repo.UserRepo;
+import com.example.backend.repo.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,9 @@ public class DraftService {
     private MailSnapshotRepo mailSnapshotrepo ;
 
     @Autowired
+    private AttachmentsRepo attachmentsRepo;
+
+    @Autowired
     private MailRepo mailRepo;
 
     @Autowired
@@ -35,6 +41,8 @@ public class DraftService {
 
     @Autowired
     private MailSnapshotRepo mailSnapshotRepo ;
+
+
 
 
     public Mail saveDraft(MailDto dto) {
@@ -58,6 +66,7 @@ public class DraftService {
         return mailRepo.getMailsByFolderId(draftFolder.getFolderId());
     }
 
+    @Transactional
     public Mail updateDraft(String mailId, MailDto dto) {
         Mail draft = mailRepo.findByMailId(mailId)
                 .orElseThrow(() -> new RuntimeException("Mail not found"));
@@ -72,6 +81,8 @@ public class DraftService {
         draft.setDate(Timestamp.valueOf(LocalDateTime.now()));
 
         draft = mailRepo.save(draft);
+
+
 
         saveSnapshot(draft); // auto-saving snapshot
         return draft;

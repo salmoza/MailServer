@@ -891,6 +891,8 @@ export class Drafts implements OnInit, OnDestroy {
   }
 
   async SentDraft() {
+    const isValid = await this.validateDraftBeforeSending();
+  if (!isValid) return;
     try {
 
       await this.UpdateDraftBase();
@@ -904,6 +906,7 @@ export class Drafts implements OnInit, OnDestroy {
       await this.Sent();
 
       this.isopen = false;
+      this.refreshData()
     } catch (error) {
       console.error("Error sending draft:", error);
       alert("Failed to send draft. Please try again.");
@@ -926,7 +929,7 @@ export class Drafts implements OnInit, OnDestroy {
     }
   }
 
-  private Sent(): Promise<string> {
+  /* private Sent(): Promise<string> {  old 
     const p = lastValueFrom(
       this.http.post(`http://localhost:8080/api/drafts/${this.DraftId}/send` , {} ,
         { responseType: 'text' })
@@ -938,6 +941,12 @@ export class Drafts implements OnInit, OnDestroy {
       this.DraftData = [...this.DraftData];
     }
     return p;
+  } */
+  private Sent(): Promise<string> {
+    
+    return lastValueFrom(
+      this.http.post(`http://localhost:8080/api/drafts/${this.DraftId}/send`, {}, { responseType: 'text' })
+    );
   }
 
   private uploadAttachments(mailId: string) {
@@ -950,16 +959,18 @@ export class Drafts implements OnInit, OnDestroy {
     return Promise.all(uploadPromises);
   }
 
-  SaveDraft() {
+  async SaveDraft() {
     if (this.attachments.length > 0) {
-      this.uploadAndSaveDraft();
+      await this.uploadAndSaveDraft();
     } else {
-      this.UpdateDraftBase();
+      await this.UpdateDraftBase();
     }
+    await this.delay(300);
     this.isopen=false;
+    this.refreshData();
   }
 
-  private UpdateDraftBase(): Promise<string> {
+  private UpdateDraftBase(): Promise<string> { 
     const payload = {
       subject: this.subject,
       body: this.body,
@@ -971,7 +982,10 @@ export class Drafts implements OnInit, OnDestroy {
     return lastValueFrom(
       this.http.put(`http://localhost:8080/api/drafts/${this.DraftId}`, payload,{responseType:"text"})
     );
-  }
+    
+  } 
+
+  
 
  /* private async uploadAndSaveDraft() {
     try {
@@ -982,7 +996,7 @@ export class Drafts implements OnInit, OnDestroy {
     }
   }*/
 
-  private async uploadAndSaveDraft() {
+    private async uploadAndSaveDraft() {
     try {
 
       await this.DraftUploadAtt(this.DraftId);
@@ -993,11 +1007,13 @@ export class Drafts implements OnInit, OnDestroy {
 
       this.attachments = [];
 
+     // this.refreshData();    change here
     } catch (error) {
       console.log(error);
     }
-  }
+  } 
 
+  
   private DraftUploadAtt(mailId: string) {
     const uploadPromises = this.attachments.map(att => {
       const formData = new FormData();
@@ -1089,6 +1105,36 @@ export class Drafts implements OnInit, OnDestroy {
 
       }
     })
+  }
+
+
+
+
+  private async validateDraftBeforeSending(): Promise<boolean> {  // check for sendDraft
+    
+    if (this.recipients.length === 0) {
+      alert("Please add at least one recipient.");
+      return false;
+    }
+    if (!this.subject.trim() && !this.body.trim()) {
+      alert("Provide subject or body");
+      return false;
+    }
+  
+    try {
+      for (const email of this.recipients) {
+        const isValid = await lastValueFrom(this.http.get<boolean>(`http://localhost:8080/api/mails/valid/${email}`));
+        if (!isValid) {
+          alert(`The email address "${email}" is not valid or does not exist.`);
+          return false;
+        }
+      }
+    } catch (error) {
+      alert("Error validating email addresses. Please try again.");
+      return false;
+    }
+  
+    return true;
   }
 
   protected readonly MailDetail = MailDetail;

@@ -79,6 +79,7 @@ public class MailMapper {
                 .userId(draft.getUserId())
                 .attachments(draft.getAttachments() != null ? new ArrayList<>(draft.getAttachments()) : new ArrayList<>())
                 .mail(draft)
+                .priority(draft.getPriority())
                 .subject(draft.getSubject())
                 .body(draft.getBody())
                 .receiverEmails(new ArrayList<>(draft.getReceiverEmails()))

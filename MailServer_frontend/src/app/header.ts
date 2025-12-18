@@ -39,12 +39,6 @@ import { Router } from '@angular/router';
         </div>
         <div class="flex flex-col p-1">
         <button
-          class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm cursor-pointer"
-          (click)="addAccount()"
-        >
-          Add Another account
-        </button>
-        <button
           class="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm cursor-pointer text-red-600"
           (click)="signOut()"
         >
@@ -72,12 +66,6 @@ export class HeaderComponent {
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
   }
-
-  addAccount() {
-    this.dropdownOpen = false;
-    this.router.navigate(['/login']);
-  }
-
   signOut() {
     this.dropdownOpen = false;
     this.router.navigate(['/login']);

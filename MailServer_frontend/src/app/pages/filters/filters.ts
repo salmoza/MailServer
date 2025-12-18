@@ -7,6 +7,7 @@ import { FolderStateService } from '../../Dtos/FolderStateService';
 import { CustomFolderData } from '../../Dtos/datafile';
 import {MailShuttleService} from '../../Dtos/MailDetails';
 import {SearchBarComponent} from '../../components/search-bar/search-bar';
+import { HeaderComponent } from '../../header';
 
 interface MailFilter {
   filterId?: string;
@@ -20,22 +21,25 @@ interface MailFilter {
 @Component({
   selector: 'app-filters',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule],
+  imports: [CommonModule, RouterLink, HttpClientModule, FormsModule, HeaderComponent],
   template: `
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
-    <div class="flex h-screen w-full">
+    <div class="flex h-screen w-full flex-col">
+      <div class="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
+        <button (click)="goBack()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+          <span class="material-symbols-outlined text-2xl">arrow_back</span>
+        </button>
+        <app-header></app-header>
+      </div>
 
       <!-- Main Content -->
       <main class="flex-1 flex flex-col h-screen overflow-y-auto">
         <div class="flex-1 px-6 py-8">
           <div class="w-full max-w-5xl mx-auto">
             <!-- Page Heading -->
-            <header class="mb-8 flex items-center gap-4">
-              <button (click)="goBack()" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-2xl">arrow_back</span>
-              </button>
+            <header class="mb-8">
               <p class="text-slate-800 text-4xl font-black leading-tight tracking-[-0.033em]">
                 Manage Filters
               </p>

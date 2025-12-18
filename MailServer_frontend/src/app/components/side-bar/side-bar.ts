@@ -11,25 +11,19 @@ import { CustomFolderData } from '../../Dtos/datafile';
   template: `
     <aside class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0">
       <div class="flex h-full flex-col justify-between">
-        <div class="flex flex-col gap-6">
-          <!-- User Info -->
-          <div class="flex items-center gap-3 px-2">
-            <div class="flex flex-col">
-              <h1 class="text-gray-900 text-base font-medium leading-normal">
-                {{ username }}
-              </h1>
-              <p class="text-gray-500 text-sm font-normal leading-normal">
-                {{ userEmail }}
-              </p>
+        <div class="flex flex-col gap-4 ">
+          <div class="flex items-center gap-3 text-gray-900 mt-4 ml-8">
+            <div class="size-6 text-[#137fec]">
+              <span class="material-symbols-outlined !text-3xl">all_inclusive</span>
             </div>
+            <h2 class="text-xl font-bold tracking-[-0.015em]">MailClient</h2>
           </div>
-
+          <div class="flex flex-col gap-4"></div>
           <!-- Compose Button -->
           <button [routerLink]="['/compose']"
             class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold">
             Compose
           </button>
-
           <!-- Default Folders -->
           <div class="flex flex-col gap-1">
             <a [routerLink]="['/inbox']" routerLinkActive="bg-primary/20" 
@@ -157,59 +151,61 @@ import { CustomFolderData } from '../../Dtos/datafile';
       </div>
     </div>
   `,
-  styles: [`
-    .material-symbols-outlined {
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      line-height: 1;
-    }
-    
-    .bg-primary {
-      background-color: #137fec !important;
-    }
-    
-    .bg-primary\\/20 {
-      background-color: rgba(19, 127, 236, 0.2) !important;
-    }
+  styles: [
+    `
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        line-height: 1;
+      }
 
-    .move-conatiner {
-      visibility: hidden;
-      opacity: 0;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      transition: all 0.2s ease-in;
-    }
+      .bg-primary {
+        background-color: #137fec !important;
+      }
 
-    .move-conatiner.active {
-      visibility: visible;
-      opacity: 1;
-    }
+      .bg-primary\\/20 {
+        background-color: rgba(19, 127, 236, 0.2) !important;
+      }
 
-    .content-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 400px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-    }
-  `]
+      .move-conatiner {
+        visibility: hidden;
+        opacity: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: all 0.2s ease-in;
+      }
+
+      .move-conatiner.active {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .content-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 400px;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      }
+    `,
+  ],
 })
 export class SidebarComponent implements OnInit {
   @Input() username: string = '';
   @Input() userEmail: string = '';
   @Input() customFolders: CustomFolderData[] = [];
   @Input() activeCustomFolderId: string = '';
-  
+
   @Output() folderClick = new EventEmitter<string>();
   @Output() createFolder = new EventEmitter<void>();
-  @Output() renameFolder = new EventEmitter<{folderId: string, newName: string}>();
+  @Output() renameFolder = new EventEmitter<{ folderId: string; newName: string }>();
   @Output() deleteFolder = new EventEmitter<string>();
 
   showRenameModal = false;
@@ -239,7 +235,7 @@ export class SidebarComponent implements OnInit {
     if (this.folderToRename && this.newFolderName.trim()) {
       this.renameFolder.emit({
         folderId: this.folderToRename.folderId,
-        newName: this.newFolderName.trim()
+        newName: this.newFolderName.trim(),
       });
       this.cancelRename();
     }
@@ -268,6 +264,4 @@ export class SidebarComponent implements OnInit {
     this.showDeleteConfirm = false;
     this.folderToDelete = '';
   }
-
-  
 }

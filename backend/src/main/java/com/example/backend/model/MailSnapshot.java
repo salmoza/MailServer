@@ -16,6 +16,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Service
 public class MailSnapshot {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -39,6 +40,7 @@ public class MailSnapshot {
     private Mail mail;
 
     private String subject;
+    @Lob
     private String body;
 
 
