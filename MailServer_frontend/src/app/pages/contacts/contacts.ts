@@ -92,7 +92,6 @@ import { FolderSidebarService } from '../../services/folder-sidebar.service';
                 <option value="email">Email</option>
                 <option value="phoneNumber">Phone</option>
                 <option value="createdAt">Date Created</option>
-                <option value="updatedAt">Last Updated</option>
                 <option value="starred">Starred</option>
                 <option value="notes">Notes</option>
               </select>

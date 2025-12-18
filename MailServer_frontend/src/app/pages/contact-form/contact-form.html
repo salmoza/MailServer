@@ -39,15 +39,6 @@
           >
             Digits only
           </p>
-          <p
-            *ngIf="
-              contactForm.get('phoneNumber')?.touched &&
-              contactForm.get('phoneNumber')?.hasError('required')
-            "
-            class="mt-1 text-xs text-red-500"
-          >
-            Phone number is required
-          </p>
         </div>
 
         <div class="flex items-center pt-6">

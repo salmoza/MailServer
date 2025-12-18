@@ -28,8 +28,9 @@ public class AutoDeletionService {
 
     @Transactional
 
-    //@Scheduled(fixedRate = 300000)  for testing
-    @Scheduled(cron = "0 0 3 * * *")
+    @Scheduled(fixedRate = 60000)
+    // for testing
+//    @Scheduled(cron = "0 0 3 * * *")
     public void deleteOldMails() {
 
         List<User> users = userRepo.findAll() ;

@@ -38,7 +38,7 @@ export class ContactFormComponent implements OnInit {
   ) {
     this.contactForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
-      phoneNumber: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+      phoneNumber: ['', [Validators.pattern(/^\d*$/)]],
       notes: [''],
       starred: [false],
       emailAddresses: this.fb.array([
@@ -148,7 +148,11 @@ export class ContactFormComponent implements OnInit {
 
     this.isSubmitting = true;
 
-    const formValue: ContactDto = this.contactForm.value;
+    const rawValue = this.contactForm.value;
+    const formValue: ContactDto = {
+      ...rawValue,
+      phoneNumber: rawValue.phoneNumber?.trim() ? rawValue.phoneNumber.trim() : undefined,
+    };
 
     if (this.isEditMode && this.contactId) {
       this.contactService.editContact(this.contactId, formValue).subscribe({

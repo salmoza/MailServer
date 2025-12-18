@@ -1,9 +1,12 @@
 package com.example.backend.services;
 
+import com.example.backend.model.MailFilter;
 import com.example.backend.model.Folder;
 import com.example.backend.model.Mail;
 import com.example.backend.model.User;
+import com.example.backend.repo.MailFilterRepo;
 import com.example.backend.repo.FolderRepo;
+import com.example.backend.repo.MailFilterRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.UserRepo;
 import com.example.backend.services.mailService.MailService;
@@ -25,6 +28,10 @@ public class FolderService {
 
     @Autowired
     private MailRepo mailRepo;
+
+    @Autowired
+    private MailFilterRepo filterRepo;
+
     public Folder createFolder(String userId, String folderName){
         System.out.println("in createFolder");
         User user = userRepo.findByUserId(userId)
@@ -72,6 +79,9 @@ public class FolderService {
                 mailService.moveMails(folderId, inboxFolderId, mailId);
             }
         }
+
+        // Delete any filters targeting this folder
+        removeFiltersTargetingFolder(folderId);
 
         // Delete the folder
         folderRepo.delete(folder);
@@ -131,6 +141,12 @@ public class FolderService {
         return folderRepo.findCustomFolders(userId, defaultFolders);
     }
 
-
-
+    private void removeFiltersTargetingFolder(String folderId) {
+        List<MailFilter> filtersToDelete = filterRepo.findAll().stream()
+                .filter(filter -> folderId.equals(filter.getTargetFolder()))
+                .toList();
+        if (!filtersToDelete.isEmpty()) {
+            filterRepo.deleteAll(filtersToDelete);
+        }
+    }
 }

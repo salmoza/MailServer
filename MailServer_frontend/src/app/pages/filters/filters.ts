@@ -276,7 +276,7 @@ export class Filters implements OnInit {
   };
   editingFilter: MailFilter | null = null;
 
-  private apiUrl = 'http://localhost:8080/api/filters/by-user';
+  private apiUrl = 'http://localhost:8080/api/filters';
 
   constructor(private MailDetails:MailShuttleService, private router : Router,
     private http: HttpClient,
@@ -314,7 +314,7 @@ export class Filters implements OnInit {
 
   loadFilters() {
     const userId = this.folderStateService.userData().userId;
-    this.http.get<MailFilter[]>(`${this.apiUrl}/${userId}`).subscribe({
+    this.http.get<MailFilter[]>(`${this.apiUrl}/by-user/${userId}`).subscribe({
       next: (data) => {
         this.filters = data;
         console.log('Filters loaded:', data);
@@ -332,11 +332,8 @@ export class Filters implements OnInit {
       return;
     }
 
-    console.log('Creating filter with data:', this.newFilter);
-
     this.http.post<MailFilter>(this.apiUrl, this.newFilter).subscribe({
       next: (data) => {
-        console.log('Filter created successfully:', data);
         this.filters.push(data);
         this.resetForm();
         alert('Filter created successfully!');
@@ -383,7 +380,7 @@ export class Filters implements OnInit {
           this.filters[index] = data;
         }
         this.resetForm();
-        alert('Filter updated successfully!');
+        // alert('Filter updated successfully!');
       },
       error: (err) => {
         console.error('Failed to update filter:', err);
@@ -393,15 +390,15 @@ export class Filters implements OnInit {
   }
 
   deleteFilter(filterId: string) {
-    if (!confirm('Are you sure you want to delete this filter?')) {
-      return;
-    }
+    // if (!confirm('Are you sure you want to delete this filter?')) {
+    //   return;
+    // }
 
     this.http.delete(`${this.apiUrl}/${filterId}`).subscribe({
       next: () => {
         console.log('Filter deleted');
         this.filters = this.filters.filter(f => f.filterId !== filterId);
-        alert('Filter deleted successfully!');
+        // alert('Filter deleted successfully!');
       },
       error: (err) => {
         console.error('Failed to delete filter:', err);
