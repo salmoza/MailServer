@@ -193,10 +193,10 @@ public class MailService {
         if (!mail.getFolders().contains(trash)) {
             trash.addMail(mail);
 
-            /* long thirtyOneDaysAgo = System.currentTimeMillis() - (31L * 24 * 60 * 60 * 1000); // for testing
-            mail.setDeletedAt(new Timestamp(thirtyOneDaysAgo)); for testing */
+            long thirtyOneDaysAgo = System.currentTimeMillis() - (31L * 24 * 60 * 60 * 1000); // for testing
+            mail.setDeletedAt(new Timestamp(thirtyOneDaysAgo));
 
-            mail.setDeletedAt(new Timestamp(System.currentTimeMillis()));
+            /*mail.setDeletedAt(new Timestamp(System.currentTimeMillis()));*/
 
 
             folderRepo.save(trash);
@@ -270,7 +270,7 @@ public class MailService {
 
 
 
-    public List<MailListDto> searchEmails(String folderId, String keyword, int page) {
+   /* public List<MailListDto> searchEmails(String folderId, String keyword, int page) {
         return paginateMails(mailRepo.getMailsByFolderId(folderId).stream()
                 .filter(mail -> mail.getSubject().contains(keyword)
                         || mail.getBody().contains(keyword)
@@ -280,6 +280,27 @@ public class MailService {
                         || mail.getReceiverDisplayNames().contains(keyword)
                 )
                 .collect(Collectors.toList()), page);
+    } */
+
+    public List<MailListDto> searchEmails(String folderId, String keyword, int page) {
+        return paginateMails(mailRepo.getMailsByFolderId(folderId).stream()
+                .filter(mail -> safeContains(mail.getSubject(), keyword)
+                        || safeContains(mail.getBody(), keyword)
+                        || safeContains(mail.getSenderEmail(), keyword)
+                        || safeContains(mail.getSenderDisplayName(), keyword)
+
+                        || (mail.getReceiverEmails() != null && mail.getReceiverEmails().toString().contains(keyword))
+                        || (mail.getReceiverDisplayNames() != null && mail.getReceiverDisplayNames().toString().contains(keyword))
+                )
+                .collect(Collectors.toList()), page);
+    }
+
+
+    private boolean safeContains(String text, String keyword) {
+        if (text == null || keyword == null) {
+            return false;
+        }
+        return text.contains(keyword);
     }
 
 
