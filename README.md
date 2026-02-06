@@ -1,11 +1,16 @@
 # <p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?size=45&duration=3000&pause=800&color=00F7FF&center=true&vCenter=true&width=700&lines=&nbsp;&nbsp;&nbsp;&nbsp;✉️+Web-Based+Mail+System;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;♾️MailTwist" />
+  <img src="https://readme-typing-svg.herokuapp.com?size=45&duration=3000&pause=800&color=00F7FF&center=true&vCenter=true&width=700&lines=✉️+Web-Based+Mail+System;♾️MailTwist" />
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Backend-SpringBoot-success" />
   <img src="https://img.shields.io/badge/Frontend-Angular-red" />
   <img src="https://img.shields.io/badge/API-REST-orange" />
+</p>
+
+
+<p align="center">
+  <img src="https://github.com/salmoza/MailServer/blob/main/Heads%20Up%20Delivery%20GIF%20by%20Luke%20Alexander.gif?raw=true" width="500"/>
 </p>
 
 
