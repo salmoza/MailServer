@@ -16,6 +16,7 @@ import { ContactDto } from '../../Dtos/ContactDto';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-contact-form',
@@ -34,7 +35,8 @@ export class ContactFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private contactService: ContactService,
-    private http: HttpClient
+    private http: HttpClient,
+    private snackbar: SnackbarService
   ) {
     this.contactForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
@@ -141,7 +143,7 @@ export class ContactFormComponent implements OnInit {
       );
 
       if (hasInvalidEmails) {
-        alert('One or more emails do not exist in the system. Please enter valid email addresses.');
+        this.snackbar.showError('One or more emails do not exist in the system. Please enter valid email addresses.');
       }
       return;
     }

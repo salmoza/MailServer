@@ -1,16 +1,17 @@
-import {Component, inject} from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {Router, RouterLink} from '@angular/router';
-import {routes} from '../../app.routes';
-import {HttpClient, HttpClientModule, provideHttpClient} from '@angular/common/http';
-import {FormsModule} from '@angular/forms'; // Use RouterLink for Angular navigation
-import {AuthService} from '../../Auth/AuthService';
-import {FolderStateService} from '../../Dtos/FolderStateService';
+import { Router, RouterLink } from '@angular/router';
+import { routes } from '../../app.routes';
+import { HttpClient, HttpClientModule, provideHttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms'; // Use RouterLink for Angular navigation
+import { AuthService } from '../../Auth/AuthService';
+import { FolderStateService } from '../../Dtos/FolderStateService';
+import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule,HttpClientModule,RouterLink],
+  imports: [CommonModule, FormsModule, HttpClientModule, RouterLink],
   template: `
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -231,11 +232,12 @@ import {FolderStateService} from '../../Dtos/FolderStateService';
   `],
 })
 export class Login {
-  constructor(private route:Router,
-              private authService:AuthService,
-              private http:HttpClient,
-              private FolderStates:FolderStateService) {}
-private hhtp = inject(HttpClient);
+  constructor(private route: Router,
+    private authService: AuthService,
+    private http: HttpClient,
+    private FolderStates: FolderStateService,
+    private snackbar: SnackbarService) { }
+  private hhtp = inject(HttpClient);
   issign_up: boolean = false;
   url: string = 'http://localhost:8080/api/auth/';
   username: string = '';
@@ -252,46 +254,46 @@ private hhtp = inject(HttpClient);
     this.showPasswordSignUp = !this.showPasswordSignUp;
   }
 
-login(){
-  const payload={
-    password:this.password,
-    email:this.email,
-  }
-  this.hhtp.post(this.url+'signIn',payload).subscribe({
-    next:(response:any)=>{
-      this.FolderStates.initializeState(response);
-      this.authService.setAuthenticatedUser(response.userId);
-    this.route.navigate(['/inbox']);
-    },
-    error:(response:any)=>{
-      console.log(response);
-      alert(response.error);
+  login() {
+    const payload = {
+      password: this.password,
+      email: this.email,
     }
-  })
-}
-sign_up(){
-  const payload={
-    password:this.password,
-    email:this.email,
-    username:this.username,
-  }
-
-  this.hhtp.post(this.url + 'signUp', payload).subscribe({
-    next: (response: any) => {
-
-      alert("sign up successfully please sign in");
-      console.log(response.message);
-      this.issign_up = false;
-    },
-    error: (err: any) => {
-
-      if (err.error && err.error.error) {
-        alert(err.error.error);
-      } else {
-        alert("Signup failed");
+    this.hhtp.post(this.url + 'signIn', payload).subscribe({
+      next: (response: any) => {
+        this.FolderStates.initializeState(response);
+        this.authService.setAuthenticatedUser(response.userId);
+        this.route.navigate(['/inbox']);
+      },
+      error: (response: any) => {
+        console.log(response);
+        this.snackbar.showError(response.error);
       }
+    })
+  }
+  sign_up() {
+    const payload = {
+      password: this.password,
+      email: this.email,
+      username: this.username,
     }
-  })
-}
+
+    this.hhtp.post(this.url + 'signUp', payload).subscribe({
+      next: (response: any) => {
+
+        this.snackbar.showSuccess("sign up successfully please sign in");
+        console.log(response.message);
+        this.issign_up = false;
+      },
+      error: (err: any) => {
+
+        if (err.error && err.error.error) {
+          this.snackbar.showError(err.error.error);
+        } else {
+          this.snackbar.showError("Signup failed");
+        }
+      }
+    })
+  }
 
 }

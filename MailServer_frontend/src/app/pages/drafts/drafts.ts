@@ -15,6 +15,7 @@ import { PaginationFooterComponent } from '../../components/pagination-footer/pa
 import { PaginationService } from '../../services/pagination.service';
 import { SidebarComponent } from '../../components/side-bar/side-bar';
 import { FolderSidebarService } from '../../services/folder-sidebar.service';
+import { SnackbarService } from '../../services/snackbar.service';
 
 // Interface for Advanced Search
 interface MailSearchRequestDto {
@@ -388,34 +389,35 @@ export class Drafts implements OnInit, OnDestroy {
 
 
   constructor(
-      private http: HttpClient,
-      protected folderStateService: FolderStateService,
-      private route: Router,
-      private Shuffler: MailShuttleService, private paginationService: PaginationService,
-      private folderSidebarService: FolderSidebarService
-  ) {}
+    private http: HttpClient,
+    protected folderStateService: FolderStateService,
+    private route: Router,
+    private Shuffler: MailShuttleService, private paginationService: PaginationService,
+    private folderSidebarService: FolderSidebarService,
+    private snackbar: SnackbarService
+  ) { }
 
-  page=0;
+  page = 0;
   showSortMenu = false;
   currentSort = 'Date (Newest first)';
   readonly paginationKey = 'drafts';
   readonly pageSize = 10;
   paginationPages: number[] = [0];
   canGoNext = true;
-  DraftId:string='';
-  currentEmailInput:string='';
-  isopen:boolean = false;
-  recipients:string[]=[];
-  subject:string='';
-  body:string='';
-  priority:number=4;
+  DraftId: string = '';
+  currentEmailInput: string = '';
+  isopen: boolean = false;
+  recipients: string[] = [];
+  subject: string = '';
+  body: string = '';
+  priority: number = 4;
   attachments: att[] = [];
-  oldattachments:attachment[]=[];
-  maildId:string='';
-  Emails:Datafile[]=[];
-  CustomFolderPopUp:boolean = false;
-  CustomFolders:CustomFolderData[]=[];
-  DraftData:Datafile[]=[];
+  oldattachments: attachment[] = [];
+  maildId: string = '';
+  Emails: Datafile[] = [];
+  CustomFolderPopUp: boolean = false;
+  CustomFolders: CustomFolderData[] = [];
+  DraftData: Datafile[] = [];
   foldername: string = '';
 
 
@@ -515,7 +517,7 @@ export class Drafts implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error(err);
-          alert('Failed to load version history.');
+          this.snackbar.showError('Failed to load version history');
         }
       });
   }
@@ -525,21 +527,17 @@ export class Drafts implements OnInit, OnDestroy {
   }
 
   restoreSnapshot(snapshotId: string) {
-    if (!confirm('Are you sure you want to restore this version? The current draft will be overwritten.')) {
-      return;
-    }
-
     const url = `http://localhost:8080/api/drafts/${this.currentDraftIdForSnapshots}/${snapshotId}`;
 
     this.http.put(url, {}, { responseType: 'text' }).subscribe({
       next: (response) => {
-        alert('Draft restored successfully!');
+        this.snackbar.showSuccess('Draft restored successfully!');
         this.isSnapshotPopupOpen = false; // Close modal
         this.refreshData(); // Refresh main list
       },
       error: (err) => {
         console.error(err);
-        alert('Failed to restore snapshot.');
+        this.snackbar.showError('Failed to restore snapshot');
       }
     });
   }
@@ -607,7 +605,7 @@ export class Drafts implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Search failed:', error);
-        alert('Failed to search drafts');
+        this.snackbar.showError('Failed to search drafts');
       },
     });
   }
@@ -641,7 +639,7 @@ export class Drafts implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Filter failed:', error);
-          alert('Failed to filter drafts');
+          this.snackbar.showError('Failed to filter drafts');
         },
       });
   }
@@ -686,7 +684,7 @@ export class Drafts implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Failed to load drafts:', error);
-        alert('Failed to load drafts');
+        this.snackbar.showError('Failed to load drafts');
       }
     });
   }
@@ -703,17 +701,17 @@ export class Drafts implements OnInit, OnDestroy {
     this.paginationService.setPage(this.paginationKey, 0);
   }
 
-  getCustomFolders(){
+  getCustomFolders() {
     const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
     param = param.set("userId", this.folderStateService.userData().userId)
-    .set("type", "custom");
-    this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
+      .set("type", "custom");
+    this.http.get<CustomFolderData[]>(url, { params: param }).subscribe({
       next: data => {
         this.CustomFolders = data;
       },
       error: err => {
-        alert("failed to fetch custom folders");
+        this.snackbar.showError('Failed to fetch custom folders');
       }
     })
   }
@@ -728,7 +726,7 @@ export class Drafts implements OnInit, OnDestroy {
     this.CustomFolderPopUp = this.folderSidebarService.openCreateFolderModal();
   }
 
-  handleRenameFolder(data: {folderId: string, newName: string}) {
+  handleRenameFolder(data: { folderId: string, newName: string }) {
     this.folderSidebarService.renameFolder(data.folderId, data.newName, () => this.getCustomFolders());
   }
 
@@ -767,14 +765,14 @@ export class Drafts implements OnInit, OnDestroy {
         this.getCustomFolders();
       },
       error: (respones) => {
-        alert('failed to create custom folder');
+        this.snackbar.showError('Failed to create custom folder');
       },
     });
   }
 
-  toggleEmailsSelected(email:Datafile,ischecked:boolean){
-    if(ischecked){
-      if(!this.Emails.includes(email)) {
+  toggleEmailsSelected(email: Datafile, ischecked: boolean) {
+    if (ischecked) {
+      if (!this.Emails.includes(email)) {
         this.Emails.push(email);
       }
     }
@@ -786,38 +784,38 @@ export class Drafts implements OnInit, OnDestroy {
     }
   }
 
-  addallemails(check:boolean){
-    if(check){
+  addallemails(check: boolean) {
+    if (check) {
       this.Emails = [...this.DraftData];
     }
-    else{
-      this.Emails=[];
+    else {
+      this.Emails = [];
     }
   }
 
-  checked(id:string){
+  checked(id: string) {
     const emailIndex = this.Emails.findIndex(e => e.mailId === id);
     return emailIndex != -1;
   }
 
-  openEdit(id:string){
+  openEdit(id: string) {
     this.DraftId = id;
-    this.attachments=[];
-    this.oldattachments=[];
-    this.currentEmailInput='';
+    this.attachments = [];
+    this.oldattachments = [];
+    this.currentEmailInput = '';
     this.http.get<Datafile>(`http://localhost:8080/api/mails/${this.folderStateService.userData().draftsFolderId}/${id}`).subscribe({
       next: (mail) => {
-        this.recipients=mail.receivers || mail.receiverEmails;
-        this.subject=mail.subject;
-        this.body=mail.body;
-        this.priority=mail.priority;
+        this.recipients = mail.receivers || mail.receiverEmails;
+        this.subject = mail.subject;
+        this.body = mail.body;
+        this.priority = mail.priority;
         this.oldattachments = mail.attachments;
-        this.maildId=mail.mailId;
-        this.isopen=true;
-        this.attachments=[];
+        this.maildId = mail.mailId;
+        this.isopen = true;
+        this.attachments = [];
       },
       error: (err) => {
-        alert("failed to get data");
+        this.snackbar.showError('Failed to get data');
       }
     });
   }
@@ -834,15 +832,16 @@ export class Drafts implements OnInit, OnDestroy {
     if (email && this.isVaildEmail(email)) {
       if (!this.recipients.includes(email)) {
         this.http.get<boolean>(`http://localhost:8080/api/mails/valid/${email}`,).subscribe({
-          next: (r:boolean) => {
-            if(r){
-              this.recipients.push(email);}
-            else{
-              alert(`Email doesn't exist: ${email}`);
+          next: (r: boolean) => {
+            if (r) {
+              this.recipients.push(email);
+            }
+            else {
+              this.snackbar.showError(`Email doesn't exist: ${email}`);
             }
           },
           error: e => {
-            alert(e.error.error);
+            this.snackbar.showError(e.error.error);
           }
         })
       }
@@ -892,7 +891,7 @@ export class Drafts implements OnInit, OnDestroy {
 
   async SentDraft() {
     const isValid = await this.validateDraftBeforeSending();
-  if (!isValid) return;
+    if (!isValid) return;
     try {
 
       await this.UpdateDraftBase();
@@ -909,7 +908,7 @@ export class Drafts implements OnInit, OnDestroy {
       this.refreshData()
     } catch (error) {
       console.error("Error sending draft:", error);
-      alert("Failed to send draft. Please try again.");
+      this.snackbar.showError('Failed to send draft. Please try again.');
     }
   }
   private async uploadAndSend() {
@@ -920,9 +919,9 @@ export class Drafts implements OnInit, OnDestroy {
       await this.uploadAttachments(mailIds);
       await this.Sent();
       let emailIndex = this.DraftData.findIndex(e => e.mailId === this.DraftId);
-      if(emailIndex > -1) {
-      this.DraftData.splice(emailIndex, 1);
-      this.DraftData = [...this.DraftData];
+      if (emailIndex > -1) {
+        this.DraftData.splice(emailIndex, 1);
+        this.DraftData = [...this.DraftData];
       }
     } catch (error) {
       console.log(error);
@@ -954,7 +953,7 @@ export class Drafts implements OnInit, OnDestroy {
       const formData = new FormData();
       formData.append('file', att.fileData, att.name);
       formData.append('mailIds', mailId);
-      return this.http.post("http://localhost:8080/api/attachments", formData,{responseType:'text'}).toPromise();
+      return this.http.post("http://localhost:8080/api/attachments", formData, { responseType: 'text' }).toPromise();
     });
     return Promise.all(uploadPromises);
   }
@@ -966,7 +965,7 @@ export class Drafts implements OnInit, OnDestroy {
       await this.UpdateDraftBase();
     }
     await this.delay(300);
-    this.isopen=false;
+    this.isopen = false;
     this.refreshData();
   }
 
@@ -977,26 +976,26 @@ export class Drafts implements OnInit, OnDestroy {
       priority: this.priority,
       receivers: this.recipients,
       sender: this.folderStateService.userData().email,
-      attachments:this.oldattachments,
+      attachments: this.oldattachments,
     };
     return lastValueFrom(
-      this.http.put(`http://localhost:8080/api/drafts/${this.DraftId}`, payload,{responseType:"text"})
+      this.http.put(`http://localhost:8080/api/drafts/${this.DraftId}`, payload, { responseType: "text" })
     );
 
   }
 
 
 
- /* private async uploadAndSaveDraft() {
-    try {
-      await this.UpdateDraftBase();
-      await this.DraftUploadAtt(this.DraftId);
-    } catch (error) {
-      console.log(error);
-    }
-  }*/
+  /* private async uploadAndSaveDraft() {
+     try {
+       await this.UpdateDraftBase();
+       await this.DraftUploadAtt(this.DraftId);
+     } catch (error) {
+       console.log(error);
+     }
+   }*/
 
-    private async uploadAndSaveDraft() {
+  private async uploadAndSaveDraft() {
     try {
 
       await this.DraftUploadAtt(this.DraftId);
@@ -1007,7 +1006,7 @@ export class Drafts implements OnInit, OnDestroy {
 
       this.attachments = [];
 
-     // this.refreshData();    change here
+      // this.refreshData();    change here
     } catch (error) {
       console.log(error);
     }
@@ -1019,7 +1018,7 @@ export class Drafts implements OnInit, OnDestroy {
       const formData = new FormData();
       formData.append('file', att.fileData, att.name);
       formData.append('mailIds', mailId);
-      return this.http.post("http://localhost:8080/api/attachments", formData , { responseType: 'text' }).toPromise();
+      return this.http.post("http://localhost:8080/api/attachments", formData, { responseType: 'text' }).toPromise();
     });
     return Promise.all(uploadPromises);
   }
@@ -1050,7 +1049,7 @@ export class Drafts implements OnInit, OnDestroy {
 
     this.oldattachments = this.oldattachments.filter(att => att.id !== id);
 
-    this.http.delete(url, {responseType:'text'}).subscribe({
+    this.http.delete(url, { responseType: 'text' }).subscribe({
       next: (response) => {
         this.updateDraftDataCache(this.DraftId, this.oldattachments);
 
@@ -1058,7 +1057,7 @@ export class Drafts implements OnInit, OnDestroy {
         this.UpdateDraftBase();
       },
       error: (error) => {
-        alert("failed to remove attachment");
+        this.snackbar.showError('Failed to remove attachment');
 
         this.oldattachments = previousAtt;
       }
@@ -1101,7 +1100,7 @@ export class Drafts implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error(err);
-        alert("Failed to delete drafts");
+        this.snackbar.showError('Failed to delete drafts');
 
       }
     })
@@ -1113,11 +1112,11 @@ export class Drafts implements OnInit, OnDestroy {
   private async validateDraftBeforeSending(): Promise<boolean> {  // check for sendDraft
 
     if (this.recipients.length === 0) {
-      alert("Please add at least one recipient.");
+      this.snackbar.showError('Please add at least one recipient');
       return false;
     }
     if (!this.subject.trim() && !this.body.trim()) {
-      alert("Provide subject or body");
+      this.snackbar.showError('Provide subject or body');
       return false;
     }
 
@@ -1125,12 +1124,12 @@ export class Drafts implements OnInit, OnDestroy {
       for (const email of this.recipients) {
         const isValid = await lastValueFrom(this.http.get<boolean>(`http://localhost:8080/api/mails/valid/${email}`));
         if (!isValid) {
-          alert(`The email address "${email}" is not valid or does not exist.`);
+          this.snackbar.showError(`The email address "${email}" is not valid or does not exist`);
           return false;
         }
       }
     } catch (error) {
-      alert("Error validating email addresses. Please try again.");
+      this.snackbar.showError('Error validating email addresses. Please try again.');
       return false;
     }
 

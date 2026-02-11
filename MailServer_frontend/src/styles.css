@@ -1,2 +1,67 @@
 /* You can add global styles to this file, and also import other style files */
 @import "tailwindcss";
+
+/* Angular Material SnackBar Themes */
+
+/* === Surface background colors === */
+.snackbar-success .mdc-snackbar__surface {
+  background-color: #2e7d32 !important;
+}
+
+.snackbar-error .mdc-snackbar__surface {
+  background-color: #d32f2f !important;
+}
+
+/* === Text color (message label) === */
+.snackbar-success .mdc-snackbar__label {
+  color: #ffffff !important;
+}
+
+.snackbar-error .mdc-snackbar__label {
+  color: #ffffff !important;
+}
+
+/* === Close button: kill the white ripple/state-layer completely === */
+.snackbar-success .mat-mdc-snack-bar-action,
+.snackbar-error .mat-mdc-snack-bar-action {
+  color: #ffffff !important;
+  background-color: transparent !important;
+  opacity: 1 !important;
+  --mdc-text-button-label-text-color: #ffffff !important;
+  --mat-text-button-state-layer-color: transparent !important;
+  --mat-text-button-ripple-color: transparent !important;
+  --mat-text-button-hover-state-layer-opacity: 0 !important;
+  --mat-text-button-pressed-state-layer-opacity: 0 !important;
+  --mat-text-button-focus-state-layer-opacity: 0 !important;
+}
+
+/* Button label text */
+.snackbar-success .mat-mdc-snack-bar-action .mdc-button__label,
+.snackbar-error .mat-mdc-snack-bar-action .mdc-button__label {
+  color: #ffffff !important;
+}
+
+/* Remove the ripple and state layer overlay elements */
+.snackbar-success .mat-mdc-snack-bar-action .mat-mdc-button-persistent-ripple,
+.snackbar-error .mat-mdc-snack-bar-action .mat-mdc-button-persistent-ripple,
+.snackbar-success .mat-mdc-snack-bar-action .mdc-button__ripple,
+.snackbar-error .mat-mdc-snack-bar-action .mdc-button__ripple,
+.snackbar-success .mat-mdc-snack-bar-action .mat-mdc-button-ripple,
+.snackbar-error .mat-mdc-snack-bar-action .mat-mdc-button-ripple,
+.snackbar-success .mat-mdc-snack-bar-action .mat-ripple,
+.snackbar-error .mat-mdc-snack-bar-action .mat-ripple {
+  display: none !important;
+}
+
+/* Hover: subtle white glow instead of white block */
+.snackbar-success .mat-mdc-snack-bar-action:hover,
+.snackbar-error .mat-mdc-snack-bar-action:hover {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 4px;
+}
+
+/* Active/pressed: slightly stronger */
+.snackbar-success .mat-mdc-snack-bar-action:active,
+.snackbar-error .mat-mdc-snack-bar-action:active {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}

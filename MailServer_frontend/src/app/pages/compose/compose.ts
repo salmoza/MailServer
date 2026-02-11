@@ -9,7 +9,8 @@ import { Datafile } from '../../Dtos/datafile';
 import { MailShuttleService } from '../../Dtos/MailDetails';
 import { ContactService } from '../../services/contact.services';
 import { ContactDto } from '../../Dtos/ContactDto';
-import {aiService} from '../../services/ai.Service';
+import { aiService } from '../../services/ai.Service';
+import { SnackbarService } from '../../services/snackbar.service';
 
 export interface att {
   id: string;
@@ -425,7 +426,8 @@ export class Compose implements OnInit, OnDestroy {
     private route: Router,
     private http: HttpClient,
     private mailShuttle: MailShuttleService,
-    private contactService: ContactService
+    private contactService: ContactService,
+    private snackbar: SnackbarService
   ) {
     this.folderStateService = inject(FolderStateService);
     this.sender = this.folderStateService.userData().email;
@@ -440,10 +442,10 @@ export class Compose implements OnInit, OnDestroy {
       }
     }
   }
-  showAiModel:boolean = false;
-  prompt:string='';
-  selectedtone:string='';
-  isLoading:boolean = false;
+  showAiModel: boolean = false;
+  prompt: string = '';
+  selectedtone: string = '';
+  isLoading: boolean = false;
   recipients: string[] = [];
   folderStateService: FolderStateService;
   currentEmailInput: string = '';
@@ -452,17 +454,17 @@ export class Compose implements OnInit, OnDestroy {
   priority: number = 4;
   attachments: att[] = [];
   mailId: string = '';
-  generateBody(){
-    if(!this.prompt){
-      alert("please enter a prompt");
+  generateBody() {
+    if (!this.prompt) {
+      this.snackbar.showError('Please enter a prompt');
       return;
     }
     this.isLoading = true;
     this.isRead = true;
     const name = this.folderStateService.userData().username;
-    this.ai.Generate(name,this.prompt,this.selectedtone).subscribe({
+    this.ai.Generate(name, this.prompt, this.selectedtone).subscribe({
       next: (result) => {
-        if(this.bodyEditor && this.bodyEditor.nativeElement){
+        if (this.bodyEditor && this.bodyEditor.nativeElement) {
           this.bodyEditor.nativeElement.innerText = result.result;
         }
         this.isRead = false;
@@ -472,7 +474,7 @@ export class Compose implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.log(err);
-        alert("Ai generation failed.");
+        this.snackbar.showError('AI generation failed');
         this.isLoading = false;
       }
     });
@@ -698,7 +700,7 @@ export class Compose implements OnInit, OnDestroy {
     if (!trimmedEmail || this.recipients.includes(trimmedEmail)) return;
 
     if (!this.isVaildEmail(trimmedEmail)) {
-      alert(`Invalid email format: ${trimmedEmail}`);
+      this.snackbar.showError(`Invalid email format: ${trimmedEmail}`);
       return;
     }
 
@@ -708,11 +710,11 @@ export class Compose implements OnInit, OnDestroy {
           if (r) {
             this.recipients.push(trimmedEmail);
           } else {
-            alert(`Email doesn't exist: ${trimmedEmail}`);
+            this.snackbar.showError(`Email doesn't exist: ${trimmedEmail}`);
           }
         },
         error: (e) => {
-          alert(e.error?.error || 'Error validating email');
+          this.snackbar.showError(e.error?.error || 'Error validating email');
         },
       });
     } else {
@@ -769,12 +771,12 @@ export class Compose implements OnInit, OnDestroy {
 
   sendCompose() {
     if (!this.recipients.length) {
-      alert('Add at least one recipient');
+      this.snackbar.showError('Add at least one recipient');
       return;
     }
     const bodyContent = this.getBodyContent().trim();
     if (!this.subject.trim() && !bodyContent) {
-      alert('Provide subject or body');
+      this.snackbar.showError('Provide subject or body');
       return;
     }
     if (this.attachments.length) {
@@ -825,7 +827,7 @@ export class Compose implements OnInit, OnDestroy {
   }
 
   private sendFinalMail() {
-    alert('Mail sent');
+    this.snackbar.showSuccess('Mail sent');
     this.route.navigate(['/inbox']);
   }
 

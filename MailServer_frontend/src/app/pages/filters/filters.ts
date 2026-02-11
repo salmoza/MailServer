@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {Router, RouterLink} from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HttpClient, HttpClientModule, HttpParams } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { FolderStateService } from '../../Dtos/FolderStateService';
 import { CustomFolderData } from '../../Dtos/datafile';
-import {MailShuttleService} from '../../Dtos/MailDetails';
-import {SearchBarComponent} from '../../components/search-bar/search-bar';
+import { MailShuttleService } from '../../Dtos/MailDetails';
+import { SearchBarComponent } from '../../components/search-bar/search-bar';
 import { HeaderComponent } from '../../header';
 import { SidebarComponent } from '../../components/side-bar/side-bar';
 import { FolderSidebarService } from '../../services/folder-sidebar.service';
+import { SnackbarService } from '../../services/snackbar.service';
 
 interface MailFilter {
   filterId?: string;
@@ -278,11 +279,12 @@ export class Filters implements OnInit {
 
   private apiUrl = 'http://localhost:8080/api/filters';
 
-  constructor(private MailDetails:MailShuttleService, private router : Router,
+  constructor(private MailDetails: MailShuttleService, private router: Router,
     private http: HttpClient,
     protected folderStateService: FolderStateService,
-    private folderSidebarService: FolderSidebarService
-  ) {}
+    private folderSidebarService: FolderSidebarService,
+    private snackbar: SnackbarService
+  ) { }
   // CustomFolderPopUp:boolean = false;
 
   ngOnInit() {
@@ -321,14 +323,14 @@ export class Filters implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load filters:', err);
-        alert('Failed to load filters');
+        this.snackbar.showError('Failed to load filters');
       }
     });
   }
 
   createFilter() {
     if (!this.newFilter.filterValue.trim()) {
-      alert('Please enter a value for the filter');
+      this.snackbar.showError('Please enter a value for the filter');
       return;
     }
 
@@ -336,7 +338,7 @@ export class Filters implements OnInit {
       next: (data) => {
         this.filters.push(data);
         this.resetForm();
-        alert('Filter created successfully!');
+        this.snackbar.showSuccess('Filter created successfully!');
       },
       error: (err) => {
         console.error('Failed to create filter - Full error:', err);
@@ -350,12 +352,12 @@ export class Filters implements OnInit {
         } else if (err.message) {
           errorMsg += ': ' + err.message;
         }
-        alert(errorMsg);
+        this.snackbar.showError(errorMsg);
       }
     });
   }
 
-  goToCustomFolder(Id:string){
+  goToCustomFolder(Id: string) {
     this.MailDetails.setCustom(Id);
     this.router.navigate([`/Custom`]);
   }
@@ -384,7 +386,7 @@ export class Filters implements OnInit {
       },
       error: (err) => {
         console.error('Failed to update filter:', err);
-        alert('Failed to update filter');
+        this.snackbar.showError('Failed to update filter');
       }
     });
   }
@@ -402,7 +404,7 @@ export class Filters implements OnInit {
       },
       error: (err) => {
         console.error('Failed to delete filter:', err);
-        alert('Failed to delete filter');
+        this.snackbar.showError('Failed to delete filter');
       }
     });
   }
@@ -437,7 +439,7 @@ export class Filters implements OnInit {
   CreateCustomFolder() {
     const trimmedName = this.foldername.trim();
     if (!trimmedName) {
-      alert('Please enter a folder name');
+      this.snackbar.showError('Please enter a folder name');
       return;
     }
 
@@ -464,7 +466,7 @@ export class Filters implements OnInit {
         this.loadCustomFolders();
       },
       error: () => {
-        alert('Failed to create custom folder');
+        this.snackbar.showError('Failed to create custom folder');
         this.customFolders = this.customFolders.filter((folder) => folder !== newFolder);
       },
     });

@@ -14,6 +14,7 @@ import { SidebarComponent } from '../../components/side-bar/side-bar';
 import { PaginationFooterComponent } from '../../components/pagination-footer/pagination-footer';
 import { PaginationService } from '../../services/pagination.service';
 import { forkJoin } from 'rxjs';
+import { SnackbarService } from '../../services/snackbar.service';
 interface MailSearchRequestDto {
   sender?: string;
   receiver?: string;
@@ -518,6 +519,7 @@ export class Inbox implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer,
     private folderSidebarService: FolderSidebarService,
     private paginationService: PaginationService,
+    private snackbar: SnackbarService,
   ) {
     const mail = this.MailDetails.getMailData();
 
@@ -634,7 +636,7 @@ export class Inbox implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.log(err);
-        alert('failed to fetch custom folders');
+        this.snackbar.showError('failed to fetch custom folders');
       },
     });
   }
@@ -661,7 +663,7 @@ export class Inbox implements OnInit, OnDestroy {
       },
       error: (respones) => {
         console.log(respones);
-        alert('failed to fetch mails');
+        this.snackbar.showError('failed to fetch mails');
       },
     });
   }
@@ -781,7 +783,7 @@ export class Inbox implements OnInit, OnDestroy {
         this.getCustomFolders();
       },
       error: (respones) => {
-        alert('failed to create custom folder');
+        this.snackbar.showError('failed to create custom folder');
         // Remove folder from UI if creation failed
         this.CustomFolders = this.CustomFolders.filter(f => f.folderName !== this.foldername);
       },
@@ -793,7 +795,7 @@ export class Inbox implements OnInit, OnDestroy {
 
     const currentFolderId = this.folderStateService.userData().inboxFolderId;
     if (!currentFolderId || !targetFolderId) {
-      alert('Error: Folder ID is missing. Please try logging in again.');
+      this.snackbar.showError('Error: Folder ID is missing. Please try logging in again.');
       return;
     }
 
@@ -811,7 +813,7 @@ export class Inbox implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Failed to move', err);
-        alert('Failed to move emails. Check console for details.');
+        this.snackbar.showError('Failed to move emails. Check console for details.');
       },
     });
   }
@@ -865,7 +867,7 @@ export class Inbox implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Search failed:', error);
-        alert('Failed to search emails');
+        this.snackbar.showError('Failed to search emails');
       },
     });
   }
@@ -934,7 +936,7 @@ export class Inbox implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Filter failed:', error);
-          alert('Failed to filter emails');
+          this.snackbar.showError('Failed to filter emails');
         },
       });
   }
@@ -966,7 +968,7 @@ export class Inbox implements OnInit, OnDestroy {
       },
       error: (res) => {
         console.log(res);
-        alert('Failed to move to Trash');
+        this.snackbar.showError('Failed to move to Trash');
       },
     });
   }
@@ -1012,7 +1014,7 @@ export class Inbox implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Sort failed:', error);
-        alert('Failed to sort emails');
+        this.snackbar.showError('Failed to sort emails');
       },
     });
   }
@@ -1035,7 +1037,7 @@ export class Inbox implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Delete Forever failed', err);
-        alert('Failed to delete emails forever');
+        this.snackbar.showError('Failed to delete emails forever');
       },
     });
   }
@@ -1096,7 +1098,7 @@ export class Inbox implements OnInit, OnDestroy {
 
     forkJoin(requests).subscribe({
       next: () => console.log('All requests completed'),
-      error: (err) => alert('Some emails failed to update')
+      error: (err) => this.snackbar.showError('Some emails failed to update')
     });
   }
 

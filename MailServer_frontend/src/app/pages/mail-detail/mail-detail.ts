@@ -12,6 +12,7 @@ import { HeaderComponent } from '../../header';
 import { SearchBarComponent } from '../../components/search-bar/search-bar';
 import { FolderSidebarService } from '../../services/folder-sidebar.service';
 import { SidebarComponent } from '../../components/side-bar/side-bar';
+import { SnackbarService } from '../../services/snackbar.service';
 
 interface MailSearchRequestDto {
   sender?: string;
@@ -354,8 +355,9 @@ export class MailDetail implements OnInit {
     private route: ActivatedRoute,
     private MailDetails: MailShuttleService, // Used to read URL parameters
     private sanitizer: DomSanitizer,
-    private folderSidebarService: FolderSidebarService
-  ) {}
+    private folderSidebarService: FolderSidebarService,
+    private snackbar: SnackbarService
+  ) { }
   goToCustomFolder(Id: string) {
     this.MailDetails.setCustom(Id);
     this.router.navigate([`/Custom`]);
@@ -386,7 +388,7 @@ export class MailDetail implements OnInit {
           this.mail = res;
         },
         error: (err) => {
-          alert('failed to get data');
+          this.snackbar.showError('failed to get data');
         },
       });
   }
@@ -401,7 +403,7 @@ export class MailDetail implements OnInit {
       },
       error: (err) => {
         console.log(err);
-        alert('failed to fetch custom folders');
+        this.snackbar.showError('failed to fetch custom folders');
       },
     });
   }
@@ -432,7 +434,7 @@ export class MailDetail implements OnInit {
       },
       error: (err) => {
         console.log(err);
-        alert('failed to download attachment');
+        this.snackbar.showError('failed to download attachment');
       },
     });
   }
@@ -443,7 +445,7 @@ export class MailDetail implements OnInit {
       folderId: this.folderStateService.userData().inboxFolderId,
       userId: this.folderStateService.userData().userId,
     };
-    
+
     // Add new folder to CustomFolders array immediately for instant UI feedback
     const newFolder: CustomFolderData = {
       folderId: payload.folderId,
@@ -454,7 +456,7 @@ export class MailDetail implements OnInit {
     this.CustomFolders = [...this.CustomFolders, newFolder];
     this.foldername = '';
     this.CustomFolderPopUp = false;
-    
+
     this.http.post(url, payload).subscribe({
       next: (respones) => {
         console.log(respones);
@@ -462,7 +464,7 @@ export class MailDetail implements OnInit {
         this.getCustomFolders();
       },
       error: (respones) => {
-        alert('failed to create custom folder');
+        this.snackbar.showError('failed to create custom folder');
         // Remove folder from UI if creation failed
         this.CustomFolders = this.CustomFolders.filter(f => f.folderName !== this.foldername);
       },
@@ -474,7 +476,7 @@ export class MailDetail implements OnInit {
       ids: this.MailDetails2.getMailData()?.mailId,
     };
     this.http.patch(url, payload).subscribe({
-      next: (respones) => {},
+      next: (respones) => { },
       error: (respones) => {
         console.log('failed to move');
       },
@@ -541,7 +543,7 @@ export class MailDetail implements OnInit {
         console.log('Sent mails data:', res);
         this.SentData = res;
       },
-      error: (err) => alert('Failed to fetch mails'),
+      error: (err) => this.snackbar.showError('Failed to fetch mails'),
     });
   }
 

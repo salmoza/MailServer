@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { MailShuttleService } from '../Dtos/MailDetails';
 import { FolderStateService } from '../Dtos/FolderStateService';
+import { SnackbarService } from './snackbar.service';
 
 interface FolderMessages {
   success?: string;
@@ -16,7 +17,8 @@ export class FolderSidebarService {
     private mailDetails: MailShuttleService,
     private http: HttpClient,
     private folderStateService: FolderStateService,
-  ) {}
+    private snackbar: SnackbarService,
+  ) { }
 
   getActiveCustomFolderId(): string {
     return this.router.url.includes('/Custom') ? this.mailDetails.getCustomId() : '';
@@ -47,7 +49,7 @@ export class FolderSidebarService {
         // alert(messages?.success ?? 'Folder renamed successfully');
       },
       error: () => {
-        alert(messages?.error ?? 'Failed to rename folder');
+        this.snackbar.showError(messages?.error ?? 'Failed to rename folder');
       },
     });
   }
@@ -56,7 +58,7 @@ export class FolderSidebarService {
     const userId = this.folderStateService.userData().userId;
     if (!userId) {
       console.error('deleteFolder called without a user id');
-      alert(messages?.error ?? 'Failed to delete folder');
+      this.snackbar.showError(messages?.error ?? 'Failed to delete folder');
       return;
     }
 
@@ -68,7 +70,7 @@ export class FolderSidebarService {
         // alert(messages?.success ?? 'Folder deleted successfully');
       },
       error: () => {
-        alert(messages?.error ?? 'Failed to delete folder');
+        this.snackbar.showError(messages?.error ?? 'Failed to delete folder');
       },
     });
   }

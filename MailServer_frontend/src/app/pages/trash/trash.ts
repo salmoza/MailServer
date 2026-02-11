@@ -12,6 +12,7 @@ import { SidebarComponent } from '../../components/side-bar/side-bar';
 import { FolderSidebarService } from '../../services/folder-sidebar.service';
 import { PaginationFooterComponent } from '../../components/pagination-footer/pagination-footer';
 import { PaginationService } from '../../services/pagination.service';
+import { SnackbarService } from '../../services/snackbar.service';
 
 interface MailSearchRequestDto {
   sender?: string;
@@ -317,7 +318,8 @@ export class Trash implements OnInit, OnDestroy {
     private router: Router,
     private folderSidebarService: FolderSidebarService,
     private paginationService: PaginationService,
-  ) {}
+    private snackbar: SnackbarService,
+  ) { }
   foldername: string = '';
   CustomFolderPopUp: boolean = false;
   Emails: Datafile[] = [];
@@ -327,7 +329,7 @@ export class Trash implements OnInit, OnDestroy {
   readonly pageSize = 10;
   paginationPages: number[] = [0];
   canGoNext = true;
-  CustomFolders:CustomFolderData[]=[];
+  CustomFolders: CustomFolderData[] = [];
 
 
 
@@ -391,7 +393,7 @@ export class Trash implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.log(err);
-        alert('failed to fetch custom folders');
+        this.snackbar.showError('failed to fetch custom folders');
       },
     });
   }
@@ -417,7 +419,7 @@ export class Trash implements OnInit, OnDestroy {
       },
       error: (respones) => {
         console.log(respones);
-        alert('failed to fetch mails');
+        this.snackbar.showError('failed to fetch mails');
       },
     });
   }
@@ -480,7 +482,7 @@ export class Trash implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error(err);
-        alert("Failed to delete forever");
+        this.snackbar.showError("Failed to delete forever");
       }
     })
   }
@@ -496,7 +498,7 @@ export class Trash implements OnInit, OnDestroy {
 
     const ids = this.Emails.map(email => email.mailId);
 
-    this.http.patch(url, ids , {responseType : "text"} ).subscribe({
+    this.http.patch(url, ids, { responseType: "text" }).subscribe({
       next: (response) => {
         console.log("Undo successful", response);
 
@@ -507,19 +509,19 @@ export class Trash implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error("Undo failed", error);
-        alert("Failed to restore emails");
+        this.snackbar.showError("Failed to restore emails");
       }
     });
   }
 
 
 
-  goToCustomFolder(Id:string){
+  goToCustomFolder(Id: string) {
     this.MailDetails.setCustom(Id);
     this.router.navigate([`/Custom`]);
   }
 
-  CreateCustomFolder(){
+  CreateCustomFolder() {
     const url = "http://localhost:8080/api/folders";
     const payload = {
       folderName: this.foldername,
@@ -547,7 +549,7 @@ export class Trash implements OnInit, OnDestroy {
         this.getCustomFolders();
       },
       error: (respones) => {
-        alert("failed to create custom folder");
+        this.snackbar.showError("failed to create custom folder");
       }
     })
   }
@@ -603,7 +605,7 @@ export class Trash implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Search failed:', error);
-        alert('Failed to search emails');
+        this.snackbar.showError('Failed to search emails');
       },
     });
   }
@@ -637,7 +639,7 @@ export class Trash implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Filter failed:', error);
-        alert('Failed to filter emails');
+        this.snackbar.showError('Failed to filter emails');
       }
     });
   }

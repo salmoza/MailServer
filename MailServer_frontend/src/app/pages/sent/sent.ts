@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FolderStateService } from '../../Dtos/FolderStateService';
@@ -12,6 +12,7 @@ import { SidebarComponent } from '../../components/side-bar/side-bar';
 import { FolderSidebarService } from '../../services/folder-sidebar.service';
 import { PaginationFooterComponent } from '../../components/pagination-footer/pagination-footer';
 import { PaginationService } from '../../services/pagination.service';
+import { SnackbarService } from '../../services/snackbar.service';
 
 interface MailSearchRequestDto {
   sender?: string;
@@ -408,7 +409,7 @@ export class Sent implements OnInit {
   paginationPages: number[] = [0];
   canGoNext = true;
 
-  constructor(private MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router, private folderSidebarService: FolderSidebarService, private paginationService: PaginationService) {}
+  constructor(private MailDetails: MailShuttleService, protected folderStateService: FolderStateService, private http: HttpClient, private router: Router, private folderSidebarService: FolderSidebarService, private paginationService: PaginationService, private snackbar: SnackbarService) { }
 
   ngOnInit() {
     this.paginationService.registerContext(this.paginationKey, 0, (page) => this.updatePage(page));
@@ -469,7 +470,7 @@ export class Sent implements OnInit {
       .set('type', 'custom');
     this.http.get<CustomFolderData[]>(`http://localhost:8080/api/folders`, { params }).subscribe({
       next: (data) => (this.CustomFolders = data),
-      error: (err) => alert('Failed to fetch custom folders'),
+      error: (err) => this.snackbar.showError('Failed to fetch custom folders'),
     });
   }
 
@@ -487,7 +488,7 @@ export class Sent implements OnInit {
         console.log('Sent mails data:', res);
         this.SentData = res;
       },
-      error: (err) => alert('Failed to fetch mails'),
+      error: (err) => this.snackbar.showError('Failed to fetch mails'),
     });
   }
 
@@ -513,9 +514,8 @@ export class Sent implements OnInit {
   delete() {
     if (!this.Emails.length) return;
     const ids = this.Emails.map((e) => e.mailId);
-    const url = `http://localhost:8080/api/mails/${
-      this.folderStateService.userData().sentFolderId
-    }`;
+    const url = `http://localhost:8080/api/mails/${this.folderStateService.userData().sentFolderId
+      }`;
     let params = new HttpParams();
     ids.forEach((id) => (params = params.append('ids', id)));
 
@@ -524,7 +524,7 @@ export class Sent implements OnInit {
         this.SentData = this.SentData.filter((e) => !ids.includes(e.mailId));
         this.Emails = [];
       },
-      error: () => alert('Failed to delete emails'),
+      error: () => this.snackbar.showError('Failed to delete emails'),
     });
   }
 
@@ -534,7 +534,7 @@ export class Sent implements OnInit {
     const currentFolderId = this.folderStateService.userData().sentFolderId;
 
     if (!currentFolderId || !targetFolderId) {
-      alert('Error: Folder ID missing.');
+      this.snackbar.showError('Error: Folder ID missing.');
       return;
     }
 
@@ -549,7 +549,7 @@ export class Sent implements OnInit {
         this.Emails = [];
         this.tomove = false;
       },
-      error: (err) => alert('Failed to move emails'),
+      error: (err) => this.snackbar.showError('Failed to move emails'),
     });
   }
 
@@ -584,7 +584,7 @@ export class Sent implements OnInit {
         // Sync with server in background
         this.getCustomFolders();
       },
-      error: () => alert('Failed to create custom folder'),
+      error: () => this.snackbar.showError('Failed to create custom folder'),
     });
   }
   handleSearch(criteria: any) {
@@ -634,7 +634,7 @@ export class Sent implements OnInit {
       },
       error: (error) => {
         console.error('Search failed:', error);
-        alert('Failed to search emails');
+        this.snackbar.showError('Failed to search emails');
       },
     });
   }
@@ -667,7 +667,7 @@ export class Sent implements OnInit {
         },
         error: (error) => {
           console.error('Filter failed:', error);
-          alert('Failed to filter emails');
+          this.snackbar.showError('Failed to filter emails');
         },
       });
   }
@@ -732,7 +732,7 @@ export class Sent implements OnInit {
       },
       error: (error) => {
         console.error('Sort failed:', error);
-        alert('Failed to sort emails');
+        this.snackbar.showError('Failed to sort emails');
       },
     });
   }
@@ -765,9 +765,8 @@ export class Sent implements OnInit {
   moveToTrash() {
     if (!this.Emails.length) return;
     const ids = this.Emails.map((e) => e.mailId);
-    const url = `http://localhost:8080/api/mails/${
-      this.folderStateService.userData().sentFolderId
-    }`;
+    const url = `http://localhost:8080/api/mails/${this.folderStateService.userData().sentFolderId
+      }`;
     let params = new HttpParams();
     ids.forEach((id) => (params = params.append('ids', id)));
 
@@ -777,7 +776,7 @@ export class Sent implements OnInit {
         this.Emails = [];
         this.showDeleteOptions = false;
       },
-      error: () => alert('Failed to move emails to Trash'),
+      error: () => this.snackbar.showError('Failed to move emails to Trash'),
     });
   }
 
@@ -795,7 +794,7 @@ export class Sent implements OnInit {
         this.showDeleteOptions = false;
         console.log('Deleted Forever');
       },
-      error: (err) => alert('Failed to delete emails forever'),
+      error: (err) => this.snackbar.showError('Failed to delete emails forever'),
     });
   }
 

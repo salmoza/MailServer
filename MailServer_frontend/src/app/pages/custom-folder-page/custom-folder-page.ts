@@ -1,17 +1,18 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {Router, RouterLink} from '@angular/router';
-import {FolderStateService} from '../../Dtos/FolderStateService';
-import {HttpClient, HttpClientModule, HttpParams} from '@angular/common/http';
-import {CustomFolderData, Datafile} from '../../Dtos/datafile';
-import {MailShuttleService} from '../../Dtos/MailDetails';
-import {MailDetail} from '../mail-detail/mail-detail';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {SearchBarComponent} from '../../components/search-bar/search-bar';
+import { Router, RouterLink } from '@angular/router';
+import { FolderStateService } from '../../Dtos/FolderStateService';
+import { HttpClient, HttpClientModule, HttpParams } from '@angular/common/http';
+import { CustomFolderData, Datafile } from '../../Dtos/datafile';
+import { MailShuttleService } from '../../Dtos/MailDetails';
+import { MailDetail } from '../mail-detail/mail-detail';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { SearchBarComponent } from '../../components/search-bar/search-bar';
 import { SidebarComponent } from '../../components/side-bar/side-bar';
 import { PaginationFooterComponent } from '../../components/pagination-footer/pagination-footer';
 import { PaginationService } from '../../services/pagination.service';
 import { FolderSidebarService } from '../../services/folder-sidebar.service';
+import { SnackbarService } from '../../services/snackbar.service';
 interface MailSearchRequestDto {
   sender?: string;
   receiver?: string;
@@ -358,20 +359,20 @@ interface MailSearchRequestDto {
     }
   `],
 })
-export class CustomFolderPage implements OnInit, OnDestroy{
-  constructor(protected MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router, private folderSidebarService: FolderSidebarService, private paginationService: PaginationService) {
+export class CustomFolderPage implements OnInit, OnDestroy {
+  constructor(protected MailDetails: MailShuttleService, protected folderStateService: FolderStateService, private http: HttpClient, private router: Router, private folderSidebarService: FolderSidebarService, private paginationService: PaginationService, private snackbar: SnackbarService) {
   }
-  CustomFolderPopUp:boolean = false;
-  foldername:string=''
-  Emails:Datafile[]=[];
-  InboxData:Datafile[]=[];
-  CustomFolders:CustomFolderData[]=[];
-  page:number = 0;
+  CustomFolderPopUp: boolean = false;
+  foldername: string = ''
+  Emails: Datafile[] = [];
+  InboxData: Datafile[] = [];
+  CustomFolders: CustomFolderData[] = [];
+  page: number = 0;
   readonly paginationKey = 'custom-folder-page';
   readonly pageSize = 10;
   paginationPages: number[] = [0];
   canGoNext = true;
-  tomove:boolean=false;
+  tomove: boolean = false;
   showDeleteOptions: boolean = false;
   isSearchActive = false;
   isAdvancedSearch = false;
@@ -410,7 +411,7 @@ export class CustomFolderPage implements OnInit, OnDestroy{
       return;
     }
     this.page = page;
-    
+
     if (this.currentSort !== 'Date (Newest first)') {
       const sortByMap: { [key: string]: string } = {
         'Date (Newest first)': 'date_desc',
@@ -429,34 +430,34 @@ export class CustomFolderPage implements OnInit, OnDestroy{
       this.getCustom(this.page);
     }
   }
-  getCustomFolders(){
+  getCustomFolders() {
     const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
     param = param.set("userId", this.folderStateService.userData().userId)
-    .set("type", "custom");
-    this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
+      .set("type", "custom");
+    this.http.get<CustomFolderData[]>(url, { params: param }).subscribe({
       next: data => {
         this.CustomFolders = data;
         console.log(data);
       },
       error: err => {
         console.log(err);
-        alert("failed to fetch custom folders");
+        this.snackbar.showError('Failed to fetch custom folders');
       }
     })
   }
 
-  getCustom(page:number){
+  getCustom(page: number) {
     const CustomId = this.MailDetails.getCustomId();
-    if(!CustomId){
+    if (!CustomId) {
 
-       console.error('CustomId is missing, redirecting');
-       this.router.navigate(['/inbox']);
-       return;
+      console.error('CustomId is missing, redirecting');
+      this.router.navigate(['/inbox']);
+      return;
     }
     let param = new HttpParams().set('page', page).set("folderId", CustomId);
-    this.http.get<Datafile[]>(`http://localhost:8080/api/mails`,{params:param}).subscribe({
-      next:(respones) => {
+    this.http.get<Datafile[]>(`http://localhost:8080/api/mails`, { params: param }).subscribe({
+      next: (respones) => {
         const canDisplay = this.syncPagination(page, respones.length);
         if (!canDisplay) {
           return;
@@ -465,30 +466,30 @@ export class CustomFolderPage implements OnInit, OnDestroy{
         this.InboxData = this.transformMailData(respones);
         console.log(respones);
       },
-      error:() => alert("failed to fetch mails")
+      error: () => this.snackbar.showError('Failed to fetch mails')
     })
   }
 
 
-  goToMailDetails(details:Datafile){
+  goToMailDetails(details: Datafile) {
     this.MailDetails.setMailData(details);
     this.MailDetails.setFromId(this.MailDetails.getCustomId());
     console.log(details)
     this.router.navigate([`/mail`]);
   }
-    goToCustomFolder(Id:string){
-     const alreadyOnCustom = this.folderSidebarService.navigateToCustomFolder(Id);
+  goToCustomFolder(Id: string) {
+    const alreadyOnCustom = this.folderSidebarService.navigateToCustomFolder(Id);
 
-     if (alreadyOnCustom) {
-       this.page = 0;
-       this.resetPaginationState();
-       this.paginationService.setPage(this.paginationKey, 0);
-       this.getCustomFolders();
-     }
+    if (alreadyOnCustom) {
+      this.page = 0;
+      this.resetPaginationState();
+      this.paginationService.setPage(this.paginationKey, 0);
+      this.getCustomFolders();
     }
-  toggleEmailsSelected(email:Datafile,ischecked:boolean){
-    if(ischecked){
-      if(!this.Emails.includes(email)) {
+  }
+  toggleEmailsSelected(email: Datafile, ischecked: boolean) {
+    if (ischecked) {
+      if (!this.Emails.includes(email)) {
         this.Emails.push(email);
       }
     }
@@ -502,59 +503,59 @@ export class CustomFolderPage implements OnInit, OnDestroy{
   addallemails(check: boolean) {
     if (check) {
       console.log("added");
-      
+
       this.Emails = [...this.InboxData];
     } else {
       console.log("removed");
       this.Emails = [];
     }
   }
-  checked(id:string){
+  checked(id: string) {
     const emailIndex = this.Emails.findIndex(e => e.mailId === id);
     if (emailIndex != -1) {
       return true;
     }
-    else{
+    else {
       return false;
     }
   }
-  delete(){
+  delete() {
     const CustomId = this.MailDetails.getCustomId();
     const url = `http://localhost:8080/api/mails/${CustomId}`
-    if(this.Emails.length == 0){
+    if (this.Emails.length == 0) {
       return
     }
-    let ids:string[]=[];
-    for(let i:number=0; i<this.Emails.length;i++){
+    let ids: string[] = [];
+    for (let i: number = 0; i < this.Emails.length; i++) {
       ids.push(this.Emails[i].mailId);
       /*to remove the email form inbox*/
       const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
+      this.toggleEmailsSelected(this.InboxData[emailIndex], false)
     }
     let params = new HttpParams();
     ids.forEach((id) => {
       params = params.append('ids', id);
     });
-    this.http.delete(url, {params:params, responseType: 'text'}).subscribe({
-      next:(respones) => {
+    this.http.delete(url, { params: params, responseType: 'text' }).subscribe({
+      next: (respones) => {
         console.log(respones);
         const deletedIds = new Set(ids);
         this.InboxData = this.InboxData.filter(email => !deletedIds.has(email.mailId));
         this.Emails = [];
       },
-      error:(respones) => {
+      error: (respones) => {
         console.log(respones);
       }
     })
   }
-  CreateCustomFolder(){
+  CreateCustomFolder() {
     const url = "http://localhost:8080/api/folders";
-    const payload={
-      folderName:this.foldername,
-      folderId:this.folderStateService.userData().inboxFolderId,
-      userId:this.folderStateService.userData().userId,
+    const payload = {
+      folderName: this.foldername,
+      folderId: this.folderStateService.userData().inboxFolderId,
+      userId: this.folderStateService.userData().userId,
     }
-    
+
     // Add new folder to CustomFolders array immediately for instant UI feedback
     const newFolder: CustomFolderData = {
       folderId: payload.folderId,
@@ -565,13 +566,13 @@ export class CustomFolderPage implements OnInit, OnDestroy{
     this.CustomFolders = [...this.CustomFolders, newFolder];
     this.foldername = '';
     this.CustomFolderPopUp = false;
-    
+
     this.http.post(url, payload).subscribe({
-      next:() => {
+      next: () => {
         // Sync with server in background
         this.getCustomFolders();
       },
-      error:() => alert("failed to create custom folder")
+      error: () => this.snackbar.showError('Failed to create custom folder')
     })
   }
 
@@ -581,10 +582,10 @@ export class CustomFolderPage implements OnInit, OnDestroy{
     const currentFolderId = this.MailDetails.getCustomId();
 
 
-    if(!currentFolderId) {
-        alert("System State lost. Please return to Inbox and try again.");
-        this.router.navigate(['/inbox']);
-        return;
+    if (!currentFolderId) {
+      this.snackbar.showError('System state lost. Please return to Inbox and try again.');
+      this.router.navigate(['/inbox']);
+      return;
     }
 
     const mailIds = this.Emails.map(email => email.mailId);
@@ -601,7 +602,7 @@ export class CustomFolderPage implements OnInit, OnDestroy{
       },
       error: (err) => {
         console.error("Failed to move", err);
-        alert("Failed to move emails");
+        this.snackbar.showError('Failed to move emails');
       }
     });
   }
@@ -659,7 +660,7 @@ export class CustomFolderPage implements OnInit, OnDestroy{
       },
       error: (error) => {
         console.error('Search failed:', error);
-        alert('Failed to search emails');
+        this.snackbar.showError('Failed to search emails');
       }
     });
   }
@@ -692,7 +693,7 @@ export class CustomFolderPage implements OnInit, OnDestroy{
       },
       error: (error) => {
         console.error('Filter failed:', error);
-        alert('Failed to filter emails');
+        this.snackbar.showError('Failed to filter emails');
       }
     });
   }
@@ -723,7 +724,7 @@ export class CustomFolderPage implements OnInit, OnDestroy{
   applySorting(sortBy: string, page: number) {
     const folderId = this.MailDetails.getCustomId();
     const userId = this.folderStateService.userData().userId;
-    
+
     if (!folderId || !userId) {
       console.error('folderId or userId is missing');
       return;
@@ -747,7 +748,7 @@ export class CustomFolderPage implements OnInit, OnDestroy{
       },
       error: (error) => {
         console.error('Sort failed:', error);
-        alert('Failed to sort emails');
+        this.snackbar.showError('Failed to sort emails');
       }
     });
   }
@@ -758,7 +759,7 @@ export class CustomFolderPage implements OnInit, OnDestroy{
   }
 
   getPriorityLabel(priority: number | undefined): string {
-    switch(priority) {
+    switch (priority) {
       case 1: return 'Urgent';
       case 2: return 'High';
       case 3: return 'Normal';
@@ -788,10 +789,10 @@ export class CustomFolderPage implements OnInit, OnDestroy{
   moveToTrash() {
     const CustomId = this.MailDetails.getCustomId();
     const url = `http://localhost:8080/api/mails/${CustomId}`;
-    
+
     if (this.Emails.length == 0) return;
 
-    
+
     const ids = this.Emails.map(e => e.mailId);
 
     let params = new HttpParams();
@@ -803,11 +804,11 @@ export class CustomFolderPage implements OnInit, OnDestroy{
       next: (respones) => {
         const deletedIds = new Set(ids);
         this.InboxData = this.InboxData.filter(email => !deletedIds.has(email.mailId));
-        
+
         this.Emails = [];
         this.showDeleteOptions = false;
       },
-      error: (respones) => alert("Failed to move to Trash")
+      error: (respones) => this.snackbar.showError('Failed to move to Trash')
     });
   }
 
@@ -825,7 +826,7 @@ export class CustomFolderPage implements OnInit, OnDestroy{
         this.showDeleteOptions = false;
         console.log("Deleted Forever");
       },
-      error: (err) => alert("Failed to delete emails forever")
+      error: (err) => this.snackbar.showError('Failed to delete emails forever')
     });
   }
 
@@ -848,7 +849,7 @@ export class CustomFolderPage implements OnInit, OnDestroy{
     this.CustomFolderPopUp = this.folderSidebarService.openCreateFolderModal();
   }
 
-  handleRenameFolder(data: {folderId: string, newName: string}) {
+  handleRenameFolder(data: { folderId: string, newName: string }) {
     this.folderSidebarService.renameFolder(data.folderId, data.newName, () => this.getCustomFolders());
   }
 

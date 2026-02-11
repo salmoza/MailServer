@@ -11,6 +11,7 @@ import { SidebarComponent } from '../../components/side-bar/side-bar';
 import { FolderStateService } from '../../Dtos/FolderStateService';
 import { CustomFolderData } from '../../Dtos/datafile';
 import { FolderSidebarService } from '../../services/folder-sidebar.service';
+import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-contacts',
@@ -493,8 +494,9 @@ export class Contacts implements OnInit {
     private http: HttpClient,
     protected folderStateService: FolderStateService,
     private folderSidebarService: FolderSidebarService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private snackbar: SnackbarService
+  ) { }
 
   ngOnInit() {
     this.loadContacts();
@@ -570,7 +572,7 @@ export class Contacts implements OnInit {
     this.contactService.toggleStar(contact.contactId).subscribe({
       error: () => {
         contact.starred = !contact.starred;
-        alert('Failed to update star');
+        this.snackbar.showError('Failed to update star');
       },
     });
   }
@@ -610,7 +612,7 @@ export class Contacts implements OnInit {
           );
           this.selectedIds.clear();
         },
-        error: () => alert('Failed to delete contacts'),
+        error: () => this.snackbar.showError('Failed to delete contacts'),
       });
     }
   }
@@ -632,7 +634,7 @@ export class Contacts implements OnInit {
             this.closeContactModal();
           }
         },
-        error: () => alert('Failed to delete contact'),
+        error: () => this.snackbar.showError('Failed to delete contact'),
       });
     }
   }
@@ -640,7 +642,7 @@ export class Contacts implements OnInit {
   CreateCustomFolder() {
     const trimmedName = this.foldername.trim();
     if (!trimmedName) {
-      alert('Please enter a folder name');
+      this.snackbar.showError('Please enter a folder name');
       return;
     }
 
@@ -665,7 +667,7 @@ export class Contacts implements OnInit {
     this.http.post(url, payload).subscribe({
       next: () => this.loadCustomFolders(),
       error: () => {
-        alert('Failed to create custom folder');
+        this.snackbar.showError('Failed to create custom folder');
         this.customFolders = this.customFolders.filter((folder) => folder !== tempFolder);
       },
     });
