@@ -10,14 +10,14 @@
 
 
 <p align="center">
-  <img src="https://github.com/salmoza/MailServer/blob/main/Heads%20Up%20Delivery%20GIF%20by%20Luke%20Alexander.gif?raw=true" width="500"/>
+  <img src="https://github.com/salmoza/MailServer/blob/main/assets/Heads%20Up%20Delivery%20GIF%20by%20Luke%20Alexander.gif?raw=true" width="500"/>
 </p>
 
 
 <h2 align="center">🚀 Project Preview</h2>
 
 <p align="center">
-  <img src="https://github.com/salmoza/MailServer/blob/main/Screenshot%202026-02-06%20173420.png?raw=true" width="800"/>
+  <img src="https://github.com/salmoza/MailServer/blob/main/assets/Screenshot%202026-02-06%20173420.png?raw=true" width="800"/>
 </p>
 
 
@@ -161,3 +161,9 @@ Service layer hides complex subsystem interactions from controllers.
 
 ### 🧍 Singleton Pattern
 Ensures single instances for services, controllers, and repositories.
+
+## 📄 Documentation
+
+For a detailed technical explanation of the system architecture, design patterns, implementation decisions, and full project analysis, please refer to the full project report:
+
+👉 **[Project Technical Report](docs/MailReport.pdf)**
