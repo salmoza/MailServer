@@ -1,8 +1,7 @@
 package com.example.backend.repo;
 
-import com.example.backend.entities.Contact;
-import com.example.backend.entities.Mail;
-import com.example.backend.entities.User;
+import com.example.backend.model.Contact;
+import com.example.backend.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;

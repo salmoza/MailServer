@@ -2,79 +2,76 @@ package com.example.backend.controllers;
 
 import com.example.backend.dtos.MailDto;
 import com.example.backend.dtos.MailListDto;
+import com.example.backend.dtos.MailSearchRequestDto;
 import com.example.backend.dtos.MoveMaildto;
-import com.example.backend.entities.Mail;
-import com.example.backend.factories.MailFactory;
+import com.example.backend.mappers.MailMapper;
 import com.example.backend.repo.MailRepo;
+import com.example.backend.repo.UserRepo;
 import com.example.backend.services.mailService.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
-@RequestMapping("/mail")
+@RequestMapping("/api/mails")
 public class MailController {
     @Autowired
     MailService mailService ;
 
     @Autowired
-    MailFactory mailFactory;
+    MailMapper mailMapper;
 
     @Autowired
     MailRepo mailRepo ;
+    @Autowired
+    private UserRepo userRepo;
 
 
-    @PostMapping("/compose")
+    @PostMapping
     public ResponseEntity<List<String>> compose (@RequestBody MailDto mailDto) {
         List<String> createdMailIds = mailService.createNewMail(mailDto);
         return ResponseEntity.ok(createdMailIds);
     }
+    @GetMapping("/valid/{email}")
+    public Boolean isValidMail(@PathVariable("email") String email){
+        return userRepo.existsByEmail(email);
+    }
 
-    @GetMapping("/{folderId}/details/{mailId}")
+    @GetMapping("/{folderId}/{mailId}")        // details
     public MailDto mailDetails (@PathVariable String folderId, @PathVariable String mailId) {
        return mailService.mailDetails(mailId, folderId);
     }
 
-//    // delete specific mail
-//    @DeleteMapping("/delete/{mailId}")
-//    public ResponseEntity<String> deleteMail (@PathVariable String mailId) {
-//        mailService.deleteMailById(mailId);
-//        return ResponseEntity.ok("Mail deleted successfully!");
-//    }
-
     // delete folder's mails
-    @DeleteMapping("/deleteMails/{folderId}")
+    @DeleteMapping("/{folderId}")    // deleteMails
     public ResponseEntity<?> deleteMails(@RequestParam List<String> ids , @PathVariable String folderId) {
             mailService.deleteMailById(ids , folderId);
 
         return ResponseEntity.ok("Deleted " + ids.size() + " mails");
     }
 
-    @PostMapping("/isRead/{mailId}")
-    public String changeIsRead (@PathVariable String mailId) {
+    @PatchMapping("/{mailId}/read-status")
+    public String markAsRead (@PathVariable String mailId) {
        return mailService.changeIsRead(mailId) ;
 
     }
 
-    @GetMapping("/filter")
+    @PostMapping("/filter")
     public List<MailListDto> filter(
             @RequestParam String folderId,
-            @RequestParam(required = false) String subject,
-            @RequestParam(required = false) String sender) {
-
-        return mailService.filterEmails(folderId, subject, sender);
+            @RequestBody MailSearchRequestDto request,
+            @RequestParam int page
+    ) {
+        return mailService.advancedSearch(folderId, request, page);
     }
 
 
-    @GetMapping("/getAllMails")
-    public List<MailListDto> getAllMails(@RequestParam String folderId, @RequestParam int page) {
+    @GetMapping  // getAllMails
+    public List<MailListDto> getAllMails(@RequestParam int page, @RequestParam String folderId) {
         return mailService.sortMails(folderId, "date", page);
-
-//        return mailRepo.findAll() ;
     }
 
     @GetMapping("/search")
@@ -85,7 +82,7 @@ public class MailController {
         return mailService.searchEmails(folderId, keyword, page);
     }
 
-    @PostMapping("/move/{toFolderId}/{fromFolderId}")
+    @PatchMapping("/{toFolderId}/{fromFolderId}")
     public ResponseEntity<?> move (@PathVariable String fromFolderId
             , @PathVariable String toFolderId
             ,@RequestBody MoveMaildto dto ) {
@@ -95,21 +92,35 @@ public class MailController {
 
     @GetMapping("/sort")
     public List<MailListDto> sort(
+            @RequestParam String userId,
             @RequestParam String folderId,
             @RequestParam String sortBy,
             @RequestParam int page) {
         return mailService.sortMails(folderId, sortBy, page);
     }
 
-    @GetMapping("/mails")
+   /* @GetMapping
     public List<MailListDto> getAll (){
         return mailRepo.findAll().stream().map(mailFactory::toListDto).toList();
-    }    // for testing
+    }    // for testing */
 
-    @DeleteMapping("/deleteAllMails")
+   /* @DeleteMapping
     public ResponseEntity<String> deleteAll () {
         mailRepo.deleteAll();
         return ResponseEntity.ok("All mails deleted successfully!");
+    } */
+
+    @PatchMapping //undo
+    public ResponseEntity<?> undo(@RequestBody List<String> ids) {
+        mailService.undo(ids) ;
+        return ResponseEntity.ok("successfully") ;
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteForever (@RequestBody List<String> ids) {
+        mailService.deleteForever(ids);
+        return ResponseEntity.ok("successfully deleted");
+
     }
 
 

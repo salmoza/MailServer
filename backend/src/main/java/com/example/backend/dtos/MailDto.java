@@ -18,6 +18,7 @@ public class MailDto {
     private List<String> receivers;
     private String sender;
     private String senderDisplayName;
+    private List<String> receiverDisplayNames;
     private String subject;
     private String body;
     private int priority;

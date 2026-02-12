@@ -5,21 +5,20 @@ import {Router} from '@angular/router';
   providedIn: 'root'
 })
 export class AuthService {
-  private initalUserId = localStorage.getItem("userId");
-  private currentUserSubject = new BehaviorSubject<string | null>(null);
 
-  public currentUser$ = this.currentUserSubject.asObservable();
   public isAuthernticated(): boolean {
-    return !!this.currentUserSubject.value
+    const initalUserId = localStorage.getItem("userId");
+    if(initalUserId != null){
+      return true;
+    }
+    return false;
   }
   public setAuthenticatedUser(userId:string):void {
-    localStorage.setItem('user_id', userId);
-    this.currentUserSubject.next(userId);
+    localStorage.setItem('userId', userId);
   }
 
   public logout(): void {
-    localStorage.removeItem('user_id');
-    this.currentUserSubject.next(null);
+    localStorage.removeItem('userId');
     const router = inject(Router);
     router.navigate(['/login']);
   }

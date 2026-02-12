@@ -1,7 +1,7 @@
 package com.example.backend.services.filter;
 
 
-import com.example.backend.entities.Mail;
+import com.example.backend.model.Mail;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,7 +17,9 @@ public class SenderCriteria implements MailCriteria {
     @Override
     public List<Mail> meetCriteria(List<Mail> emails) {
         return emails.stream()
-                .filter(email -> email.getSenderEmail().equalsIgnoreCase(sender))
+                .filter(email -> email.getSenderEmail().contains(sender)
+                        || email.getSenderDisplayName().contains(sender)
+                )
                 .collect(Collectors.toList());
     }
 }

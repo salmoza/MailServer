@@ -1,16 +1,17 @@
-import {Component, inject} from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {Router, RouterLink} from '@angular/router';
-import {routes} from '../../app.routes';
-import {HttpClient, HttpClientModule, provideHttpClient} from '@angular/common/http';
-import {FormsModule} from '@angular/forms'; // Use RouterLink for Angular navigation
-import {AuthService} from '../../Auth/AuthService';
-import {FolderStateService} from '../../Dtos/FolderStateService';
+import { Router, RouterLink } from '@angular/router';
+import { routes } from '../../app.routes';
+import { HttpClient, HttpClientModule, provideHttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms'; // Use RouterLink for Angular navigation
+import { AuthService } from '../../Auth/AuthService';
+import { FolderStateService } from '../../Dtos/FolderStateService';
+import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule,HttpClientModule,RouterLink],
+  imports: [CommonModule, FormsModule, HttpClientModule, RouterLink],
   template: `
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -67,15 +68,16 @@ import {FolderStateService} from '../../Dtos/FolderStateService';
                   name="password"
                   placeholder="Enter your password"
                   required=""
-                  type="password"
+                  [type]="showPassword ? 'text' : 'password'"
                   value=""
                   [(ngModel)]="password"
                 />
                 <div
-                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#4c739a]"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#4c739a] cursor-pointer"
+                  (click)="togglePasswordVisibility()"
                 >
-                  <span class="material-symbols-outlined cursor-pointer" data-icon="Eye"
-                  >visibility</span
+                  <span class="material-symbols-outlined"
+                  >{{ showPassword ? 'visibility_off' : 'visibility' }}</span
                   >
                 </div>
               </div>
@@ -164,15 +166,16 @@ import {FolderStateService} from '../../Dtos/FolderStateService';
                   name="password"
                   placeholder="Enter your password"
                   required=""
-                  type="password"
+                  [type]="showPasswordSignUp ? 'text' : 'password'"
                   value=""
                   [(ngModel)]="password"
                 />
                 <div
-                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#4c739a]"
+                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#4c739a] cursor-pointer"
+                  (click)="togglePasswordVisibilitySignUp()"
                 >
-                  <span class="material-symbols-outlined cursor-pointer" data-icon="Eye"
-                  >visibility</span
+                  <span class="material-symbols-outlined"
+                  >{{ showPasswordSignUp ? 'visibility_off' : 'visibility' }}</span
                   >
                 </div>
               </div>
@@ -229,46 +232,68 @@ import {FolderStateService} from '../../Dtos/FolderStateService';
   `],
 })
 export class Login {
-  constructor(private route:Router,
-              private authService:AuthService,
-              private http:HttpClient,
-              private FolderStates:FolderStateService) {}
-private hhtp = inject(HttpClient);
+  constructor(private route: Router,
+    private authService: AuthService,
+    private http: HttpClient,
+    private FolderStates: FolderStateService,
+    private snackbar: SnackbarService) { }
+  private hhtp = inject(HttpClient);
   issign_up: boolean = false;
-  url: string = 'http://localhost:8080/user/';
+  url: string = 'http://localhost:8080/api/auth/';
   username: string = '';
   password: string = '';
   email: string = '';
-login(){
-  const payload={
-    password:this.password,
-    email:this.email,
+  showPassword: boolean = false;
+  showPasswordSignUp: boolean = false;
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
   }
-  this.hhtp.post(this.url+'signIn',payload).subscribe({
-    next:(response:any)=>{
-      this.FolderStates.initializeState(response);
-      this.authService.setAuthenticatedUser(response.userId);
-    this.route.navigate(['/inbox']);
-    },
-    error:(response:any)=>{
-      console.log(response);
-      alert(response.error);
-    }
-  })
-}
-sign_up(){
-  const payload={
-    password:this.password,
-    email:this.email,
-    username:this.username,
+
+  togglePasswordVisibilitySignUp(): void {
+    this.showPasswordSignUp = !this.showPasswordSignUp;
   }
-  this.hhtp.post(this.url+'signUp',payload).subscribe({
-    next:(response:any)=>{
-    this.issign_up=false;
-    },
-    error:(response:any)=>{
-      alert(response.error.error);
+
+  login() {
+    const payload = {
+      password: this.password,
+      email: this.email,
     }
-  })
-}
+    this.hhtp.post(this.url + 'signIn', payload).subscribe({
+      next: (response: any) => {
+        this.FolderStates.initializeState(response);
+        this.authService.setAuthenticatedUser(response.userId);
+        this.route.navigate(['/inbox']);
+      },
+      error: (response: any) => {
+        console.log(response);
+        this.snackbar.showError(response.error);
+      }
+    })
+  }
+  sign_up() {
+    const payload = {
+      password: this.password,
+      email: this.email,
+      username: this.username,
+    }
+
+    this.hhtp.post(this.url + 'signUp', payload).subscribe({
+      next: (response: any) => {
+
+        this.snackbar.showSuccess("sign up successfully please sign in");
+        console.log(response.message);
+        this.issign_up = false;
+      },
+      error: (err: any) => {
+
+        if (err.error && err.error.error) {
+          this.snackbar.showError(err.error.error);
+        } else {
+          this.snackbar.showError("Signup failed");
+        }
+      }
+    })
+  }
+
 }

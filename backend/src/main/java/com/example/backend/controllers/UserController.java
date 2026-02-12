@@ -4,14 +4,10 @@ import com.example.backend.dtos.UserSigninDTO;
 import com.example.backend.dtos.UserSignupDTO;
 
 import com.example.backend.dtos.UserDto;
-import com.example.backend.dtos.UserSigninDTO;
-import com.example.backend.dtos.UserSignupDTO;
-import com.example.backend.entities.User;
 import com.example.backend.services.userService.RequestFactory;
 import com.example.backend.services.userService.UserService;
 import com.example.backend.services.userService.signin.SignInRequest;
 import com.example.backend.services.userService.signup.SignUpRequest;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,14 +20,14 @@ import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/auth")
 public class UserController {
 
     @Autowired
-    UserService userService ;
+    UserService userService;
 
 
-//    @PostMapping("/signIn")
+    //    @PostMapping("/signIn")
 //    public ResponseEntity<?> signin (@RequestBody UserSigninDTO user) {
 //        return ResponseEntity.ok(userService.signIn(user));
 //    }
@@ -50,36 +46,41 @@ public class UserController {
 
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public Map<String, String> handelAuthException(IllegalArgumentException ex){
-        return Map.of("error",ex.getMessage());
+    public Map<String, String> handelAuthException(IllegalArgumentException ex) {
+        return Map.of("error", ex.getMessage());
     }
+
     @PostMapping("/signUp")
-//    public ResponseEntity<?>  signup (@Valid @RequestBody UserSignupDTO user) {
-//        return ResponseEntity.ok(userService.signUp(user)) ;
-//    }
     public ResponseEntity<?> signup(@RequestBody UserSignupDTO dto) {
         try {
-            SignUpRequest req =
-                    (SignUpRequest) RequestFactory.createRequest("signup", dto.getUsername(), dto.getEmail(), dto.getPassword());
-            return ResponseEntity.ok(userService.signUp(req));
+            SignUpRequest req = (SignUpRequest) RequestFactory.createRequest("signup",
+                    dto.getUsername(), dto.getEmail(), dto.getPassword());
+
+
+            String message = userService.signUp(req);
+
+
+            return ResponseEntity.ok(Map.of("message", message));
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex){
+    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
         String fistError = ex.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .findFirst()
                 .orElse("Validation failed");
-        return Map.of("error",fistError);
+        return Map.of("error", fistError);
     }
 
-    @GetMapping("/get")
-    public List<UserDto> get (){
-        return userService.getAllUsers() ;
+    @GetMapping("/get/all")
+    public List<UserDto> getAllUsers() {
+        return userService.getAllUsers();
     }
 
 }

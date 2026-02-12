@@ -1,92 +1,152 @@
 <div class="flex min-h-screen justify-center bg-[#f6f7f8] py-10 font-display">
-    <div class="w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-      
-      <h2 class="mb-6 text-2xl font-bold text-slate-900">
-        {{ isEditMode ? 'Edit Contact' : 'Create New Contact' }}
-      </h2>
-  
-      <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
-        
-        <div>
-          <label class="mb-2 block text-sm font-medium text-slate-700">Contact Name *</label>
-          <input 
-            type="text" 
-            formControlName="name"
-            class="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:border-[#137fec] focus:outline-none focus:ring-1 focus:ring-[#137fec]"
-            placeholder="e.g. Olivia Rhye"
+  <div class="w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+    <h2 class="mb-6 text-2xl font-bold text-slate-900">
+      {{ isEditMode ? 'Edit Contact' : 'Create New Contact' }}
+    </h2>
+
+    <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+      <div>
+        <label class="mb-2 block text-sm font-medium text-slate-700">Contact Name *</label>
+        <input
+          type="text"
+          formControlName="name"
+          class="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 text-slate-900 focus:border-[#137fec] focus:outline-none focus:ring-1 focus:ring-[#137fec] placeholder:text-gray-400 focus:outline-0"
+          placeholder="e.g. Olivia Rhye"
+        />
+        <p
+          *ngIf="contactForm.get('name')?.touched && contactForm.get('name')?.hasError('required')"
+          class="mt-1 text-xs text-red-500"
+        >
+          Name is required
+        </p>
+        <p *ngIf="contactForm.get('name')?.hasError('minlength')" class="mt-1 text-xs text-red-500">
+          Must be at least 3 characters
+        </p>
+      </div>
+
+      <div class="flex gap-4">
+        <div class="flex-1">
+          <label class="mb-2 block text-sm font-medium text-slate-700">Phone Number</label>
+          <input
+            type="text"
+            formControlName="phoneNumber"
+            class="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 placeholder:text-gray-400 focus:outline-0"
+            placeholder="01012345678"
+          />
+          <p
+            *ngIf="contactForm.get('phoneNumber')?.hasError('pattern')"
+            class="mt-1 text-xs text-red-500"
           >
-          <p *ngIf="contactForm.get('name')?.touched && contactForm.get('name')?.hasError('required')" class="mt-1 text-xs text-red-500">Name is required</p>
-          <p *ngIf="contactForm.get('name')?.hasError('minlength')" class="mt-1 text-xs text-red-500">Must be at least 3 characters</p>
+            Digits only
+          </p>
         </div>
-  
-        <div class="flex gap-4">
-          <div class="flex-1">
-            <label class="mb-2 block text-sm font-medium text-slate-700">Phone Number</label>
-            <input 
-              type="text" 
-              formControlName="phoneNumber"
-              class="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5"
-              placeholder="01012345678"
-            >
-            <p *ngIf="contactForm.get('phoneNumber')?.hasError('pattern')" class="mt-1 text-xs text-red-500">Digits only</p>
-          </div>
-  
-          <div class="flex items-center pt-6">
-              <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" formControlName="starred" class="size-5 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]">
-                  <span class="text-sm font-medium text-slate-700">Add to Favorites (Starred)</span>
-              </label>
-          </div>
+
+        <div class="flex items-center pt-6">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              formControlName="starred"
+              class="size-5 rounded border-slate-300 text-[#137fec] focus:ring-[#137fec]"
+            />
+            <span class="text-sm font-medium text-slate-700">Add to Favorites (Starred)</span>
+          </label>
         </div>
-  
-        <div>
-          <div class="mb-2 flex items-center justify-between">
-              <label class="text-sm font-medium text-slate-700">Email Addresses *</label>
-              <button type="button" (click)="addEmailField()" class="text-sm font-bold text-[#137fec] hover:underline">+ Add Another</button>
-          </div>
-          
-          <div formArrayName="emailAddresses" class="flex flex-col gap-3">
-            <div *ngFor="let email of emailControls; let i=index" class="flex gap-2">
-              <input 
+      </div>
+
+      <div>
+        <div class="mb-2 flex items-center justify-between">
+          <label class="text-sm font-medium text-slate-700">Email Addresses *</label>
+          <button
+            type="button"
+            (click)="addEmailField()"
+            class="text-sm font-bold text-[#137fec] hover:underline"
+          >
+            + Add Another
+          </button>
+        </div>
+
+        <div formArrayName="emailAddresses" class="flex flex-col gap-3">
+          <div *ngFor="let email of emailControls; let i = index" class="flex gap-2">
+            <div class="flex-1">
+              <input
                 [formControlName]="i"
-                type="email" 
-                class="flex-1 rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5"
+                (keydown.enter)="onEmailEnter($event, i)"
+                type="email"
+                class="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 placeholder:text-gray-400 focus:outline-0"
+                [ngClass]="{
+                  'border-red-500': email.invalid && email.touched,
+                  'border-green-500': email.valid && email.touched && !email.pending
+                }"
                 placeholder="user@example.com"
-              >
-              <button *ngIf="emailControls.length > 1" (click)="removeEmailField(i)" type="button" class="text-red-500 hover:bg-red-50 p-2 rounded">
-                  <span class="material-symbols-outlined">delete</span>
-              </button>
+              />
+
+              <div class="mt-1">
+                <p *ngIf="email.pending" class="text-xs text-blue-500">Checking email...</p>
+
+                <p
+                  *ngIf="email.hasError('emailNotExist') && email.touched"
+                  class="text-xs text-red-500"
+                >
+                  This email doesn't exist in the system
+                </p>
+
+                <p *ngIf="email.hasError('required') && email.touched" class="text-xs text-red-500">
+                  Email is required
+                </p>
+                <p
+                  *ngIf="email.hasError('email') && email.touched && !email.hasError('required')"
+                  class="text-xs text-red-500"
+                >
+                  Please enter a valid email address
+                </p>
+
+                <p
+                  *ngIf="email.valid && email.touched && !email.pending"
+                  class="text-xs text-green-500"
+                >
+                  ✓ Email verified
+                </p>
+              </div>
             </div>
+            <button
+              *ngIf="emailControls.length > 1"
+              (click)="removeEmailField(i)"
+              type="button"
+              class="text-red-500 hover:bg-red-50 p-2 rounded"
+            >
+              <span class="material-symbols-outlined">delete</span>
+            </button>
           </div>
         </div>
-  
-        <div>
-          <label class="mb-2 block text-sm font-medium text-slate-700">Notes</label>
-          <textarea 
-            formControlName="notes"
-            rows="3"
-            class="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5"
-            placeholder="Any extra details..."
-          ></textarea>
-        </div>
-  
-        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-          <button 
-              type="button" 
-              [routerLink]="['/contacts']"
-              class="rounded-lg px-6 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100"
-          >
-              Cancel
-          </button>
-          <button 
-              type="submit" 
-              [disabled]="contactForm.invalid"
-              class="rounded-lg bg-[#137fec] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#116dcb] disabled:opacity-50"
-          >
-              {{ isEditMode ? 'Save Changes' : 'Create Contact' }}
-          </button>
-        </div>
-  
-      </form>
-    </div>
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-medium text-slate-700">Notes</label>
+        <textarea
+          formControlName="notes"
+          rows="3"
+          class="w-full rounded-lg border border-slate-300 bg-slate-50 px-4 py-2.5 placeholder:text-gray-400 focus:outline-0"
+          placeholder="Any extra details... (optional)"
+        ></textarea>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+        <button
+          type="button"
+          [routerLink]="['/contacts']"
+          class="rounded-lg px-6 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="contactForm.invalid || contactForm.pending || isSubmitting"
+          class="rounded-lg bg-[#137fec] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#116dcb] disabled:opacity-50 flex items-center justify-center cursor-pointer"
+        >
+          <span *ngIf="isSubmitting" class="mr-2"> Verifying... </span>
+          {{ isEditMode ? 'Save Changes' : 'Create Contact' }}
+        </button>
+      </div>
+    </form>
   </div>
+</div>

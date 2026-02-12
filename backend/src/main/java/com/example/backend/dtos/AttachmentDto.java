@@ -7,8 +7,9 @@ import lombok.Setter;
 @Setter
 public class AttachmentDto {
     private String filetype;
-    private String filePath;
     private String id;
     private String mailId;
+    private String fileName;
+    private Long fileSize;
 
 }

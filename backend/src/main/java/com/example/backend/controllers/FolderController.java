@@ -2,7 +2,7 @@ package com.example.backend.controllers;
 
 
 import com.example.backend.dtos.FolderDto;
-import com.example.backend.entities.Folder;
+import com.example.backend.model.Folder;
 import com.example.backend.repo.FolderRepo;
 import com.example.backend.services.FolderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
-@RequestMapping("/folders")
+@RequestMapping("/api/folders")
 public class FolderController {
     @Autowired
     private FolderRepo folderRepo;
@@ -24,28 +24,23 @@ public class FolderController {
         return folderService.getFolders(userId);
     }
 
-//    @DeleteMapping("/{userId}")
-//    public void deleteFolders(){
-//        folderRepo.deleteAll();
-//    }
-
     @DeleteMapping("/{folderId}/{userId}")
     public void deleteFolder(@PathVariable String folderId, @PathVariable String userId){
         folderService.deleteFolder(userId, folderId);
     }
 
-    @PostMapping("/createFolder")
+    @PostMapping
     public Folder createFolder(@RequestBody FolderDto folderDto){
         System.out.println("createFolder");
         return folderService.createFolder(folderDto.userId, folderDto.folderName);
     }
 
-    @PutMapping("/{folderId}/rename")
+    @PutMapping("/{folderId}")  // rename
     public Folder renameFolder(@PathVariable String folderId, @RequestParam String newName) {
         return folderService.renameFolder(folderId, newName);
     }
 
-    @GetMapping("/custom")
+    @GetMapping(params = "type=custom")
     public List<Folder> getCustomFolders(@RequestParam String userId) {
         return folderService.getCustomFolders(userId);
     }

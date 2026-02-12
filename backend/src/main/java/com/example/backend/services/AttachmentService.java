@@ -1,12 +1,14 @@
 package com.example.backend.services;
 
 import com.example.backend.dtos.AttachmentDto;
-import com.example.backend.entities.Attachment;
-import com.example.backend.entities.Mail;
-import com.example.backend.factories.AttachmentFactory;
+import com.example.backend.model.Attachment;
+import com.example.backend.model.Mail;
+import com.example.backend.mappers.AttachmentMapper;
 import com.example.backend.repo.AttachmentsRepo;
 import com.example.backend.repo.MailRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,13 +23,13 @@ import java.util.UUID;
 
 @Service
 public class AttachmentService {
-    private final AttachmentFactory attachmentFactory;
+    private final AttachmentMapper attachmentMapper;
     private final MailRepo mailRepo;
     private final AttachmentsRepo attachmentsRepo;
-    private static final String Attachment_dir = "C:\\Users\\Zuhair\\Desktop\\Server\\attachments";
+    private static final String Attachment_dir = "C:\\Users\\abdel\\Downloads\\Server";
     @Autowired
-    public AttachmentService(AttachmentFactory attachmentFactory, MailRepo mailRepo, AttachmentsRepo attachmentsRepo) {
-        this.attachmentFactory = attachmentFactory;
+    public AttachmentService(AttachmentMapper attachmentMapper, MailRepo mailRepo, AttachmentsRepo attachmentsRepo) {
+        this.attachmentMapper = attachmentMapper;
         this.mailRepo = mailRepo;
         this.attachmentsRepo = attachmentsRepo;
     }
@@ -60,18 +62,24 @@ public class AttachmentService {
             att.setFilename(originalName);
             Attachment saveAtt = attachmentsRepo.save(att);
             if(primaryAttachmentdto == null){
-                primaryAttachmentdto = attachmentFactory.toDTO(saveAtt);
+                primaryAttachmentdto = attachmentMapper.toDTO(saveAtt);
             }
         }
         return primaryAttachmentdto;
     }
 
     public String DeleteAttachment(String id) {
-       List<Attachment> attop = attachmentsRepo.findByAttachmentId(id);
+       Optional<Attachment> attop = attachmentsRepo.findById(id);
        if(attop.isEmpty()){
            return "not found";
        }
-       Attachment att = attop.get(Integer.parseInt(id));
+       Attachment att = attop.get();
+       Mail parent = att.getMail();
+       if(parent != null){
+           parent.getAttachments().remove(att);
+           mailRepo.save(parent);
+       }
+       att.setMail(null);
        Path filePath = Paths.get(att.getFilePath());
        try{
            if(Files.deleteIfExists(filePath)){
@@ -83,11 +91,11 @@ public class AttachmentService {
        attachmentsRepo.delete(att);
         return "deleted";
     }
-    public Path getfilePath(String attid){
+    /*public Path getfilePath(String attid){
         Optional<Attachment> attop = attachmentsRepo.findById(attid);
         Attachment att = attop.get();
         return Paths.get(att.getFilePath());
-    }
+    }*/
     public List<Attachment> duplicateAttachmentsForNewMail(String sourceDraftId, Mail targetMailEntity) {
 
         // 1. Find all attachments currently linked to the source Draft ID
@@ -114,5 +122,19 @@ public class AttachmentService {
         }
 
         return duplicatedAttachments;
+    }
+    public Resource loadFileAsResource(String attachmentId) throws IOException{
+        Attachment attachment = attachmentsRepo.findById(attachmentId).orElseThrow(()->new RuntimeException("file not found"));
+        Path filePath = Paths.get(attachment.getFilePath());
+        Resource resource = new UrlResource(filePath.toUri());
+        if(resource.exists() && resource.isReadable()){
+            return resource;
+        }
+        else{
+            throw new RuntimeException("could not read file: "+attachment.getFilename());
+        }
+    }
+    public Attachment getAttachmentMeta(String id){
+        return attachmentsRepo.findById(id).orElseThrow(()-> new RuntimeException("Not Found"));
     }
 }

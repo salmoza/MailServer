@@ -1,314 +1,226 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {Router, RouterLink} from '@angular/router';
-import {FolderStateService} from '../../Dtos/FolderStateService';
-import {HttpClient, HttpClientModule, HttpParams} from '@angular/common/http';
-import {CustomFolderData, Datafile} from '../../Dtos/datafile';
-import {MailShuttleService} from '../../Dtos/MailDetails';
-import {MailDetail} from '../mail-detail/mail-detail';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { FolderStateService } from '../../Dtos/FolderStateService';
+import { HttpClient, HttpClientModule, HttpParams } from '@angular/common/http';
+import { CustomFolderData, Datafile } from '../../Dtos/datafile';
+import { MailShuttleService } from '../../Dtos/MailDetails';
+import { MailDetail } from '../mail-detail/mail-detail';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { SearchBarComponent } from '../../components/search-bar/search-bar';
+import { SidebarComponent } from '../../components/side-bar/side-bar';
+import { PaginationFooterComponent } from '../../components/pagination-footer/pagination-footer';
+import { PaginationService } from '../../services/pagination.service';
+import { FolderSidebarService } from '../../services/folder-sidebar.service';
+import { SnackbarService } from '../../services/snackbar.service';
+interface MailSearchRequestDto {
+  sender?: string;
+  receiver?: string;
+  subject?: string;
+  body?: string;
+}
 
 @Component({
   selector: 'app-custom-folder-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, RouterLink, HttpClientModule, ReactiveFormsModule, FormsModule, SearchBarComponent, SidebarComponent, PaginationFooterComponent],
   template: `
-    <!-- Global resource loading added for robustness -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
-    <!-- Main Container: Enforced light background -->
-    <div class="flex h-screen w-full">
-      <!-- SideNavBar -->
-      <aside
-        class="flex h-full w-[260px] flex-col border-r border-slate-200 bg-white p-4 sticky top-0"
-      >
-        <div class="flex h-full flex-col justify-between">
-          <div class="flex flex-col gap-6">
-            <div class="flex items-center gap-3 px-3">
+<div class="flex h-screen w-full font-inter">
+  <app-sidebar
+    [username]="folderStateService.userData().username"
+    [userEmail]="folderStateService.userData().email"
+    [customFolders]="CustomFolders"
+    [activeCustomFolderId]="getCurrentFolderId()"
+    (folderClick)="handleFolderClick($event)"
+    (createFolder)="handleCreateFolder()"
+    (renameFolder)="handleRenameFolder($event)"
+    (deleteFolder)="handleDeleteFolder($event)">
+  </app-sidebar>
 
-              <h1 class="text-slate-800 text-base font-medium leading-normal">
-                {{folderStateService.userData().username}}
-              </h1>
-            </div>
-            <button [routerLink]="['/compose']"
-              class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]"
-            >
-              <span class="truncate">Compose</span>
-            </button>
-            <div class="flex flex-col gap-1">
-              <a [routerLink]="['/inbox']"
-                 class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 "
-              >
-                <!-- Removed dark:text-slate-200 -->
-                <span class="material-symbols-outlined text-slate-800 fill"
-                >inbox</span
-                >
-                <p class="text-slate-800 text-sm font-medium leading-normal">
-                  Inbox
-                </p>
-                <span
-                  class="ml-auto text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5"
-                >3</span
-                >
-              </a>
-              <a [routerLink]="['/sent']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600"
-                  >send</span
-                >
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Sent
-                </p>
-              </a>
-              <a [routerLink]="['/drafts']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600"
-                  >draft</span
-                >
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Drafts
-                </p>
-              </a>
-              <a [routerLink]="['/trash']"
-                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-              >
-                <span class="material-symbols-outlined text-slate-600"
-                  >delete</span
-                >
-                <p class="text-slate-600 text-sm font-medium leading-normal">
-                  Trash
-                </p>
-              </a>
-            </div>
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center justify-between px-3 py-2">
-                <h2
-                  class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Custom Folders
-                </h2>
-                <button class="text-slate-500 hover:text-primary cursor-pointer" (click)="CustomFolderPopUp=true">
-                  <span class="material-symbols-outlined text-base">add</span>
-                </button>
-              </div>
-              @for(custom of CustomFolders; track $index) {
-                @if(custom.folderId == MailDetails.getCustomId()){
-                <a (click)="goToCustomFolder(custom.folderId)"
-                   class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 bg-primary/20"
-                >
-                <span class="material-symbols-outlined text-slate-600"
-                >folder</span
-                >
+  <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-[#f6f7f8]">
+    <app-search-bar
+      (onSearch)="handleSearch($event)"
+      (onClear)="handleClearSearch()">
+    </app-search-bar>
 
-
-                  <p class="text-slate-600 text-sm font-medium leading-normal">
-                    {{custom.folderName}}
-                  </p>
-
-              </a>
-                }
-                @else{
-                  <a (click)="goToCustomFolder(custom.folderId)"
-                     class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
-                  >
-                <span class="material-symbols-outlined text-slate-600"
-                >folder</span
-                >
-
-
-                    <p class="text-slate-600 text-sm font-medium leading-normal">
-                      {{custom.folderName}}
-                    </p>
-
-                  </a>
-                }
-              }
-            </div>
-          </div>
-        </div>
-      </aside>
-      <!-- Main Content -->
-      <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <!-- Toolbar -->
-        <div
-          class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10"
-        >
-          <div class="flex gap-2">
-            <button (click)="delete()"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
-            >
-              <span class="material-symbols-outlined">delete</span>
-            </button>
-            <button (click)="tomove = true"
-              class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              [disabled]="Emails.length === 0"
-            >
-              <span class="material-symbols-outlined">folder_open</span>
-            </button>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-medium text-slate-600"
-              >Priority Mode</span
-            >
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input class="sr-only peer" type="checkbox" value="" />
-              <div
-                class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-              ></div>
-            </label>
-          </div>
-        </div>
-        <!-- Email List Table -->
-        <div class="flex-1 px-6 py-4 overflow-x-hidden">
-          <div
-            class="flex overflow-hidden rounded-lg border border-slate-200 bg-white"
-          >
-            <table class="w-full text-left">
-              <thead class="bg-slate-50">
-              <tr>
-                <th class="px-4 py-3 w-12">
-                  <input
-                    class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                    type="checkbox"
-                    #checkbox
-                    (click)="addallemails(checkbox.checked)"
-                  />
-                </th>
-
-                <th class="py-3 pl-0 pr-4" colspan="4">
-                  <div class="flex items-center w-full">
-                    <div class="px-4 text-slate-800 w-1/4 text-sm font-medium">
-                      Sender
-                    </div>
-                    <div class="px-4 text-slate-800 w-1/2 text-sm font-medium">
-                      Subject
-                    </div>
-                    <div class="px-4 text-slate-800 w-auto text-sm font-medium"></div>
-                    <div class="px-4 text-slate-800 w-1/6 text-sm font-medium text-right">
-                      Date
-                    </div>
-                  </div>
-                </th>
-              </tr>
-              </thead>
-
-              <tbody>
-                @for(item of InboxData; track $index){
-                  <tr
-                    class="border-t border-t-slate-200 hover:bg-slate-50"
-                  >
-                    <td class="px-4 py-2">
-                      <input
-                        class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0"
-                        type="checkbox"
-                        #checkbox
-                        (change)="toggleEmailsSelected(item,checkbox.checked)"
-                        [checked]="checked(item.mailId)"
-                      />
-                    </td>
-
-                    <td class="py-0 pl-0 pr-4" colspan="4">
-                      <div
-                        class="flex items-center w-full py-2 cursor-pointer"
-                        (click)="goToMailDetails(item)"
-                      >
-                        <div class="px-4 text-slate-800 w-1/4 text-sm font-semibold">
-                          {{item.sender}}
-                        </div>
-
-                        <div class="px-4 w-1/2">
-                    <span class="text-slate-800 text-sm font-semibold"
-                    >{{item.subject}}</span
-                    >
-                          <span class="text-slate-500 text-sm ml-2 truncate"
-                          >{{item.body}}</span
-                          >
-                        </div>
-
-                        <div class="px-4 text-right w-auto">
-                          <span class="material-symbols-outlined text-slate-400 text-lg">attachment</span>
-                        </div>
-
-                        <div class="px-4 text-slate-500 text-sm text-right w-1/6">
-                          {{item.date}}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <!-- Pagination -->
-        <div
-          class="flex items-center justify-center p-4 border-t border-gray-200 bg-white mt-auto"
-        >
-          <a (click)="updatePage(page-1)"
-            class="flex cursor-pointer size-10 items-center justify-center text-slate-500 hover:text-primary"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_left</span>
-          </a>
-          <a (click)="updatePage(0)"
-            class="text-sm cursor-pointer font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-white rounded-lg bg-primary"
-            >1</a
-          >
-          <a (click)="updatePage(1)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >2</a
-          >
-          <a (click)="updatePage(2)"
-            class="text-sm cursor-pointer font-normal leading-normal flex size-10 items-center justify-center text-slate-600 rounded-lg hover:bg-slate-100"
-            >3</a
-          >
-          <a (click)="updatePage(page+1)"
-            class="flex  size-10 items-center justify-center text-slate-500 hover:text-primary cursor-pointer"
-          >
-            <span class="material-symbols-outlined text-lg">chevron_right</span>
-          </a>
-        </div>
-      </main>
-      <div class="move-conatiner bg-black/50" [class.active]="tomove">
-        <div class="content-container ">
-          <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
-          <div class="buttons-folders">
-            <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
-            @for(folder of CustomFolders; track $index){
-              <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
-            }
-          </div>
-          <div class="bottom-btn">
-            <button (click)="tomove=false">Back</button>
-            <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
-          </div>
-        </div>
+    <div class="flex justify-between items-center gap-2 px-6 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
+      <div class="flex gap-2">
+        <button (click)="askDelete()"
+                class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                [disabled]="Emails.length === 0">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+        <button (click)="tomove = true"
+                class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                [disabled]="Emails.length === 0">
+          <span class="material-symbols-outlined">folder_open</span>
+        </button>
+        <button (click)="refreshCurrentPage()"
+                class="p-2 text-slate-500 rounded-lg hover:bg-slate-100 cursor-pointer"
+                title="Reload Emails">
+          <span class="material-symbols-outlined">refresh</span>
+        </button>
       </div>
-      <div class="move-conatiner bg-black/50" [class.active]="tomove">
-        <div class="content-container ">
-          <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
-          <div class="buttons-folders">
-          <button id="trash-btn" (click)="move(folderStateService.userData().trashFolderId)">Trash</button>
-          @for(folder of CustomFolders; track $index){
-            <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
-          }
+      <div class="relative inline-block">
+        <button (click)="toggleSortMenu()"
+                class="flex items-center gap-2 px-3 py-2 text-slate-600 text-sm font-medium hover:bg-slate-100 rounded-lg">
+          Sort by: <span [textContent]="currentSort"></span>
+          <span class="material-symbols-outlined text-lg">expand_more</span>
+        </button>
+        <div *ngIf="showSortMenu" class="absolute right-0 mt-1 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+          <div class="py-1">
+            <button (click)="setSortAndClose('Date (Newest first)')"
+                    [ngClass]="{'bg-blue-50': currentSort === 'Date (Newest first)'}"
+                    class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+              Date (Newest first)
+            </button>
+            <button (click)="setSortAndClose('Date (Oldest first)')"
+                    [ngClass]="{'bg-blue-50': currentSort === 'Date (Oldest first)'}"
+                    class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+              Date (Oldest first)
+            </button>
+            <button (click)="setSortAndClose('Subject (A → Z)')"
+                    [ngClass]="{'bg-blue-50': currentSort === 'Subject (A → Z)'}"
+                    class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+              Subject (A → Z)
+            </button>
           </div>
-          <div class="bottom-btn">
-            <button (click)="tomove=false">Back</button>
-          <button>make new custom Folder</button>
-          </div>
-        </div>
-      </div>
-      <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
-        <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
-          <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
-          <button  (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
-          <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
         </div>
       </div>
     </div>
+
+    <div class="flex-1 px-6 py-4 overflow-x-hidden">
+      <div class="flex overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <table class="w-full text-left">
+          <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="px-4 py-3 w-12">
+              <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-0"
+                     type="checkbox"
+                     #checkbox
+                     (click)="addallemails(checkbox.checked)"
+              />
+            </th>
+
+            <th class="px-4 text-slate-600 w-1/4 text-xs uppercase tracking-wider font-semibold">
+              Sender
+            </th>
+
+            <th class="px-4 text-slate-600 w-1/4 text-xs uppercase tracking-wider font-semibold">
+              Receiver
+            </th>
+
+            <th class="px-4 text-slate-600 w-1/3 text-xs uppercase tracking-wider font-semibold">
+              Subject
+            </th>
+
+            <th class="px-4 text-slate-600 w-1/6 text-xs uppercase tracking-wider font-semibold text-center">
+              Date
+            </th>
+          </tr>
+          </thead>
+          <tbody>
+            @for(item of InboxData; track $index){
+              <tr class="border-t border-t-slate-200 hover:bg-slate-50 transition-colors">
+                <td class="px-4 py-2 w-12">
+                  <input class="h-5 w-5 rounded border-slate-300 bg-transparent text-primary focus:ring-0"
+                         type="checkbox"
+                         (change)="toggleEmailsSelected(item, $any($event.target).checked)"
+                         [checked]="checked(item.mailId)"
+                  />
+                </td>
+
+                <td class="px-4 py-2 w-1/4 text-slate-800 text-sm font-semibold truncate whitespace-nowrap min-w-0 cursor-pointer" (click)="goToMailDetails(item)">
+                  {{item.senderDisplayName || item.sender}}
+                </td>
+
+                <td class="px-4 py-2 w-1/4 text-slate-800 text-sm font-semibold truncate whitespace-nowrap min-w-0 cursor-pointer" (click)="goToMailDetails(item)">
+                  {{ item.receiverDisplayNames && item.receiverDisplayNames.length > 0
+                  ? item.receiverDisplayNames[0]
+                  : (item.receiverEmails && item.receiverEmails.length > 0
+                    ? item.receiverEmails[0]
+                    : '-') }}
+                  <span *ngIf="item.receiverDisplayNames && item.receiverDisplayNames.length > 1"
+                        class="text-slate-500 text-xs ml-1">
+                      +{{ item.receiverDisplayNames.length - 1 }}
+                    </span>
+                </td>
+
+                <td class="px-4 py-2 w-1/3 cursor-pointer" (click)="goToMailDetails(item)">
+                  <div class="flex items-center">
+                    <span class="text-slate-800 text-sm font-semibold truncate">{{item.subject || '(No Subject'}}</span>
+                    <span class="text-slate-500 text-xs ml-2 truncate max-w-[200px]">{{ getSanitizedPreview(item.body) }}</span>
+                  </div>
+                </td>
+
+                <td class="px-4 py-2 w-1/6 text-slate-500 text-sm text-center" (click)="goToMailDetails(item)">
+                  {{item.date | date:'mediumDate'}}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+        <app-pagination-footer
+          [contextKey]="paginationKey"
+          [pages]="paginationPages"
+          [canGoNext]="canGoNext"
+        ></app-pagination-footer>
+      </main>
+
+
+  <div class="move-conatiner bg-black/50" [class.active]="tomove">
+    <div class="content-container">
+      <span style="font-size: large;font-weight: bold;margin-top: 20px">Move email To</span>
+      <div class="buttons-folders">
+        <button (click)="move(folderStateService.userData().inboxFolderId)">Inbox</button>
+        <button (click)="move(folderStateService.userData().sentFolderId)">Sent</button>
+        @for(folder of CustomFolders; track $index){
+          @if(folder.folderId !== MailDetails.getCustomId()){
+            <button (click)="move(folder.folderId)">{{folder.folderName}}</button>
+          }
+        }
+      </div>
+      <div class="bottom-btn">
+        <button (click)="tomove=false">Back</button>
+        <button (click)="CustomFolderPopUp=true">make new custom Folder</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="move-conatiner bg-black/50" [class.active]="showDeleteOptions">
+    <div class="content-container" style="min-height: 250px; gap: 20px;">
+      <span class="text-lg font-bold mt-5 text-red-600">Delete {{Emails.length}} Email(s)</span>
+      <p class="text-slate-600 text-center px-4">Do you want to move these emails to Trash or delete them forever?</p>
+      <div class="flex flex-col gap-3 w-3/4">
+        <button (click)="moveToTrash()" class="bg-amber-100 text-amber-800 hover:bg-amber-200" style="border: 1px solid #d97706;">
+          <span class="material-symbols-outlined align-middle mr-1 text-sm">delete</span>
+          Move to Trash
+        </button>
+        <button (click)="deleteForever()" class="bg-red-100 text-red-800 hover:bg-red-200" style="border: 1px solid #dc2626;">
+          <span class="material-symbols-outlined align-middle mr-1 text-sm">delete_forever</span>
+          Delete Forever
+        </button>
+      </div>
+      <div class="bottom-btn">
+        <button (click)="showDeleteOptions=false">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="move-conatiner bg-black/50" [class.active]="CustomFolderPopUp">
+    <div id="Custom-container" class="content-container bg-amber-50 h-3/12">
+      <input type="text" placeholder="Folders Name.." name="Name" [(ngModel)]="foldername">
+      <button (click)="CreateCustomFolder();CustomFolderPopUp=false">Create</button>
+      <button id="trash-btn" (click)="CustomFolderPopUp=false">Back</button>
+    </div>
+  </div>
+</div>
   `,
   styles: [`
     /* 1. We define the font-family globally here, assuming the font files can be reached */
@@ -447,77 +359,137 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
     }
   `],
 })
-export class CustomFolderPage implements OnInit{
-  constructor(protected MailDetails:MailShuttleService, protected folderStateService: FolderStateService, private http : HttpClient, private router : Router) {
+export class CustomFolderPage implements OnInit, OnDestroy {
+  constructor(protected MailDetails: MailShuttleService, protected folderStateService: FolderStateService, private http: HttpClient, private router: Router, private folderSidebarService: FolderSidebarService, private paginationService: PaginationService, private snackbar: SnackbarService) {
   }
-  CustomFolderPopUp:boolean = false;
-  foldername:string=''
-  Emails:Datafile[]=[];
-  InboxData:Datafile[]=[];
-  CustomFolders:CustomFolderData[]=[];
-  page:number = 0;
-  tomove:boolean=false;
+  CustomFolderPopUp: boolean = false;
+  foldername: string = ''
+  Emails: Datafile[] = [];
+  InboxData: Datafile[] = [];
+  CustomFolders: CustomFolderData[] = [];
+  page: number = 0;
+  readonly paginationKey = 'custom-folder-page';
+  readonly pageSize = 10;
+  paginationPages: number[] = [0];
+  canGoNext = true;
+  tomove: boolean = false;
+  showDeleteOptions: boolean = false;
+  isSearchActive = false;
+  isAdvancedSearch = false;
+  currentSearchKeyword = '';
+  currentAdvancedFilters: MailSearchRequestDto = {};
+  showSortMenu = false;
+  currentSort = 'Date (Newest first)';
   ngOnInit() {
-    this.getCustom(0);
+    this.paginationService.registerContext(this.paginationKey, 0, (page) => this.updatePage(page));
     this.getCustomFolders();
   }
-  updatePage(page:number){
-    if(page<0){
+  ngOnDestroy(): void {
+    this.paginationService.unregisterContext(this.paginationKey);
+  }
+  private resetPaginationState(): void {
+    this.paginationPages = [0];
+    this.canGoNext = true;
+    this.paginationService.resetState(this.paginationKey, 0);
+  }
+
+  private syncPagination(page: number, itemsCount: number): boolean {
+    const state = this.paginationService.updateAfterDataLoad(
+      this.paginationKey,
+      page,
+      itemsCount,
+      this.pageSize,
+    );
+
+    this.paginationPages = state.pages;
+    this.canGoNext = state.canGoNext;
+
+    return true;
+  }
+  updatePage(page: number) {
+    if (page < 0) {
       return;
     }
-    this.page=page;
-    this.getCustom(this.page);
+    this.page = page;
+
+    if (this.currentSort !== 'Date (Newest first)') {
+      const sortByMap: { [key: string]: string } = {
+        'Date (Newest first)': 'date_desc',
+        'Date (Oldest first)': 'date_asc',
+        'Subject (A → Z)': 'subject'
+      };
+      this.applySorting(sortByMap[this.currentSort], this.page);
+    }
+    else if (this.isSearchActive) {
+      if (this.isAdvancedSearch) {
+        this.performAdvancedSearch(this.page);
+      } else {
+        this.performQuickSearch(this.page);
+      }
+    } else {
+      this.getCustom(this.page);
+    }
   }
-  getCustomFolders(){
-    const url = "http://localhost:8080/folders/custom";
+  getCustomFolders() {
+    const url = "http://localhost:8080/api/folders";
     let param = new HttpParams;
-    param = param.set("userId", this.folderStateService.userData().userId);
-    this.http.get<CustomFolderData[]>(url,{params:param}).subscribe({
+    param = param.set("userId", this.folderStateService.userData().userId)
+      .set("type", "custom");
+    this.http.get<CustomFolderData[]>(url, { params: param }).subscribe({
       next: data => {
         this.CustomFolders = data;
         console.log(data);
       },
       error: err => {
         console.log(err);
-        alert("failed to fetch custom folders");
+        this.snackbar.showError('Failed to fetch custom folders');
       }
     })
   }
-  getCustom(page:number){
-    const userData: UserData = this.folderStateService.userData();
-    const CustomId = userData.inboxFolderId;
-    if(!CustomId){
-      console.error('CustomId is missing');
+
+  getCustom(page: number) {
+    const CustomId = this.MailDetails.getCustomId();
+    if (!CustomId) {
+
+      console.error('CustomId is missing, redirecting');
+      this.router.navigate(['/inbox']);
       return;
     }
-    let param = new HttpParams
-    const id = this.MailDetails.getCustomId();
-    param = param.set('page', page);
-    param = param.set("folderId",id);
-    this.http.get<Datafile[]>(`http://localhost:8080/mail/getAllMails`,{params:param}).subscribe({
-      next:(respones) => {
-        this.InboxData=respones;
+    let param = new HttpParams().set('page', page).set("folderId", CustomId);
+    this.http.get<Datafile[]>(`http://localhost:8080/api/mails`, { params: param }).subscribe({
+      next: (respones) => {
+        const canDisplay = this.syncPagination(page, respones.length);
+        if (!canDisplay) {
+          return;
+        }
+
+        this.InboxData = this.transformMailData(respones);
         console.log(respones);
       },
-      error:(respones) => {
-        console.log(respones);
-        alert("failed to fetch mails");
-      }
+      error: () => this.snackbar.showError('Failed to fetch mails')
     })
   }
-  goToMailDetails(details:Datafile){
+
+
+  goToMailDetails(details: Datafile) {
     this.MailDetails.setMailData(details);
-    this.MailDetails.setFromId(this.MailDetails.getCustomId()); 
+    this.MailDetails.setFromId(this.MailDetails.getCustomId());
     console.log(details)
     this.router.navigate([`/mail`]);
   }
-  goToCustomFolder(Id:string){
-    this.MailDetails.setCustom(Id);
-    this.router.navigate([`/Custom`]);
+  goToCustomFolder(Id: string) {
+    const alreadyOnCustom = this.folderSidebarService.navigateToCustomFolder(Id);
+
+    if (alreadyOnCustom) {
+      this.page = 0;
+      this.resetPaginationState();
+      this.paginationService.setPage(this.paginationKey, 0);
+      this.getCustomFolders();
+    }
   }
-  toggleEmailsSelected(email:Datafile,ischecked:boolean){
-    if(ischecked){
-      if(!this.Emails.includes(email)) {
+  toggleEmailsSelected(email: Datafile, ischecked: boolean) {
+    if (ischecked) {
+      if (!this.Emails.includes(email)) {
         this.Emails.push(email);
       }
     }
@@ -528,88 +500,368 @@ export class CustomFolderPage implements OnInit{
       }
     }
   }
-  addallemails(check:boolean){
-    if(check){
-      console.log("added")
-      this.Emails = this.InboxData;
-    }
-    else{
+  addallemails(check: boolean) {
+    if (check) {
+      console.log("added");
+
+      this.Emails = [...this.InboxData];
+    } else {
       console.log("removed");
-      this.Emails=[];
+      this.Emails = [];
     }
   }
-  checked(id:string){
+  checked(id: string) {
     const emailIndex = this.Emails.findIndex(e => e.mailId === id);
     if (emailIndex != -1) {
       return true;
     }
-    else{
+    else {
       return false;
     }
   }
-  delete(){
+  delete() {
     const CustomId = this.MailDetails.getCustomId();
-    const url = `http://localhost:8080/mail/deleteMails/${CustomId}`
-    if(this.Emails.length == 0){
+    const url = `http://localhost:8080/api/mails/${CustomId}`
+    if (this.Emails.length == 0) {
       return
     }
-    let ids:string[]=[];
-    for(let i:number=0; i<this.Emails.length;i++){
+    let ids: string[] = [];
+    for (let i: number = 0; i < this.Emails.length; i++) {
       ids.push(this.Emails[i].mailId);
       /*to remove the email form inbox*/
       const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
+      this.toggleEmailsSelected(this.InboxData[emailIndex], false)
     }
     let params = new HttpParams();
     ids.forEach((id) => {
       params = params.append('ids', id);
     });
-    this.http.delete(url, {params:params}).subscribe({
-      next:(respones) => {
+    this.http.delete(url, { params: params, responseType: 'text' }).subscribe({
+      next: (respones) => {
         console.log(respones);
-      },
-      error:(respones) => {
-        console.log(respones);
-      }
-    })
-  }
-  CreateCustomFolder(){
-    const url = "http://localhost:8080/folders/createFolder"
-    const payload={
-      folderName:this.foldername,
-      folderId:this.folderStateService.userData().inboxFolderId,
-    }
-    this.http.post(url, payload).subscribe({
-      next:(respones) => {
-        console.log(respones);
-      },
-      error:(respones) => {
-        alert("failed to create custom folder");
-      }
-    })
-  }
-  move(moveMailToFolderId:string){
-    let mailids:string[]=[];
-    const url = `http://localhost:8080/mail/move/${moveMailToFolderId}/${this.MailDetails.getCustomId()}`;
-    for(let i:number=0; i<this.Emails.length;i++){
-      mailids.push(this.Emails[i].mailId);
-      const emailIndex = this.InboxData.findIndex(e => e.mailId === this.Emails[i].mailId);
-      this.toggleEmailsSelected(this.InboxData[emailIndex],false)
-    }
-    const payload={
-      ids:mailids
-    }
-    this.http.post(url, payload).subscribe({
-      next:(respones) => {
-        const movedIdsSet = new Set(mailids);
-
-        this.InboxData = this.InboxData.filter(email => !movedIdsSet.has(email.mailId));
-
+        const deletedIds = new Set(ids);
+        this.InboxData = this.InboxData.filter(email => !deletedIds.has(email.mailId));
         this.Emails = [];
       },
-      error:(respones) => {
-        console.log("failed to move");
+      error: (respones) => {
+        console.log(respones);
       }
     })
   }
+  CreateCustomFolder() {
+    const url = "http://localhost:8080/api/folders";
+    const payload = {
+      folderName: this.foldername,
+      folderId: this.folderStateService.userData().inboxFolderId,
+      userId: this.folderStateService.userData().userId,
+    }
+
+    // Add new folder to CustomFolders array immediately for instant UI feedback
+    const newFolder: CustomFolderData = {
+      folderId: payload.folderId,
+      folderName: this.foldername,
+      User: this.folderStateService.userData().userId,
+      mails: []
+    };
+    this.CustomFolders = [...this.CustomFolders, newFolder];
+    this.foldername = '';
+    this.CustomFolderPopUp = false;
+
+    this.http.post(url, payload).subscribe({
+      next: () => {
+        // Sync with server in background
+        this.getCustomFolders();
+      },
+      error: () => this.snackbar.showError('Failed to create custom folder')
+    })
+  }
+
+  move(targetFolderId: string) {
+    if (this.Emails.length === 0) return;
+
+    const currentFolderId = this.MailDetails.getCustomId();
+
+
+    if (!currentFolderId) {
+      this.snackbar.showError('System state lost. Please return to Inbox and try again.');
+      this.router.navigate(['/inbox']);
+      return;
+    }
+
+    const mailIds = this.Emails.map(email => email.mailId);
+    const url = `http://localhost:8080/api/mails/${targetFolderId}/${currentFolderId}`;
+    const payload = { ids: mailIds };
+
+
+    this.http.patch(url, payload, { responseType: 'text' }).subscribe({
+      next: (response) => {
+        const movedIdsSet = new Set(mailIds);
+        this.InboxData = this.InboxData.filter(email => !movedIdsSet.has(email.mailId));
+        this.Emails = [];
+        this.tomove = false;
+      },
+      error: (err) => {
+        console.error("Failed to move", err);
+        this.snackbar.showError('Failed to move emails');
+      }
+    });
+  }
+
+  handleSearch(criteria: any) {
+    console.log('Search criteria:', criteria);
+
+    if (criteria?.keywords) {
+      // Quick keyword search
+      this.isSearchActive = true;
+      this.isAdvancedSearch = false;
+      this.currentSearchKeyword = criteria.keywords;
+      this.currentAdvancedFilters = {};
+      this.currentSort = 'Date (Newest first)';
+      this.page = 0;
+    } else if (criteria?.advancedSearch) {
+      // Advanced filter search
+      this.isSearchActive = true;
+      this.isAdvancedSearch = true;
+      this.currentAdvancedFilters = criteria.advancedSearch;
+      this.currentSearchKeyword = '';
+      this.currentSort = 'Date (Newest first)';
+      this.page = 0;
+    } else {
+      this.handleClearSearch();
+      return;
+    }
+
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
+  }
+
+  performQuickSearch(page: number) {
+    const folderId = this.MailDetails.getCustomId();
+
+    if (!folderId) {
+      console.error('folderId is missing');
+      return;
+    }
+
+    let params = new HttpParams()
+      .set('folderId', folderId)
+      .set('keyword', this.currentSearchKeyword)
+      .set('page', page);
+
+    this.http.get<Datafile[]>('http://localhost:8080/api/mails/search', { params }).subscribe({
+      next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
+        this.InboxData = this.transformMailData(response);
+        console.log('Search results:', response);
+      },
+      error: (error) => {
+        console.error('Search failed:', error);
+        this.snackbar.showError('Failed to search emails');
+      }
+    });
+  }
+
+  performAdvancedSearch(page: number) {
+    const folderId = this.MailDetails.getCustomId();
+
+    if (!folderId) {
+      console.error('folderId is missing');
+      return;
+    }
+
+    let params = new HttpParams()
+      .set('folderId', folderId)
+      .set('page', page);
+
+    this.http.post<Datafile[]>(
+      'http://localhost:8080/api/mails/filter',
+      this.currentAdvancedFilters,
+      { params }
+    ).subscribe({
+      next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
+        this.InboxData = this.transformMailData(response);
+        console.log('Filter results:', response);
+      },
+      error: (error) => {
+        console.error('Filter failed:', error);
+        this.snackbar.showError('Failed to filter emails');
+      }
+    });
+  }
+
+  handleClearSearch() {
+    this.isSearchActive = false;
+    this.isAdvancedSearch = false;
+    this.currentSearchKeyword = '';
+    this.currentAdvancedFilters = {};
+    this.currentSort = 'Date (Newest first)';
+    this.page = 0;
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
+  }
+
+  toggleSortMenu() {
+    this.showSortMenu = !this.showSortMenu;
+  }
+
+  setSortAndClose(sortOption: string) {
+    this.currentSort = sortOption;
+    this.showSortMenu = false;
+    this.page = 0;
+    this.resetPaginationState();
+    this.paginationService.setPage(this.paginationKey, 0);
+  }
+
+  applySorting(sortBy: string, page: number) {
+    const folderId = this.MailDetails.getCustomId();
+    const userId = this.folderStateService.userData().userId;
+
+    if (!folderId || !userId) {
+      console.error('folderId or userId is missing');
+      return;
+    }
+
+    let params = new HttpParams()
+      .set('userId', userId)
+      .set('folderId', folderId)
+      .set('sortBy', sortBy)
+      .set('page', page);
+
+    this.http.get<Datafile[]>('http://localhost:8080/api/mails/sort', { params }).subscribe({
+      next: (response) => {
+        const canDisplay = this.syncPagination(page, response.length);
+        if (!canDisplay) {
+          return;
+        }
+
+        this.InboxData = this.transformMailData(response);
+        console.log('Sorted results:', response);
+      },
+      error: (error) => {
+        console.error('Sort failed:', error);
+        this.snackbar.showError('Failed to sort emails');
+      }
+    });
+  }
+
+  getSanitizedPreview(body: string | undefined): string {
+    if (!body) return '';
+    return body.length > 50 ? body.substring(0, 50) + '...' : body;
+  }
+
+  getPriorityLabel(priority: number | undefined): string {
+    switch (priority) {
+      case 1: return 'Urgent';
+      case 2: return 'High';
+      case 3: return 'Normal';
+      case 4: return 'Low';
+      default: return 'Normal';
+    }
+  }
+
+  transformMailData(mails: Datafile[]): Datafile[] {
+    const currentUserEmail = this.folderStateService.userData().email;
+    return mails.map(mail => {
+      const isSender = mail.sender === currentUserEmail;
+      return {
+        ...mail,
+        senderDisplayName: mail.senderDisplayName || mail.sender,
+        receiverDisplayNames: mail.receiverDisplayNames && mail.receiverDisplayNames.length > 0 ? mail.receiverDisplayNames : ['Unknown']
+      };
+    });
+  }
+  askDelete() {
+    if (this.Emails.length > 0) {
+      this.showDeleteOptions = true;
+    }
+  }
+
+
+  moveToTrash() {
+    const CustomId = this.MailDetails.getCustomId();
+    const url = `http://localhost:8080/api/mails/${CustomId}`;
+
+    if (this.Emails.length == 0) return;
+
+
+    const ids = this.Emails.map(e => e.mailId);
+
+    let params = new HttpParams();
+    ids.forEach((id) => {
+      params = params.append('ids', id);
+    });
+
+    this.http.delete(url, { params: params, responseType: 'text' }).subscribe({
+      next: (respones) => {
+        const deletedIds = new Set(ids);
+        this.InboxData = this.InboxData.filter(email => !deletedIds.has(email.mailId));
+
+        this.Emails = [];
+        this.showDeleteOptions = false;
+      },
+      error: (respones) => this.snackbar.showError('Failed to move to Trash')
+    });
+  }
+
+
+  deleteForever() {
+    if (this.Emails.length === 0) return;
+    const ids = this.Emails.map(e => e.mailId);
+    const url = `http://localhost:8080/api/mails`;
+
+    this.http.request('delete', url, { body: ids, responseType: 'text' }).subscribe({
+      next: () => {
+        const deletedIdsSet = new Set(ids);
+        this.InboxData = this.InboxData.filter(email => !deletedIdsSet.has(email.mailId));
+        this.Emails = [];
+        this.showDeleteOptions = false;
+        console.log("Deleted Forever");
+      },
+      error: (err) => this.snackbar.showError('Failed to delete emails forever')
+    });
+  }
+
+  refreshCurrentPage() {
+    this.Emails = [];
+    this.paginationService.setPage(this.paginationKey, this.page);
+  }
+
+  handleFolderClick(folderId: string) {
+    const alreadyOnCustom = this.folderSidebarService.navigateToCustomFolder(folderId);
+
+    if (alreadyOnCustom) {
+      this.page = 0;
+      this.paginationService.setPage(this.paginationKey, 0);
+      this.getCustomFolders();
+    }
+  }
+
+  handleCreateFolder() {
+    this.CustomFolderPopUp = this.folderSidebarService.openCreateFolderModal();
+  }
+
+  handleRenameFolder(data: { folderId: string, newName: string }) {
+    this.folderSidebarService.renameFolder(data.folderId, data.newName, () => this.getCustomFolders());
+  }
+
+  handleDeleteFolder(folderId: string) {
+    this.CustomFolders = this.CustomFolders.filter(f => f.folderId !== folderId);
+    this.folderSidebarService.deleteFolder(folderId, () => {
+      this.router.navigate(['/inbox']);
+    });
+  }
+
+  getCurrentFolderId(): string {
+    return this.folderSidebarService.getActiveCustomFolderId();
+  }
+
 }

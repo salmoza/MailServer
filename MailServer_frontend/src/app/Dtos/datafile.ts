@@ -1,5 +1,6 @@
 export interface Datafile{
-  attachments:attachment[];
+  receiverEmails: string[];
+  attachmentMetadata:attachment[];
   body:string;
   date:string;
   deletedAt:string;
@@ -11,11 +12,14 @@ export interface Datafile{
   userId:string;
   subject:string;
   senderDisplayName:string;
+  receiverDisplayNames: string[];
+  attachments:attachment[];
 }
 export interface attachment{
+  id: string;
   fileName: string;
-  fileType: string;
-  fileSize:string;
+  filetype: string;
+  fileSize:number;
   attachmentId:string;
 }
 export interface CustomFolderData{

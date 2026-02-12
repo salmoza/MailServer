@@ -1,8 +1,8 @@
 package com.example.backend.services;
 
-import com.example.backend.entities.Folder;
-import com.example.backend.entities.Mail;
-import com.example.backend.entities.User;
+import com.example.backend.model.Folder;
+import com.example.backend.model.Mail;
+import com.example.backend.model.User;
 import com.example.backend.repo.FolderRepo;
 import com.example.backend.repo.MailRepo;
 import com.example.backend.repo.UserRepo;
@@ -28,8 +28,8 @@ public class AutoDeletionService {
 
     @Transactional
 
-    //@Scheduled(fixedRate = 300000)  for testing
-    @Scheduled(cron = "0 0 3 * * *")
+    @Scheduled(fixedRate = 150000)
+    /*@Scheduled(cron = "0 0 3 * * *")*/
     public void deleteOldMails() {
 
         List<User> users = userRepo.findAll() ;
