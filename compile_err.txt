@@ -1,0 +1,58 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< com.example:backend >-------------------------
+[INFO] Building backend 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ backend ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.14.1:compile (default-compile) @ backend ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 90 source files with javac [debug parameters release 17] to target\classes
+[INFO] Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] /D:/MailServer/backend/src/main/java/com/example/backend/entities/MailSnapshot.java:[34,26] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /D:/MailServer/backend/src/main/java/com/example/backend/model/MailSnapshot.java:[49,26] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[WARNING] /D:/MailServer/backend/src/main/java/com/example/backend/model/Mail.java:[28,26] @Builder will ignore the initializing expression entirely. If you want the initializing expression to serve as default, add @Builder.Default. If it is not supposed to be settable during building, make the field final.
+[INFO] 3 warnings 
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/factories/AttachmentFactory.java:[15,28] cannot find symbol
+  symbol:   method getFilePath()
+  location: variable dto of type com.example.backend.dtos.AttachmentDto
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/factories/UserFactory.java:[27,39] incompatible types: java.util.List<com.example.backend.entities.Folder> cannot be converted to java.util.List<com.example.backend.model.Folder>
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/factories/UserFactory.java:[42,39] incompatible types: java.util.List<com.example.backend.model.Folder> cannot be converted to java.util.List<com.example.backend.entities.Folder>
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/services/mailService/strategy/SortByDate.java:[10,8] com.example.backend.services.mailService.strategy.SortByDate is not abstract and does not override abstract method sort(java.util.List<com.example.backend.model.Mail>) in com.example.backend.services.mailService.strategy.MailSortingStrategy
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/services/mailService/strategy/SortByDate.java:[12,23] name clash: sort(java.util.List<com.example.backend.entities.Mail>) in com.example.backend.services.mailService.strategy.SortByDate and sort(java.util.List<com.example.backend.model.Mail>) in com.example.backend.services.mailService.strategy.MailSortingStrategy have the same erasure, yet neither overrides the other
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/services/mailService/strategy/SortByDate.java:[11,5] method does not override or implement a method from a supertype
+[INFO] 6 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  4.047 s
+[INFO] Finished at: 2026-02-12T16:21:12+02:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile (default-compile) on project backend: Compilation failure: Compilation failure: 
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/factories/AttachmentFactory.java:[15,28] cannot find symbol
+[ERROR]   symbol:   method getFilePath()
+[ERROR]   location: variable dto of type com.example.backend.dtos.AttachmentDto
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/factories/UserFactory.java:[27,39] incompatible types: java.util.List<com.example.backend.entities.Folder> cannot be converted to java.util.List<com.example.backend.model.Folder>
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/factories/UserFactory.java:[42,39] incompatible types: java.util.List<com.example.backend.model.Folder> cannot be converted to java.util.List<com.example.backend.entities.Folder>
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/services/mailService/strategy/SortByDate.java:[10,8] com.example.backend.services.mailService.strategy.SortByDate is not abstract and does not override abstract method sort(java.util.List<com.example.backend.model.Mail>) in com.example.backend.services.mailService.strategy.MailSortingStrategy
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/services/mailService/strategy/SortByDate.java:[12,23] name clash: sort(java.util.List<com.example.backend.entities.Mail>) in com.example.backend.services.mailService.strategy.SortByDate and sort(java.util.List<com.example.backend.model.Mail>) in com.example.backend.services.mailService.strategy.MailSortingStrategy have the same erasure, yet neither overrides the other
+[ERROR] /D:/MailServer/backend/src/main/java/com/example/backend/services/mailService/strategy/SortByDate.java:[11,5] method does not override or implement a method from a supertype
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
